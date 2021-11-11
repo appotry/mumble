@@ -986,7 +986,7 @@ This value allows you to set the maximum number of users allowed in the channel.
     </message>
     <message>
         <source>Enable Opus&apos; low-delay mode when the quality is set to &lt;b&gt;64 kb/s&lt;/b&gt; or higher. </source>
-        <translation>当质量设置为 &lt;b&gt;64 千比特/秒&lt;/b&gt;或更高时，启用 Opus 的低延迟模式。</translation>
+        <translation>当音质设置为 &lt;b&gt;64 千比特/秒&lt;/b&gt;或更高时，启用 Opus 的低延迟模式。 </translation>
     </message>
     <message>
         <source>If checked, Mumble will enable Opus&apos; low-delay mode when the quality is set to &lt;b&gt;64 kbit/s&lt;/b&gt; or higher. Low-delay mode decreases latency by &lt;b&gt;~15 milliseconds&lt;/b&gt; in the round trip. This mode may require an higher bitrate to preserve the same quality, in comparison with the music and VOIP modes.</source>
@@ -3410,7 +3410,7 @@ Without this option enabled, using Mumble&apos;s global shortcuts in privileged 
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Mumble&apos;s Global Shortcuts system does currently not work in combination with the Wayland protocol. For more information, visit &lt;a href=&quot;https://github.com/mumble-voip/mumble/issues/5257&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0057ae;&quot;&gt;https://github.com/mumble-voip/mumble/issues/5257&lt;/span&gt;&lt;/a&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Mumble 的全局快捷键系统目前无法与 Wayland 协议结合使用。 欲了解更多信息，请访问 &lt;a href=&quot;https://github.com/mumble-voip/mumble/issues/5257&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0057ae;&quot;&gt;https://github.com/mumble-voip/mumble/issues/5257&lt;/span&gt;&lt;/a&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
@@ -4061,7 +4061,7 @@ The setting only applies for new messages, the already shown ones will retain th
     </message>
     <message>
         <source>Misc.</source>
-        <translation>杂项</translation>
+        <translation>杂项.</translation>
     </message>
     <message>
         <source>Number of users that will trigger message limiting functionality.</source>
@@ -6483,7 +6483,7 @@ mumble://[&lt;用户名&gt;[:&lt;密码&gt;]@]&lt;主机名&gt;[:&lt;端口&gt;]
     </message>
     <message>
         <source>m</source>
-        <translation> 米</translation>
+        <translation>手动</translation>
     </message>
     <message>
         <source>Heading</source>
@@ -8169,7 +8169,7 @@ You can register them again.</source>
     </message>
     <message>
         <source>, </source>
-        <translation>，</translation>
+        <translation>, </translation>
     </message>
     <message>
         <source>Root</source>
@@ -8441,7 +8441,7 @@ An access token is a text string, which can be used as a password for very simpl
     </message>
     <message>
         <source>, </source>
-        <translation>，</translation>
+        <translation>, </translation>
     </message>
     <message>
         <source>%1 (%2)</source>
@@ -8964,7 +8964,7 @@ Please contact your server administrator for further information.</source>
     </message>
     <message>
         <source>Unable to start recording - the audio output is miconfigured (0Hz sample rate)</source>
-        <translation type="unfinished"></translation>
+        <translation>无法开始录音 - 音频输出配置错误（采样率为 0Hz）</translation>
     </message>
 </context>
 <context>
