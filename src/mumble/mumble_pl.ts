@@ -4512,7 +4512,7 @@ Ustawienie dotyczy tylko nowych wiadomości, te już pokazane zachowają poprzed
     </message>
     <message>
         <source>Search</source>
-        <translation>Szukaj</translation>
+        <translation>Szukanie</translation>
     </message>
     <message>
         <source>The action to perform when a user is activated (via double-click or enter) in the search dialog.</source>
@@ -8977,7 +8977,7 @@ Skontaktuj się z administratorem serwera po dalsze informacje.</translation>
     </message>
     <message>
         <source>Unable to start recording - the audio output is miconfigured (0Hz sample rate)</source>
-        <translation type="unfinished"></translation>
+        <translation>Nie można rozpocząć nagrywania - wyjście audio jest źle skonfigurowane (częstotliwość próbkowania 0 Hz)</translation>
     </message>
 </context>
 <context>
