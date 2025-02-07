@@ -1,4 +1,4 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -7,10 +7,6 @@
 
 #include "AudioInput.h"
 #include "AudioOutput.h"
-#include "CELTCodec.h"
-#ifdef USE_OPUS
-#	include "OpusCodec.h"
-#endif
 #include "Log.h"
 #include "PacketDataStream.h"
 #include "PluginManager.h"
@@ -18,74 +14,12 @@
 
 #include <QtCore/QObject>
 
+#include <cstring>
 
-class CodecInit : public DeferInit {
-public:
-	void initialize();
-	void destroy();
-};
 
 #define DOUBLE_RAND (rand() / static_cast< double >(RAND_MAX))
 
 LoopUser LoopUser::lpLoopy;
-CodecInit ciInit;
-
-void CodecInit::initialize() {
-#ifdef USE_OPUS
-	OpusCodec *oCodec = new OpusCodec();
-	if (oCodec->isValid()) {
-		oCodec->report();
-		Global::get().oCodec = oCodec;
-	} else {
-		Log::logOrDefer(
-			Log::CriticalError,
-			QObject::tr("CodecInit: Failed to load Opus, it will not be available for encoding/decoding audio."));
-		delete oCodec;
-	}
-#endif
-
-	if (Global::get().s.bDisableCELT) {
-		// Kill switch for CELT activated. Do not initialize it.
-		return;
-	}
-
-	CELTCodec *codec = nullptr;
-
-#ifdef USE_SBCELT
-	codec = new CELTCodecSBCELT();
-	if (codec->isValid()) {
-		codec->report();
-		Global::get().qmCodecs.insert(codec->bitstreamVersion(), codec);
-	} else {
-		delete codec;
-	}
-#else
-	codec = new CELTCodec070(QLatin1String("0.7.0"));
-	if (codec->isValid()) {
-		codec->report();
-		Global::get().qmCodecs.insert(codec->bitstreamVersion(), codec);
-	} else {
-		delete codec;
-		codec = new CELTCodec070(QLatin1String("0.0.0"));
-		if (codec->isValid()) {
-			codec->report();
-			Global::get().qmCodecs.insert(codec->bitstreamVersion(), codec);
-		} else {
-			delete codec;
-		}
-	}
-#endif
-}
-
-void CodecInit::destroy() {
-#ifdef USE_OPUS
-	delete Global::get().oCodec;
-#endif
-
-	foreach (CELTCodec *codec, Global::get().qmCodecs)
-		delete codec;
-	Global::get().qmCodecs.clear();
-}
 
 LoopUser::LoopUser() {
 	qsName    = QLatin1String("Loopy");
@@ -99,7 +33,7 @@ LoopUser::LoopUser() {
 	qetLastFetch.start();
 }
 
-void LoopUser::addFrame(const QByteArray &packet) {
+void LoopUser::addFrame(const Mumble::Protocol::AudioData &audioData) {
 	if (DOUBLE_RAND < Global::get().s.dPacketLoss) {
 		qWarning("Drop");
 		return;
@@ -109,24 +43,38 @@ void LoopUser::addFrame(const QByteArray &packet) {
 		QMutexLocker l(&qmLock);
 		bool restart = (qetLastFetch.elapsed() > 100);
 
-		double time = qetTicker.elapsed();
+		qint64 time = qetTicker.elapsed();
 
-		double r;
+		float r;
 		if (restart)
-			r = 0.0;
+			r = 0;
 		else
-			r = DOUBLE_RAND * Global::get().s.dMaxPacketDelay;
+			r = static_cast< float >(DOUBLE_RAND * Global::get().s.dMaxPacketDelay);
 
-		qmPackets.insert(static_cast< float >(time + r), packet);
+
+		float virtualArrivalTime = static_cast< float >(time) + r;
+		// Insert default-constructed AudioPacket object and only then fill its data in-place. This is necessary to
+		// avoid any moving around of the payload vector which would mess up our pointers in the AudioData object.
+		m_packets[virtualArrivalTime] = AudioPacket{};
+		AudioPacket &packet           = m_packets[virtualArrivalTime];
+
+		// copy audio data to packet
+		packet.payload.resize(audioData.payload.size());
+		std::memcpy(packet.payload.data(), audioData.payload.data(), audioData.payload.size());
+
+		packet.audioData = audioData;
+		// The audio data is now stored in the payload vector and thus this is where we should point the used view (we
+		// don't own the original buffer and can thus not guarantee what happens with it once this function returns).
+		packet.audioData.payload = { packet.payload.data(), packet.payload.size() };
 	}
 
 	// Restart check
 	if (qetLastFetch.elapsed() > 100) {
 		AudioOutputPtr ao = Global::get().ao;
 		if (ao) {
-			MessageHandler::UDPMessageType msgType =
-				static_cast< MessageHandler::UDPMessageType >((packet.at(0) >> 5) & 0x7);
-			ao->addFrameToBuffer(this, QByteArray(), 0, msgType);
+			Mumble::Protocol::AudioData empty;
+			empty.usedCodec = audioData.usedCodec;
+			ao->addFrameToBuffer(this, empty);
 		}
 	}
 }
@@ -135,70 +83,42 @@ void LoopUser::fetchFrames() {
 	QMutexLocker l(&qmLock);
 
 	AudioOutputPtr ao(Global::get().ao);
-	if (!ao || qmPackets.isEmpty()) {
+	if (!ao || m_packets.empty()) {
 		return;
 	}
 
-	double cmp = qetTicker.elapsed();
+	float cmp = static_cast< float >(qetTicker.elapsed());
 
-	QMultiMap< float, QByteArray >::iterator i = qmPackets.begin();
-
-	while (i != qmPackets.end()) {
-		if (i.key() > cmp)
+	auto it = m_packets.begin();
+	while (it != m_packets.end()) {
+		if (it->first > cmp) {
 			break;
+		}
 
-		int iSeq;
-		const QByteArray &data = i.value();
-		PacketDataStream pds(data.constData(), data.size());
+		ao->addFrameToBuffer(this, it->second.audioData);
 
-		unsigned int msgFlags = static_cast< unsigned int >(pds.next());
-
-		pds >> iSeq;
-
-		QByteArray qba;
-		qba.reserve(pds.left() + 1);
-		qba.append(static_cast< char >(msgFlags));
-		qba.append(pds.dataBlock(pds.left()));
-
-		MessageHandler::UDPMessageType msgType = static_cast< MessageHandler::UDPMessageType >((msgFlags >> 5) & 0x7);
-
-		ao->addFrameToBuffer(this, qba, iSeq, msgType);
-		i = qmPackets.erase(i);
+		it = m_packets.erase(it);
 	}
 
 	qetLastFetch.restart();
 }
 
-RecordUser::RecordUser() : LoopUser() {
+RecordUser::RecordUser() {
 	qsName = QLatin1String("Recorder");
 }
 
 RecordUser::~RecordUser() {
 	AudioOutputPtr ao = Global::get().ao;
 	if (ao)
-		ao->removeBuffer(this);
+		ao->removeUser(this);
 }
 
-void RecordUser::addFrame(const QByteArray &packet) {
+void RecordUser::addFrame(const Mumble::Protocol::AudioData &audioData) {
 	AudioOutputPtr ao(Global::get().ao);
 	if (!ao)
 		return;
 
-	int iSeq;
-	PacketDataStream pds(packet.constData(), packet.size());
-
-	unsigned int msgFlags = static_cast< unsigned int >(pds.next());
-
-	pds >> iSeq;
-
-	QByteArray qba;
-	qba.reserve(pds.left() + 1);
-	qba.append(static_cast< char >(msgFlags));
-	qba.append(pds.dataBlock(pds.left()));
-
-	MessageHandler::UDPMessageType msgType = static_cast< MessageHandler::UDPMessageType >((msgFlags >> 5) & 0x7);
-
-	ao->addFrameToBuffer(this, qba, iSeq, msgType);
+	ao->addFrameToBuffer(this, audioData);
 }
 
 void Audio::startOutput(const QString &output) {

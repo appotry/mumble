@@ -1,4 +1,4 @@
-// Copyright 2009-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -75,7 +75,7 @@ protected:
 	QIcon qiDeafenedSelf, qiDeafenedServer;
 	QIcon qiAuthenticated, qiChannel, qiLinkedChannel, qiActiveChannel;
 	QIcon qiFriend;
-	QIcon qiComment, qiCommentSeen, qiFilter;
+	QIcon qiComment, qiCommentSeen, qiFilter, qiPin;
 	QIcon qiLock_locked, qiLock_unlocked;
 	QIcon qiEar;
 	ModelItem *miRoot;
@@ -133,14 +133,14 @@ public:
 	/// @param session The session ID of the respective User
 	void setSelectedUser(unsigned int session);
 
-	Channel *addChannel(int id, Channel *p, const QString &name);
+	Channel *addChannel(unsigned int id, Channel *p, const QString &name);
 	Channel *getChannel(const QModelIndex &idx) const;
 	/// @returns A pointer to the currently selected Channel or nullptr if there is none
 	Channel *getSelectedChannel() const;
 	/// Sets the selection to the Channel with the given ID
 	///
 	/// @param session The ID of the respective Channel
-	void setSelectedChannel(int id);
+	void setSelectedChannel(unsigned int id);
 
 	/// Adds the guven user as a listener to the given channel
 	///
@@ -161,7 +161,7 @@ public:
 	///
 	/// @param userSession The session ID of the respective User
 	/// @param channelID The ID of the respective Channel
-	void setSelectedChannelListener(unsigned int userSession, int channelID);
+	void setSelectedChannelListener(unsigned int userSession, unsigned int channelID);
 
 	Channel *getSubChannel(Channel *p, int idx) const;
 
@@ -208,11 +208,11 @@ public:
 public slots:
 	/// Invalidates the model data of the ClientUser triggering this slot.
 	void userStateChanged();
-	void on_channelListenerLocalVolumeAdjustmentChanged(int channelID, float oldValue, float newValue);
+	void on_channelListenerLocalVolumeAdjustmentChanged(unsigned int channelID, float oldValue, float newValue);
 	void ensureSelfVisible();
 	void recheckLinks();
 	void updateOverlay() const;
-	void toggleChannelFiltered(Channel *c);
+	void forceVisualUpdate(Channel *c = nullptr);
 signals:
 	/// A signal emitted whenever a user is added to the model.
 	///
@@ -225,15 +225,15 @@ signals:
 	/// A signal that emitted whenever a channel is added to the model.
 	///
 	/// @param channelID The ID of the channel
-	void channelAdded(int channelID);
+	void channelAdded(unsigned int channelID);
 	/// A signal that emitted whenever a channel is removed from the model.
 	///
 	/// @param channelID The ID of the channel
-	void channelRemoved(int channelID);
+	void channelRemoved(unsigned int channelID);
 	/// A signal that emitted whenever a channel is renamed.
 	///
 	/// @param channelID The ID of the channel
-	void channelRenamed(int channelID);
+	void channelRenamed(unsigned int channelID);
 };
 
 #endif

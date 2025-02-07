@@ -1,4 +1,4 @@
-// Copyright 2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -157,7 +157,8 @@ bool PluginManager::eventFilter(QObject *target, QEvent *event) {
 		// them. However we want to process each event only once.
 		if (!kEvent->isAutoRepeat() && !processedEvents.contains(kEvent)) {
 			// Fire event
-			emit keyEvent(kEvent->key(), kEvent->modifiers(), kEvent->type() == QEvent::KeyPress);
+			emit keyEvent(static_cast< unsigned int >(kEvent->key()), kEvent->modifiers(),
+						  kEvent->type() == QEvent::KeyPress);
 
 			processedEvents << kEvent;
 
@@ -175,7 +176,7 @@ bool PluginManager::eventFilter(QObject *target, QEvent *event) {
 	return QObject::eventFilter(target, event);
 }
 
-void PluginManager::unloadPlugins() const {
+void PluginManager::unloadPlugins() {
 	QReadLocker lock(&m_pluginCollectionLock);
 
 	auto it = m_pluginHashMap.begin();
@@ -191,7 +192,7 @@ void PluginManager::clearPlugins() {
 	// removed from the pluginHashMap.
 	// This could lead to one of the plugins making an API call in its shutdown function which then would try
 	// to verify the plugin's ID. For that it'll ask this PluginManager for a plugin with that ID. To check
-	// that it will have to aquire a read-lock for the pluginHashMap which is impossible after we aquire the
+	// that it will have to acquire a read-lock for the pluginHashMap which is impossible after we acquire the
 	// write-lock in this function leading to a deadlock.
 	unloadPlugins();
 
@@ -299,7 +300,6 @@ void PluginManager::rescanPlugins() {
 					// map
 					m_pluginHashMap.insert(p->getID(), p);
 				} catch (const PluginError &e) {
-					Q_UNUSED(e);
 					// If an exception is thrown, this library does not represent a proper plugin
 					// Check if it might be a legacy plugin instead
 					try {
@@ -309,14 +309,14 @@ void PluginManager::rescanPlugins() {
 						LOG_FOUND_LEGACY_PLUGIN(lp, currentInfo.absoluteFilePath());
 #endif
 						m_pluginHashMap.insert(lp->getID(), lp);
-					} catch (const PluginError &e) {
-						Q_UNUSED(e);
+					} catch (const PluginError &el) {
+						Q_UNUSED(el);
 
 						// At the time this function is running the MainWindow is not necessarily created yet, so we
 						// can't use the normal Log::log function
-						Log::logOrDefer(
-							Log::Warning,
-							tr("Non-plugin found in plugin directory: \"%1\"").arg(currentInfo.absoluteFilePath()));
+						Log::logOrDefer(Log::Warning, tr("Non-plugin found in plugin directory: \"%1\" (%2)")
+														  .arg(currentInfo.absoluteFilePath())
+														  .arg(QString::fromUtf8(e.what())));
 					}
 				}
 			}
@@ -538,7 +538,7 @@ bool PluginManager::loadPlugin(plugin_id_t pluginID) const {
 	return false;
 }
 
-void PluginManager::unloadPlugin(plugin_id_t pluginID) const {
+void PluginManager::unloadPlugin(plugin_id_t pluginID) {
 	plugin_ptr_t plugin;
 	{
 		QReadLocker lock(&m_pluginCollectionLock);
@@ -551,9 +551,20 @@ void PluginManager::unloadPlugin(plugin_id_t pluginID) const {
 	}
 }
 
-void PluginManager::unloadPlugin(Plugin &plugin) const {
+void PluginManager::unloadPlugin(Plugin &plugin) {
 	if (plugin.isLoaded()) {
 		// Only shut down loaded plugins
+
+		bool isActivePosDataPlugin = false;
+		{
+			QWriteLocker lock(&m_activePosDataPluginLock);
+			isActivePosDataPlugin = &plugin == m_activePositionalDataPlugin.get();
+		}
+
+		if (isActivePosDataPlugin) {
+			unlinkPositionalData();
+		}
+
 		plugin.shutdown();
 	}
 }
@@ -656,8 +667,9 @@ void PluginManager::on_channelEntered(const Channel *newChannel, const Channel *
 
 	foreachPlugin([user, newChannel, prevChannel, connectionID](Plugin &plugin) {
 		if (plugin.isLoaded()) {
-			plugin.onChannelEntered(connectionID, user->uiSession, prevChannel ? prevChannel->iId : -1,
-									newChannel->iId);
+			plugin.onChannelEntered(connectionID, user->uiSession,
+									prevChannel ? static_cast< int >(prevChannel->iId) : -1,
+									static_cast< int >(newChannel->iId));
 		}
 	});
 }
@@ -671,7 +683,7 @@ void PluginManager::on_channelExited(const Channel *channel, const User *user) c
 
 	foreachPlugin([user, channel, connectionID](Plugin &plugin) {
 		if (plugin.isLoaded()) {
-			plugin.onChannelExited(connectionID, user->uiSession, channel->iId);
+			plugin.onChannelExited(connectionID, user->uiSession, static_cast< int >(channel->iId));
 		}
 	});
 }
@@ -728,7 +740,7 @@ void PluginManager::on_userTalkingStateChanged() const {
 
 		if (ts == MUMBLE_TS_INVALID) {
 			qWarning("PluginManager.cpp: Invalid talking state encountered");
-			// An error occured
+			// An error occurred
 			return;
 		}
 
@@ -751,7 +763,8 @@ void PluginManager::on_audioInput(short *inputPCM, unsigned int sampleCount, uns
 
 	foreachPlugin([inputPCM, sampleCount, channelCount, sampleRate, isSpeech](Plugin &plugin) {
 		if (plugin.isLoaded()) {
-			plugin.onAudioInput(inputPCM, sampleCount, channelCount, sampleRate, isSpeech);
+			plugin.onAudioInput(inputPCM, sampleCount, static_cast< std::uint16_t >(channelCount), sampleRate,
+								isSpeech);
 		}
 	});
 }
@@ -768,8 +781,8 @@ void PluginManager::on_audioSourceFetched(float *outputPCM, unsigned int sampleC
 
 	foreachPlugin([outputPCM, sampleCount, channelCount, sampleRate, isSpeech, user](Plugin &plugin) {
 		if (plugin.isLoaded()) {
-			plugin.onAudioSourceFetched(outputPCM, sampleCount, channelCount, sampleRate, isSpeech,
-										user ? user->uiSession : -1);
+			plugin.onAudioSourceFetched(outputPCM, sampleCount, static_cast< std::uint16_t >(channelCount), sampleRate,
+										isSpeech, user ? user->uiSession : static_cast< unsigned int >(-1));
 		}
 	});
 }
@@ -782,7 +795,8 @@ void PluginManager::on_audioOutputAboutToPlay(float *outputPCM, unsigned int sam
 #endif
 	foreachPlugin([outputPCM, sampleCount, channelCount, sampleRate, modifiedAudio](Plugin &plugin) {
 		if (plugin.isLoaded()) {
-			if (plugin.onAudioOutputAboutToPlay(outputPCM, sampleCount, channelCount, sampleRate)) {
+			if (plugin.onAudioOutputAboutToPlay(outputPCM, sampleCount, static_cast< std::uint16_t >(channelCount),
+												sampleRate)) {
 				*modifiedAudio = true;
 			}
 		}
@@ -912,8 +926,8 @@ void PluginManager::on_syncPositionalData() {
 	if (fetchPositionalData()) {
 		// Sync the gathered data (context + identity) with the server
 		if (!Global::get().uiSession) {
-			// For some reason the local session ID is not set -> clear all data sent to the server in order to gurantee
-			// a re-send once the session is restored and there is data available
+			// For some reason the local session ID is not set -> clear all data sent to the server in order to
+			// guarantee a re-send once the session is restored and there is data available
 			QMutexLocker mLock(&m_sentDataMutex);
 
 			m_sentData.context.clear();
@@ -930,7 +944,8 @@ void PluginManager::on_syncPositionalData() {
 
 				if (m_sentData.context != m_positionalData.m_context) {
 					m_sentData.context = m_positionalData.m_context;
-					mpus.set_plugin_context(m_sentData.context.toUtf8().constData(), m_sentData.context.size());
+					mpus.set_plugin_context(m_sentData.context.toUtf8().constData(),
+											static_cast< std::size_t >(m_sentData.context.size()));
 				}
 				if (m_sentData.identity != m_positionalData.m_identity) {
 					m_sentData.identity = m_positionalData.m_identity;
@@ -942,6 +957,24 @@ void PluginManager::on_syncPositionalData() {
 					Global::get().sh->sendMessage(mpus);
 				}
 			}
+		}
+	} else {
+		QMutexLocker mLock(&m_sentDataMutex);
+
+		if (!m_sentData.identity.isEmpty() || !m_sentData.context.isEmpty()) {
+			// The server has been sent non-empty identity and/or context but we are now no longer able to fetch
+			// positional data. That means that the respective plugin has been unlinked and thus we want to clear the
+			// identity and context set on the server.
+			MumbleProto::UserState mpus;
+			mpus.set_plugin_context("");
+			mpus.set_plugin_identity("");
+
+			if (Global::get().sh) {
+				Global::get().sh->sendMessage(mpus);
+			}
+
+			m_sentData.identity.clear();
+			m_sentData.context.clear();
 		}
 	}
 }
@@ -974,7 +1007,9 @@ void PluginManager::reportLostLink(mumble_plugin_id_t pluginID) {
 
 	const_plugin_ptr_t plugin = getPlugin(pluginID);
 
-	if (plugin) {
+	// Need to check for the presence of Global::get().l in case we are currently
+	// shutting down Mumble in which case the Log might already have been deleted.
+	if (plugin && Global::get().l) {
 		Global::get().l->log(Log::Information,
 							 PluginManager::tr("%1 lost link").arg(plugin->getName().toHtmlEscaped()));
 	}

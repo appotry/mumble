@@ -1,4 +1,4 @@
-// Copyright 2016-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -25,7 +25,7 @@ struct Position2D {
 // We need this typedef in order to be able to pass this hash as an argument
 // to QMetaObject::invokeMethod
 using PositionMap = QHash< unsigned int, Position2D >;
-Q_DECLARE_METATYPE(PositionMap);
+Q_DECLARE_METATYPE(PositionMap)
 
 
 /// A struct holding information about a stale entry in the
@@ -83,7 +83,7 @@ MumblePlugin *ManualPlugin_getMumblePlugin();
 MumblePluginQt *ManualPlugin_getMumblePluginQt();
 
 
-/// A built-in "plugin" for positional data gatherig allowing for manually placing the "players" in a UI
+/// A built-in "plugin" for positional data gathering allowing for manually placing the "players" in a UI
 class ManualPlugin : public LegacyPlugin {
 	friend class Plugin; // needed in order for Plugin::createNew to access LegacyPlugin::doInitialize()
 private:

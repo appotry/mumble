@@ -1,9 +1,10 @@
-// Copyright 2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
 
 #include "SearchDialog.h"
+#include "Accessibility.h"
 #include "Channel.h"
 #include "ClientUser.h"
 #include "MainWindow.h"
@@ -51,31 +52,32 @@ QString SearchDialog::toString(ChannelAction action) {
 }
 
 class SearchResultItem : public QTreeWidgetItem {
-	Q_DISABLE_COPY(SearchResultItem);
+	Q_DISABLE_COPY(SearchResultItem)
 
 public:
 	template< typename parent_t >
 	SearchResultItem(const SearchResult &result, unsigned int id, parent_t parent,
 					 QTreeWidgetItem *precedingItem = nullptr)
 		: QTreeWidgetItem(parent, precedingItem), m_result(result), m_id(id) {
-		constexpr int typeColumn  = 0;
-		constexpr int matchColumn = 1;
+		constexpr int TYPE_COLUMN  = 0;
+		constexpr int MATCH_COLUMN = 1;
 
 		if (m_result.type == SearchType::User) {
 			QIcon userIcon = QIcon(QLatin1String("skin:talking_off.svg"));
-			setIcon(typeColumn, userIcon);
+			setIcon(TYPE_COLUMN, userIcon);
 		}
 
 		setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicator);
 
-		QString matchText =
-			m_result.fullText.replace(m_result.begin, m_result.length,
-									  "<b>" + m_result.fullText.midRef(m_result.begin, m_result.length) + "</b>");
+		const qsizetype begin  = m_result.begin;
+		const qsizetype length = m_result.length;
+		const QString matchText =
+			m_result.fullText.replace(begin, length, "<b>" + m_result.fullText.mid(begin, length) + "</b>");
 
-		setData(matchColumn, Qt::DisplayRole, std::move(matchText));
-		setData(matchColumn, SearchDialogItemDelegate::CHANNEL_TREE_ROLE, m_result.channelHierarchy);
+		setData(MATCH_COLUMN, Qt::DisplayRole, std::move(matchText));
+		setData(MATCH_COLUMN, SearchDialogItemDelegate::CHANNEL_TREE_ROLE, m_result.channelHierarchy);
 
-		setTextAlignment(matchColumn, Qt::AlignLeft | Qt::AlignVCenter);
+		setTextAlignment(MATCH_COLUMN, Qt::AlignLeft | Qt::AlignVCenter);
 	}
 
 	unsigned int getID() const { return m_id; }
@@ -88,23 +90,23 @@ private:
 };
 
 class ChannelItem : public QTreeWidgetItem {
-	Q_DISABLE_COPY(ChannelItem);
+	Q_DISABLE_COPY(ChannelItem)
 
 public:
 	template< typename parent_t >
 	ChannelItem(const Channel *chan, parent_t parent = nullptr, QTreeWidgetItem *precedingItem = nullptr)
 		: QTreeWidgetItem(parent, precedingItem), m_chanID(chan->iId) {
-		constexpr int nameColumn = 0;
+		constexpr int NAME_COLUMN = 0;
 
-		setText(nameColumn, chan->qsName);
+		setText(NAME_COLUMN, chan->qsName);
 
-		setTextAlignment(nameColumn, Qt::AlignLeft | Qt::AlignVCenter);
+		setTextAlignment(NAME_COLUMN, Qt::AlignLeft | Qt::AlignVCenter);
 	}
 
-	int getChannelID() const { return m_chanID; }
+	unsigned int getChannelID() const { return m_chanID; }
 
 private:
-	int m_chanID;
+	unsigned int m_chanID;
 };
 
 SearchDialog::SearchDialog(QWidget *parent) : QWidget(parent), m_itemDelegate(new SearchDialogItemDelegate()) {
@@ -140,7 +142,7 @@ SearchDialog::SearchDialog(QWidget *parent) : QWidget(parent), m_itemDelegate(ne
 	searchResultTree->header()->hide();
 
 	QFontMetrics metric(searchResultTree->font());
-	searchResultTree->header()->resizeSection(0, metric.height() * 1.2);
+	searchResultTree->header()->resizeSection(0, static_cast< int >(metric.height() * 1.2));
 	searchResultTree->setIconSize(QSize(metric.ascent(), metric.ascent()));
 
 	if (Global::get().mw) {
@@ -158,7 +160,7 @@ SearchDialog::SearchDialog(QWidget *parent) : QWidget(parent), m_itemDelegate(ne
 }
 
 void SearchDialog::on_toggleOptions_clicked() {
-	// Togle the search option's visibility
+	// Toggle the search option's visibility
 	Global::get().s.searchOptionsShown = !searchOptionBox->isVisible();
 
 	searchOptionBox->setVisible(Global::get().s.searchOptionsShown);
@@ -226,14 +228,21 @@ void SearchDialog::on_searchResultTree_currentItemChanged(QTreeWidgetItem *c, QT
 		if (user) {
 			// Only try to select the user if (s)he still exists
 			Global::get().mw->pmModel->setSelectedUser(user->uiSession);
+			item.setData(1, Qt::AccessibleTextRole, Mumble::Accessibility::userToText(user));
 		}
 	} else {
-		const Channel *channel = Channel::get(static_cast< int >(item.getID()));
+		const Channel *channel = Channel::get(item.getID());
 
 		if (channel) {
 			// Only try to select the channel if it still exists
 			Global::get().mw->pmModel->setSelectedChannel(channel->iId);
+			item.setData(1, Qt::AccessibleTextRole, Mumble::Accessibility::channelToText(channel));
 		}
+	}
+
+	// Hack to make screen readers read search results...
+	if (searchResultTree->currentColumn() == 1) {
+		searchResultTree->setCurrentItem(c, 0);
 	}
 }
 
@@ -254,11 +263,11 @@ void SearchDialog::clearSearchResults() {
 }
 
 SearchResult regularSearch(const QString &source, const QString &searchTerm, SearchType type, bool caseSensitive) {
-	constexpr int from = 0;
-	int startIndex     = source.indexOf(searchTerm, from, caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive);
+	constexpr int FROM    = 0;
+	const auto startIndex = source.indexOf(searchTerm, FROM, caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive);
 
 	if (startIndex >= 0) {
-		int length = searchTerm.size();
+		const auto length = searchTerm.size();
 
 		return { startIndex, length, type, source, "" };
 	} else {
@@ -272,8 +281,8 @@ SearchResult regexSearch(const QString &source, const QRegularExpression &regex,
 
 	if (match.hasMatch()) {
 		// Found
-		int startIndex = match.capturedStart();
-		int length     = match.capturedEnd() - startIndex;
+		const auto startIndex = match.capturedStart();
+		const auto length     = match.capturedEnd() - startIndex;
 
 		return { startIndex, length, type, source, "" };
 	} else {
@@ -377,7 +386,7 @@ void SearchDialog::search(const QString &searchTerm) {
 	if (searchChannels) {
 		QReadLocker userLock(&Channel::c_qrwlChannels);
 
-		QHash< int, Channel * >::const_iterator it = Channel::c_qhChannels.constBegin();
+		QHash< unsigned int, Channel * >::const_iterator it = Channel::c_qhChannels.constBegin();
 		while (it != Channel::c_qhChannels.constEnd()) {
 			const Channel *currentChannel = it.value();
 
@@ -419,7 +428,7 @@ void SearchDialog::on_clientDisconnected(unsigned int userSession) {
 	removeSearchResult(userSession, true);
 }
 
-void SearchDialog::on_channelRemoved(int channelID) {
+void SearchDialog::on_channelRemoved(unsigned int channelID) {
 	removeSearchResult(channelID, false);
 }
 
@@ -499,7 +508,7 @@ void SearchDialog::keyPressEvent(QKeyEvent *event) {
 		|| event->key() == Qt::Key_PageDown) {
 		QKeyEvent *copy = new QKeyEvent(event->type(), event->key(), event->modifiers(), event->nativeScanCode(),
 										event->nativeVirtualKey(), event->nativeScanCode(), event->text(),
-										event->isAutoRepeat(), event->count());
+										event->isAutoRepeat(), static_cast< ushort >(event->count()));
 
 		m_relayedKeyEvents.insert(copy);
 
@@ -591,4 +600,4 @@ bool SearchDialog::removeSearchResult(unsigned int id, bool isUser) {
 	return false;
 }
 
-}; // namespace Search
+} // namespace Search

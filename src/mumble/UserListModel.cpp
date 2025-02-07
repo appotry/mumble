@@ -1,4 +1,4 @@
-// Copyright 2013-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -6,7 +6,7 @@
 #include "UserListModel.h"
 
 #include "Channel.h"
-#include "Message.h"
+#include "QtUtils.h"
 #include "Utils.h"
 
 #include <algorithm>
@@ -16,6 +16,8 @@
 #endif
 
 #include <vector>
+
+#include <QtCore/QTimeZone>
 
 UserListModel::UserListModel(const MumbleProto::UserList &userList, QObject *parent_)
 	: QAbstractTableModel(parent_), m_legacyMode(false) {
@@ -34,7 +36,7 @@ int UserListModel::rowCount(const QModelIndex &parentIndex) const {
 	if (parentIndex.isValid())
 		return 0;
 
-	return m_userList.size();
+	return static_cast< int >(m_userList.size());
 }
 
 int UserListModel::columnCount(const QModelIndex &parentIndex) const {
@@ -191,7 +193,7 @@ void UserListModel::removeRowsInSelection(const QItemSelection &selection) {
 	QModelIndexList indices = selection.indexes();
 
 	std::vector< int > rows;
-	rows.reserve(indices.size());
+	rows.reserve(static_cast< std::size_t >(indices.size()));
 
 	foreach (const QModelIndex &idx, indices) {
 		if (idx.column() != COL_NICK)
@@ -261,7 +263,7 @@ QVariant UserListModel::lastSeenToTodayDayCount(const std::string &lastSeenDate)
 	if (count.isNull()) {
 		QDateTime dt = isoUTCToDateTime(lastSeenDate);
 		if (!dt.isValid()) {
-			// Not convertable to int
+			// Not convertible to int
 			return QVariant();
 		}
 		count = dt.daysTo(QDateTime::currentDateTime().toUTC());
@@ -270,7 +272,7 @@ QVariant UserListModel::lastSeenToTodayDayCount(const std::string &lastSeenDate)
 	return count;
 }
 
-QString UserListModel::pathForChannelId(const int channelId) const {
+QString UserListModel::pathForChannelId(const unsigned int channelId) const {
 	QString path = m_channelIdToPathMap.value(channelId);
 	if (path.isNull()) {
 		path = QLatin1String("-");
@@ -296,6 +298,10 @@ QString UserListModel::pathForChannelId(const int channelId) const {
 
 QDateTime UserListModel::isoUTCToDateTime(const std::string &isoTime) const {
 	QDateTime dt = QDateTime::fromString(u8(isoTime), Qt::ISODate);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+	dt.setTimeZone(QTimeZone::UTC);
+#else
 	dt.setTimeSpec(Qt::UTC);
+#endif
 	return dt;
 }

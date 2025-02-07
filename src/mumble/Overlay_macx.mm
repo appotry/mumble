@@ -1,4 +1,4 @@
-// Copyright 2010-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -7,6 +7,7 @@
 #include "OverlayClient.h"
 #include "MainWindow.h"
 #include "Global.h"
+#include "Version.h"
 
 #include <QtCore/QProcess>
 #include <QtCore/QXmlStreamReader>
@@ -115,7 +116,7 @@ pid_t getForegroundProcessId() {
 
 			// This timeout is specified in 'ticks'.
 			// A tick defined as: "[...] (a tick is approximately 1/60 of a second) [...]" in the
-			// Apple Event Manager Refernce documentation:
+			// Apple Event Manager Reference documentation:
 			// http://developer.apple.com/legacy/mac/library/documentation/Carbon/reference/Event_Manager/Event_Manager.pdf
 			[app setTimeout:10*60];
 
@@ -123,11 +124,6 @@ pid_t getForegroundProcessId() {
 			[app sendEvent:kASAppleScriptSuite id:kGetAEUT parameters:0];
 
 			[app setSendMode:kAENoReply];
-			if (QSysInfo::MacintoshVersion == QSysInfo::MV_LEOPARD) {
-				[app sendEvent:'MUOL' id:'daol' parameters:0];
-			} else if (QSysInfo::MacintoshVersion >= QSysInfo::MV_SNOWLEOPARD) {
-				[app sendEvent:'MUOL' id:'load' parameters:0];
-			}
 		}
 
 		[pool release];
@@ -203,17 +199,6 @@ void OverlayClient::updateMouse() {
 	}
 
 	QPixmap pm = qmCursors.value(csShape);
-	if (pm.isNull()) {
-		NSImage *img = [cursor image];
-		CGImageRef cgimg = nullptr;
-		NSArray *reps = [img representations];
-		for (NSUInteger i = 0; i < [reps count]; i++) {
-			NSImageRep *rep = [reps objectAtIndex:i];
-			if ([rep class] == [NSBitmapImageRep class]) {
-				cgimg = [(NSBitmapImageRep *)rep CGImage];
-			}
-		}
-	}
 
 	NSPoint p = [cursor hotSpot];
 	iOffsetX = (int) p.x;
@@ -247,7 +232,7 @@ bool OverlayConfig::isInstalled() {
 }
 
 // Check whether this installer installs something 'newer' than what we already have.
-// Also checks whether the new installer is compatiable with the current version of
+// Also checks whether the new installer is compatible with the current version of
 // Mumble.
 static bool isInstallerNewer(QString path, NSUInteger curVer) {
 	xar_t pkg = nullptr;
@@ -282,7 +267,7 @@ static bool isInstallerNewer(QString path, NSUInteger curVer) {
 			goto out;
 		}
 
-		QXmlStreamReader reader(QByteArray::fromRawData(data, size));
+		QXmlStreamReader reader(QByteArray::fromRawData(data, static_cast<int>(size)));
 		while (! reader.atEnd()) {
 			QXmlStreamReader::TokenType tok = reader.readNext();
 			if (tok == QXmlStreamReader::StartElement) {
@@ -300,19 +285,15 @@ static bool isInstallerNewer(QString path, NSUInteger curVer) {
 
 		NSUInteger newVer = qsOverlayVer.toUInt();
 
-		QRegExp rx(QLatin1String("(\\d+)\\.(\\d+)\\.(\\d+)"));
-		int major, minor, patch;
-		int minmajor, minminor, minpatch;
-		if (! rx.exactMatch(QLatin1String(MUMTEXT(MUMBLE_VERSION))))
+		Version::component_t major, minor, patch;
+		if (!Version::getComponents(major, minor, patch, QLatin1String(MUMTEXT(MUMBLE_VERSION)))) {
 			goto out;
-		major = rx.cap(1).toInt();
-		minor = rx.cap(2).toInt();
-		patch = rx.cap(3).toInt();
-		if (! rx.exactMatch(qsMinVer))
+		}
+
+		Version::component_t minmajor, minminor, minpatch;
+		if (!Version::getComponents(minmajor, minminor, minpatch, qsMinVer)) {
 			goto out;
-		minmajor = rx.cap(1).toInt();
-		minminor = rx.cap(2).toInt();
-		minpatch = rx.cap(3).toInt();
+		}
 
 		ret = (major >= minmajor) && (minor >= minminor) && (patch >= minpatch) && (newVer > curVer);
 	}

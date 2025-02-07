@@ -1,4 +1,4 @@
-// Copyright 2010-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -6,8 +6,8 @@
 #include "UserInformation.h"
 
 #include "Audio.h"
-#include "CELTCodec.h"
 #include "HostAddress.h"
+#include "ProtoUtils.h"
 #include "QtUtils.h"
 #include "ServerHandler.h"
 #include "ViewCert.h"
@@ -31,6 +31,15 @@ UserInformation::UserInformation(const MumbleProto::UserStats &msg, QWidget *p) 
 	resize(sizeHint());
 
 	qfCertificateFont = qlCertificate->font();
+
+	// Labels are not initialized properly here. We need to wait a tiny bit
+	// to make sure its contents are actually read.
+	QTimer::singleShot(0, [this]() {
+		qgbConnection->updateAccessibleText();
+		qgbPing->updateAccessibleText();
+		qgbUDP->updateAccessibleText();
+		qgbBandwidth->updateAccessibleText();
+	});
 }
 
 unsigned int UserInformation::session() const {
@@ -56,14 +65,14 @@ void UserInformation::on_qpbCertificate_clicked() {
 QString UserInformation::secsToString(unsigned int secs) {
 	QStringList qsl;
 
-	int weeks   = secs / (60 * 60 * 24 * 7);
-	secs        = secs % (60 * 60 * 24 * 7);
-	int days    = secs / (60 * 60 * 24);
-	secs        = secs % (60 * 60 * 24);
-	int hours   = secs / (60 * 60);
-	secs        = secs % (60 * 60);
-	int minutes = secs / 60;
-	int seconds = secs % 60;
+	unsigned int weeks = secs / (60 * 60 * 24 * 7);
+	secs -= weeks * (60 * 60 * 24 * 7);
+	unsigned int days = secs / (60 * 60 * 24);
+	secs -= days * (60 * 60 * 24);
+	unsigned int hours = secs / (60 * 60);
+	secs -= hours * (60 * 60);
+	unsigned int minutes = secs / 60;
+	unsigned int seconds = secs - minutes * 60;
 
 	if (weeks)
 		qsl << tr("%1w").arg(weeks);
@@ -128,21 +137,16 @@ void UserInformation::update(const MumbleProto::UserStats &msg) {
 		showcon = true;
 
 		const MumbleProto::Version &mpv = msg.version();
-
-		qlVersion->setText(tr("%1 (%2)").arg(Version::toString(mpv.version())).arg(u8(mpv.release())));
+		Version::full_t version         = MumbleProto::getVersion(mpv);
+		qlVersion->setText(tr("%1 (%2)").arg(Version::toString(version)).arg(u8(mpv.release())));
 		qlOS->setText(tr("%1 (%2)").arg(u8(mpv.os())).arg(u8(mpv.os_version())));
-	}
-	if (msg.celt_versions_size() > 0) {
-		QStringList qsl;
-		for (int i = 0; i < msg.celt_versions_size(); ++i) {
-			int v         = msg.celt_versions(i);
-			CELTCodec *cc = Global::get().qmCodecs.value(v);
-			if (cc)
-				qsl << cc->version();
-			else
-				qsl << QString::number(v, 16);
+
+		if (Version::getPatch(version) == 255) {
+			// The patch level 255 might indicate that the server is incapable of parsing
+			// the new version format (or the patch level is actually exactly 255).
+			// Show a warning to the user just in case.
+			qlVersionNote->show();
 		}
-		qlCELT->setText(qsl.join(tr(", ")));
 	}
 	if (msg.has_opus()) {
 		qlOpus->setText(msg.opus() ? tr("Supported") : tr("Not Supported"));
@@ -159,8 +163,12 @@ void UserInformation::update(const MumbleProto::UserStats &msg) {
 	qlTCPVar->setText(QString::number(msg.tcp_ping_var() > 0.0f ? sqrtf(msg.tcp_ping_var()) : 0.0f, 'f', 2));
 	qlUDPVar->setText(QString::number(msg.udp_ping_var() > 0.0f ? sqrtf(msg.udp_ping_var()) : 0.0f, 'f', 2));
 
-	if (msg.has_from_client() && msg.has_from_server()) {
-		qgbUDP->setVisible(true);
+	bool hasTotalStats   = msg.has_from_client() && msg.has_from_server();
+	bool hasRollingStats = msg.has_rolling_stats();
+
+	qgbUDP->setVisible(hasTotalStats || hasRollingStats);
+
+	if (hasTotalStats) {
 		const MumbleProto::UserStats_Stats &from = msg.from_client();
 		qlFromGood->setText(QString::number(from.good()));
 		qlFromLate->setText(QString::number(from.late()));
@@ -175,16 +183,66 @@ void UserInformation::update(const MumbleProto::UserStats &msg) {
 
 		quint32 allFromPackets = from.good() + from.late() + from.lost();
 		qlFromLatePercent->setText(
-			QString::number(allFromPackets > 0 ? from.late() * 100.0 / allFromPackets : 0., 'f', 2));
+			QString::number(allFromPackets > 0 ? from.late() * 100.0 / allFromPackets : 0., 'f', 1));
 		qlFromLostPercent->setText(
-			QString::number(allFromPackets > 0 ? from.lost() * 100.0 / allFromPackets : 0., 'f', 2));
+			QString::number(allFromPackets > 0 ? from.lost() * 100.0 / allFromPackets : 0., 'f', 1));
 
 		quint32 allToPackets = to.good() + to.late() + to.lost();
-		qlToLatePercent->setText(QString::number(allToPackets > 0 ? to.late() * 100.0 / allToPackets : 0., 'f', 2));
-		qlToLostPercent->setText(QString::number(allToPackets > 0 ? to.lost() * 100.0 / allToPackets : 0., 'f', 2));
-	} else {
-		qgbUDP->setVisible(false);
+		qlToLatePercent->setText(QString::number(allToPackets > 0 ? to.late() * 100.0 / allToPackets : 0., 'f', 1));
+		qlToLostPercent->setText(QString::number(allToPackets > 0 ? to.lost() * 100.0 / allToPackets : 0., 'f', 1));
 	}
+
+	if (hasRollingStats) {
+		const MumbleProto::UserStats_RollingStats &rolling = msg.rolling_stats();
+
+		const MumbleProto::UserStats_Stats &from = rolling.from_client();
+		qlFromGoodRolling->setText(QString::number(from.good()));
+		qlFromLateRolling->setText(QString::number(from.late()));
+		qlFromLostRolling->setText(QString::number(from.lost()));
+		qlFromResyncRolling->setText(QString::number(from.resync()));
+
+		const MumbleProto::UserStats_Stats &to = rolling.from_server();
+		qlToGoodRolling->setText(QString::number(to.good()));
+		qlToLateRolling->setText(QString::number(to.late()));
+		qlToLostRolling->setText(QString::number(to.lost()));
+		qlToResyncRolling->setText(QString::number(to.resync()));
+
+		quint32 allFromPackets = from.good() + from.late() + from.lost();
+		qlFromLatePercentRolling->setText(
+			QString::number(allFromPackets > 0 ? from.late() * 100.0 / allFromPackets : 0., 'f', 1));
+		qlFromLostPercentRolling->setText(
+			QString::number(allFromPackets > 0 ? from.lost() * 100.0 / allFromPackets : 0., 'f', 1));
+
+		quint32 allToPackets = to.good() + to.late() + to.lost();
+		qlToLatePercentRolling->setText(
+			QString::number(allToPackets > 0 ? to.late() * 100.0 / allToPackets : 0., 'f', 1));
+		qlToLostPercentRolling->setText(
+			QString::number(allToPackets > 0 ? to.lost() * 100.0 / allToPackets : 0., 'f', 1));
+
+		uint32_t rollingSeconds = rolling.time_window();
+		QString rollingText     = tr("Last %1 %2:");
+		if (rollingSeconds < 120) {
+			qliRolling->setText(rollingText.arg(QString::number(rollingSeconds)).arg(tr("seconds")));
+		} else {
+			qliRolling->setText(rollingText.arg(QString::number(rollingSeconds / 60)).arg(tr("minutes")));
+		}
+	}
+
+	qlFromGoodRolling->setVisible(hasRollingStats);
+	qlFromLateRolling->setVisible(hasRollingStats);
+	qlFromLostRolling->setVisible(hasRollingStats);
+	qlFromResyncRolling->setVisible(hasRollingStats);
+	qlToGoodRolling->setVisible(hasRollingStats);
+	qlToLateRolling->setVisible(hasRollingStats);
+	qlToLostRolling->setVisible(hasRollingStats);
+	qlToResyncRolling->setVisible(hasRollingStats);
+	qlFromLatePercentRolling->setVisible(hasRollingStats);
+	qlFromLostPercentRolling->setVisible(hasRollingStats);
+	qlToLatePercentRolling->setVisible(hasRollingStats);
+	qlToLostPercentRolling->setVisible(hasRollingStats);
+	qliRolling->setVisible(hasRollingStats);
+	qliRollingFrom->setVisible(hasRollingStats);
+	qliRollingTo->setVisible(hasRollingStats);
 
 	if (msg.has_onlinesecs()) {
 		if (msg.has_idlesecs())
@@ -202,4 +260,9 @@ void UserInformation::update(const MumbleProto::UserStats &msg) {
 		qliBandwidth->setVisible(false);
 		qlBandwidth->setText(QString());
 	}
+
+	qgbConnection->updateAccessibleText();
+	qgbPing->updateAccessibleText();
+	qgbUDP->updateAccessibleText();
+	qgbBandwidth->updateAccessibleText();
 }

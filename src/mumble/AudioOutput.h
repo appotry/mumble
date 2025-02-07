@@ -1,4 +1,4 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -10,15 +10,11 @@
 #include <QtCore/QThread>
 #include <boost/shared_ptr.hpp>
 
+#include "MumbleProtocol.h"
+
 #ifdef USE_MANUAL_PLUGIN
 #	include "ManualPlugin.h"
 #endif
-
-// AudioOutput depends on User being valid. This means it's important
-// to removeBuffer from here BEFORE MainWindow gets any UserLeft
-// messages. Any decendant user should feel free to remove unused
-// AudioOutputUser objects; it's better to recreate them than
-// having them use resources while unused.
 
 #ifndef SPEAKER_FRONT_LEFT
 #	define SPEAKER_FRONT_LEFT 0x1
@@ -42,12 +38,11 @@
 #endif
 
 #include "Audio.h"
-#include "Message.h"
 
 class AudioOutput;
 class ClientUser;
-class AudioOutputUser;
-class AudioOutputSample;
+class AudioOutputBuffer;
+class AudioOutputToken;
 
 typedef boost::shared_ptr< AudioOutput > AudioOutputPtr;
 
@@ -84,6 +79,11 @@ private:
 	bool *bSpeakerPositional = nullptr;
 	/// Used when panning stereo stream w.r.t. each speaker.
 	float *fStereoPanningFactor = nullptr;
+	void invalidateBuffer(const void *);
+
+private slots:
+	void removeBuffer(const void *, bool acquireWriteLock = true);
+	void handlePositionedBuffer(const void *, float x, float y, float z);
 
 protected:
 	enum { SampleShort, SampleFloat } eSampleFormat = SampleFloat;
@@ -94,13 +94,12 @@ protected:
 	unsigned int iSampleSize                        = 0;
 	unsigned int iBufferSize                        = 0;
 	QReadWriteLock qrwlOutputs;
-	QMultiHash< const ClientUser *, AudioOutputUser * > qmOutputs;
+	QMultiHash< const ClientUser *, AudioOutputBuffer * > qmOutputs;
 
 #ifdef USE_MANUAL_PLUGIN
 	QHash< unsigned int, Position2D > positions;
 #endif
 
-	virtual void removeBuffer(AudioOutputUser *);
 	void initializeMixer(const unsigned int *chanmasks, bool forceheadphone = false);
 	bool mix(void *output, unsigned int frameCount);
 
@@ -111,7 +110,7 @@ public:
 	///
 	/// This constructor is only ever called by Audio::startOutput(), and is guaranteed
 	/// to be called on the application's main thread.
-	AudioOutput(){};
+	AudioOutput();
 
 	/// Destroy an AudioOutput.
 	///
@@ -119,15 +118,17 @@ public:
 	/// and is guaranteed to be called on the application's main thread.
 	~AudioOutput() Q_DECL_OVERRIDE;
 
-	void addFrameToBuffer(ClientUser *, const QByteArray &, unsigned int iSeq, MessageHandler::UDPMessageType type);
-	void removeBuffer(const ClientUser *);
-	AudioOutputSample *playSample(const QString &filename, bool loop = false);
+	void addFrameToBuffer(ClientUser *sender, const Mumble::Protocol::AudioData &audioData);
+	AudioOutputToken playSample(const QString &filename, float volume, bool loop = false);
 	void run() Q_DECL_OVERRIDE = 0;
 	virtual bool isAlive() const;
 	const float *getSpeakerPos(unsigned int &nspeakers);
 	static float calcGain(float dotproduct, float distance);
 	unsigned int getMixerFreq() const;
 	void setBufferSize(unsigned int bufferSize);
+	void setBufferPosition(const AudioOutputToken &, float x, float y, float z);
+	void invalidateToken(const AudioOutputToken &);
+	void removeUser(const ClientUser *);
 
 signals:
 	/// Signal emitted whenever an audio source has been fetched
@@ -149,6 +150,9 @@ signals:
 	/// @param modifiedAudio Pointer to bool if audio has been modified or not and should be played
 	void audioOutputAboutToPlay(float *outputPCM, unsigned int sampleCount, unsigned int channelCount,
 								unsigned int sampleRate, bool *modifiedAudio);
+
+	void bufferInvalidated(const void *);
+	void bufferPositionChanged(const void *, float x, float y, float z);
 };
 
 #endif

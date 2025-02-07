@@ -1,4 +1,4 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -12,6 +12,7 @@
 #include "SearchDialog.h"
 #include "Global.h"
 
+#include <QSystemTrayIcon>
 #include <QtCore/QFileSystemWatcher>
 #include <QtCore/QStack>
 #include <QtCore/QTimer>
@@ -26,25 +27,15 @@ static ConfigRegistrar registrar(1100, LookConfigNew);
 
 LookConfig::LookConfig(Settings &st) : ConfigWidget(st) {
 	setupUi(this);
-	qsbSilentUserLifetime->setAccessibleName(tr("Silent user lifetime"));
-	qsbPrefixCharCount->setAccessibleName(tr("Prefix character count"));
-	qsbChannelHierarchyDepth->setAccessibleName(tr("Channel hierarchy depth"));
-	qleChannelSeparator->setAccessibleName(tr("Channel separator"));
-	qsbPostfixCharCount->setAccessibleName(tr("Postfix character count"));
-	qleAbbreviationReplacement->setAccessibleName(tr("Abbreviation replacement"));
-	qsbMaxNameLength->setAccessibleName(tr("Maximum name length"));
-	qsbRelFontSize->setAccessibleName(tr("Relative font size"));
-	qcbLanguage->setAccessibleName(tr("Language"));
-	qcbTheme->setAccessibleName(tr("Theme"));
-	qcbAlwaysOnTop->setAccessibleName(tr("Always on top"));
-	qcbChannelDrag->setAccessibleName(tr("Channel dragging"));
-	qcbExpand->setAccessibleName(tr("Automatically expand channels when"));
-	qcbUserDrag->setAccessibleName(tr("User dragging behavior"));
 
-#ifndef Q_OS_MAC
-	if (!QSystemTrayIcon::isSystemTrayAvailable())
-#endif
+	if (!QSystemTrayIcon::isSystemTrayAvailable()) {
 		qgbTray->hide();
+	}
+
+#ifdef Q_OS_MAC
+	// Qt can not hide the window via the native macOS hide function. This should be re-evaluated with new Qt versions.
+	qcbHideTray->hide();
+#endif
 
 	qcbLanguage->addItem(tr("System default"));
 	QDir d(QLatin1String(":"), QLatin1String("mumble_*.qm"), QDir::Name, QDir::Files);
@@ -186,7 +177,9 @@ void LookConfig::load(const Settings &r) {
 	loadComboBox(qcbChannelDrag, r.ceChannelDrag);
 	loadComboBox(qcbUserDrag, r.ceUserDrag);
 	loadCheckBox(qcbUsersTop, r.bUserTop);
-	loadCheckBox(qcbAskOnQuit, r.bAskOnQuit);
+
+	loadComboBox(qcbQuitBehavior, static_cast< int >(r.quitBehavior));
+
 	loadCheckBox(qcbEnableDeveloperMenu, r.bEnableDeveloperMenu);
 	loadCheckBox(qcbLockLayout, (r.wlWindowLayout == Settings::LayoutCustom) && r.bLockLayout);
 	loadCheckBox(qcbHideTray, r.bHideInTray);
@@ -203,6 +196,7 @@ void LookConfig::load(const Settings &r) {
 	const boost::optional< ThemeInfo::StyleInfo > configuredStyle = Themes::getConfiguredStyle(r);
 	reloadThemes(configuredStyle);
 
+	loadCheckBox(qcbUsersAlwaysVisible, r.talkingUI_UsersAlwaysVisible);
 	loadCheckBox(qcbLocalUserVisible, r.bTalkingUI_LocalUserStaysVisible);
 	loadCheckBox(qcbAbbreviateChannelNames, r.bTalkingUI_AbbreviateChannelNames);
 	loadCheckBox(qcbAbbreviateCurrentChannel, r.bTalkingUI_AbbreviateCurrentChannel);
@@ -253,7 +247,7 @@ void LookConfig::save() const {
 	}
 
 	s.aotbAlwaysOnTop           = static_cast< Settings::AlwaysOnTopBehaviour >(qcbAlwaysOnTop->currentIndex());
-	s.bAskOnQuit                = qcbAskOnQuit->isChecked();
+	s.quitBehavior              = static_cast< QuitBehavior >(qcbQuitBehavior->currentIndex());
 	s.bEnableDeveloperMenu      = qcbEnableDeveloperMenu->isChecked();
 	s.bLockLayout               = qcbLockLayout->isChecked();
 	s.bHideInTray               = qcbHideTray->isChecked();
@@ -274,6 +268,7 @@ void LookConfig::save() const {
 		Themes::setConfiguredStyle(s, themeData.value< ThemeInfo::StyleInfo >(), s.requireRestartToApply);
 	}
 
+	s.talkingUI_UsersAlwaysVisible        = qcbUsersAlwaysVisible->isChecked();
 	s.bTalkingUI_LocalUserStaysVisible    = qcbLocalUserVisible->isChecked();
 	s.bTalkingUI_AbbreviateChannelNames   = qcbAbbreviateChannelNames->isChecked();
 	s.bTalkingUI_AbbreviateCurrentChannel = qcbAbbreviateCurrentChannel->isChecked();
@@ -318,4 +313,13 @@ void LookConfig::on_qcbAbbreviateChannelNames_stateChanged(int state) {
 	qsbPrefixCharCount->setEnabled(abbreviateNames);
 	qsbPostfixCharCount->setEnabled(abbreviateNames);
 	qleAbbreviationReplacement->setEnabled(abbreviateNames);
+}
+
+void LookConfig::on_qcbUsersAlwaysVisible_stateChanged(int state) {
+	bool usersAlwaysVisible = state == Qt::Checked;
+
+	// Only enable the local user visibility setting when all users are not always visible
+	qcbLocalUserVisible->setEnabled(!usersAlwaysVisible);
+	// Only enable the user visibility timeout settings when all users are not always visible
+	qsbSilentUserLifetime->setEnabled(!usersAlwaysVisible);
 }

@@ -1,11 +1,7 @@
-// Copyright 2008-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
-
-#ifdef USE_DBUS
-#	include "DBus.h"
-#endif
 
 #include "EnvUtils.h"
 #include "License.h"
@@ -15,7 +11,9 @@
 #include "Server.h"
 #include "ServerDB.h"
 #include "Version.h"
+
 #include <csignal>
+#include <iostream>
 
 #ifdef Q_OS_WIN
 #	include "About.h"
@@ -26,13 +24,6 @@
 #	include "UnixMurmur.h"
 
 #	include <QtCore/QCoreApplication>
-#endif
-
-#include <QtCore/QTextCodec>
-
-#ifdef USE_DBUS
-#	include <QtDBus/QDBusError>
-#	include <QtDBus/QDBusServer>
 #endif
 
 #include <openssl/crypto.h>
@@ -166,12 +157,6 @@ void IceStart();
 void IceStop();
 #endif
 
-#ifdef USE_GRPC
-// From MurmurGRPCImpl.cpp.
-void GRPCStart();
-void GRPCStop();
-#endif
-
 void cleanup(int signum) {
 	qWarning("Killing running servers");
 
@@ -179,17 +164,8 @@ void cleanup(int signum) {
 
 	qWarning("Shutting down");
 
-#ifdef USE_DBUS
-	delete MurmurDBus::qdbc;
-	MurmurDBus::qdbc = nullptr;
-#endif
-
 #ifdef USE_ICE
 	IceStop();
-#endif
-
-#ifdef USE_GRPC
-	GRPCStop();
 #endif
 
 	delete qfLog;
@@ -200,8 +176,8 @@ void cleanup(int signum) {
 	qInstallMessageHandler(nullptr);
 
 #ifdef Q_OS_UNIX
-	if (!Meta::mp.qsPid.isEmpty()) {
-		QFile pid(Meta::mp.qsPid);
+	if (!Meta::mp->qsPid.isEmpty()) {
+		QFile pid(Meta::mp->qsPid);
 		pid.remove();
 	}
 #endif
@@ -252,27 +228,10 @@ int main(int argc, char **argv) {
 	a.setOrganizationName("Mumble");
 	a.setOrganizationDomain("mumble.sourceforge.net");
 
+	// Initialize meta parameter
+	Meta::mp = std::make_unique< MetaParams >();
+
 	MumbleSSL::initialize();
-
-	QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-
-#ifdef Q_OS_WIN
-	// By default, windbus expects the path to dbus-daemon to be in PATH, and the path
-	// should contain bin\\, and the path to the config is hardcoded as ..\etc
-
-	{
-		QString path = EnvUtils::getenv(QLatin1String("PATH"));
-		if (path.isEmpty()) {
-			qWarning() << "Failed to get PATH. Not adding application directory to PATH. DBus bindings may not work.";
-		} else {
-			QString newPath =
-				QString::fromLatin1("%1;%2").arg(QDir::toNativeSeparators(a.applicationDirPath())).arg(path);
-			if (!EnvUtils::setenv(QLatin1String("PATH"), newPath)) {
-				qWarning() << "Failed to set PATH. DBus bindings may not work.";
-			}
-		}
-	}
-#endif
 
 	QString inifile;
 	QString supw;
@@ -286,10 +245,6 @@ int main(int argc, char **argv) {
 	bool logGroups = false;
 	bool logACL    = false;
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
-	// For Qt >= 5.10 we use QRandomNumberGenerator that is seeded automatically
-	qsrand(QDateTime::currentDateTime().toTime_t());
-#endif
 
 	qInstallMessageHandler(murmurMessageOutputWithContext);
 
@@ -351,8 +306,9 @@ int main(int argc, char **argv) {
 		} else if ((arg == "-v")) {
 			bVerbose = true;
 		} else if ((arg == "-version") || (arg == "--version")) {
-			detach = false;
-			qInfo("%s -- %s", qPrintable(args.at(0)), MUMBLE_RELEASE);
+			// Print version and exit (print to regular std::cout to avoid adding any useless meta-information from
+			// using e.g. qWarning
+			std::cout << "Mumble server version " << Version::getRelease().toStdString() << std::endl;
 			return 0;
 		} else if (args.at(i) == QLatin1String("-license") || args.at(i) == QLatin1String("--license")) {
 #ifdef Q_OS_WIN
@@ -369,7 +325,8 @@ int main(int argc, char **argv) {
 			ad.exec();
 			return 0;
 #else
-			qInfo("%s\n", qPrintable(License::authors()));
+			qInfo("%s\n",
+				  "For a list of authors, please see https://github.com/mumble-voip/mumble/graphs/contributors");
 			return 0;
 #endif
 		} else if (args.at(i) == QLatin1String("-third-party-licenses")
@@ -385,6 +342,7 @@ int main(int argc, char **argv) {
 		} else if ((arg == "-h") || (arg == "-help") || (arg == "--help")) {
 			detach = false;
 			qInfo("Usage: %s [-ini <inifile>] [-supw <password>]\n"
+				  "  --version              Print version information and exit\n"
 				  "  -ini <inifile>         Specify ini file to use.\n"
 				  "  -supw <pw> [srv]       Set password for 'SuperUser' account on server srv.\n"
 #ifdef Q_OS_UNIX
@@ -404,8 +362,8 @@ int main(int argc, char **argv) {
 #endif
 				  "  -wipessl               Remove SSL certificates from database.\n"
 				  "  -wipelogs              Remove all log entries from database.\n"
-				  "  -loggroups             Turns on logging for group changes for all servers."
-				  "  -logacls               Turns on logging for ACL changes for all servers."
+				  "  -loggroups             Turns on logging for group changes for all servers.\n"
+				  "  -logacls               Turns on logging for ACL changes for all servers.\n"
 				  "  -version               Show version information.\n"
 				  "\n"
 				  "  -license               Show Murmur's license.\n"
@@ -419,7 +377,7 @@ int main(int argc, char **argv) {
 #ifdef Q_OS_UNIX
 		} else if (arg == "-limits") {
 			detach = false;
-			Meta::mp.read(inifile);
+			Meta::mp->read(inifile);
 			unixhandler.setuid();
 			unixhandler.finalcap();
 			LimitTest::testLimits(a);
@@ -448,42 +406,42 @@ int main(int argc, char **argv) {
 	inifile = unixhandler.trySystemIniFiles(inifile);
 #endif
 
-	Meta::mp.read(inifile);
+	Meta::mp->read(inifile);
 
 	// Activating the logging of ACLs and groups via commandLine overwrites whatever is set in the ini file
 	if (logGroups) {
-		Meta::mp.bLogGroupChanges = logGroups;
+		Meta::mp->bLogGroupChanges = logGroups;
 	}
 	if (logACL) {
-		Meta::mp.bLogACLChanges = logACL;
+		Meta::mp->bLogACLChanges = logACL;
 	}
 
 	// need to open log file early so log dir can be root owned:
 	// http://article.gmane.org/gmane.comp.security.oss.general/4404
 #ifdef Q_OS_UNIX
-	unixhandler.logToSyslog = Meta::mp.qsLogfile == QLatin1String("syslog");
-	if (detach && !Meta::mp.qsLogfile.isEmpty() && !unixhandler.logToSyslog) {
+	unixhandler.logToSyslog = Meta::mp->qsLogfile == QLatin1String("syslog");
+	if (detach && !Meta::mp->qsLogfile.isEmpty() && !unixhandler.logToSyslog) {
 #else
-	if (detach && !Meta::mp.qsLogfile.isEmpty()) {
+	if (detach && !Meta::mp->qsLogfile.isEmpty()) {
 #endif
-		qfLog = new QFile(Meta::mp.qsLogfile);
+		qfLog = new QFile(Meta::mp->qsLogfile);
 		if (!qfLog->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
 			delete qfLog;
 			qfLog = nullptr;
 #ifdef Q_OS_UNIX
 			fprintf(stderr, "murmurd: failed to open logfile %s: no logging will be done\n",
-					qPrintable(Meta::mp.qsLogfile));
+					qPrintable(Meta::mp->qsLogfile));
 #else
-			qWarning("Failed to open logfile %s. No logging will be performed.", qPrintable(Meta::mp.qsLogfile));
+			qWarning("Failed to open logfile %s. No logging will be performed.", qPrintable(Meta::mp->qsLogfile));
 #endif
 		} else {
 			qfLog->setTextModeEnabled(true);
 			QFileInfo qfi(*qfLog);
-			Meta::mp.qsLogfile = qfi.absoluteFilePath();
+			Meta::mp->qsLogfile = qfi.absoluteFilePath();
 #ifdef Q_OS_UNIX
-			if (Meta::mp.uiUid != 0 && fchown(qfLog->handle(), Meta::mp.uiUid, Meta::mp.uiGid) == -1) {
-				qFatal("can't change log file owner to %d %d:%d - %s", qfLog->handle(), Meta::mp.uiUid, Meta::mp.uiGid,
-					   strerror(errno));
+			if (Meta::mp->uiUid != 0 && fchown(qfLog->handle(), Meta::mp->uiUid, Meta::mp->uiGid) == -1) {
+				qFatal("can't change log file owner to %d %d:%d - %s", qfLog->handle(), Meta::mp->uiUid,
+					   Meta::mp->uiGid, strerror(errno));
 			}
 #endif
 		}
@@ -522,11 +480,11 @@ int main(int argc, char **argv) {
 			_exit(0);
 		}
 
-		if (!Meta::mp.qsPid.isEmpty()) {
-			QFile pid(Meta::mp.qsPid);
+		if (!Meta::mp->qsPid.isEmpty()) {
+			QFile pid(Meta::mp->qsPid);
 			if (pid.open(QIODevice::WriteOnly)) {
 				QFileInfo fi(pid);
-				Meta::mp.qsPid = fi.absoluteFilePath();
+				Meta::mp->qsPid = fi.absoluteFilePath();
 
 				QTextStream out(&pid);
 				out << getpid();
@@ -558,8 +516,6 @@ int main(int argc, char **argv) {
 	ServerDB db;
 
 	meta = new Meta();
-
-	QObject::connect(meta, SIGNAL(started(Server *)), &db, SLOT(clearLastDisconnect(Server *)));
 
 #ifdef Q_OS_UNIX
 	// It doesn't matter that this code comes after the forking because detach is
@@ -613,63 +569,13 @@ int main(int argc, char **argv) {
 		ServerDB::wipeLogs();
 	}
 
-#ifdef USE_DBUS
-	MurmurDBus::registerTypes();
-
-	if (!Meta::mp.qsDBus.isEmpty()) {
-		if (Meta::mp.qsDBus == "session")
-			MurmurDBus::qdbc = new QDBusConnection(QDBusConnection::sessionBus());
-		else if (Meta::mp.qsDBus == "system")
-			MurmurDBus::qdbc = new QDBusConnection(QDBusConnection::systemBus());
-		else {
-			// QtDBus is not quite finished yet.
-			qWarning("Warning: Peer-to-peer session support is currently nonworking.");
-			MurmurDBus::qdbc = new QDBusConnection(QDBusConnection::connectToBus(Meta::mp.qsDBus, "mainbus"));
-			if (!MurmurDBus::qdbc->isConnected()) {
-				QDBusServer *qdbs = new QDBusServer(Meta::mp.qsDBus, &a);
-				qWarning("%s", qPrintable(qdbs->lastError().name()));
-				qWarning("%d", qdbs->isConnected());
-				qWarning("%s", qPrintable(qdbs->address()));
-				MurmurDBus::qdbc = new QDBusConnection(QDBusConnection::connectToBus(Meta::mp.qsDBus, "mainbus"));
-			}
-		}
-		if (!MurmurDBus::qdbc->isConnected()) {
-			qWarning("Failed to connect to D-Bus %s", qPrintable(Meta::mp.qsDBus));
-		} else {
-			new MetaDBus(meta);
-			if (MurmurDBus::qdbc->isConnected()) {
-				if (!MurmurDBus::qdbc->registerObject("/", meta)
-					|| !MurmurDBus::qdbc->registerService(Meta::mp.qsDBusService)) {
-					QDBusError e = MurmurDBus::qdbc->lastError();
-					qWarning("Failed to register on DBus: %s %s", qPrintable(e.name()), qPrintable(e.message()));
-				} else {
-					qWarning("DBus registration succeeded");
-				}
-			}
-		}
-	}
-#endif
-
 #ifdef USE_ICE
 	IceStart();
 #endif
 
-#ifdef USE_GRPC
-	GRPCStart();
-#else
-	if (!meta->mp.qsGRPCAddress.isEmpty() || !meta->mp.qsGRPCCert.isEmpty() || !meta->mp.qsGRPCKey.isEmpty()) {
-		qWarning(
-			"This version of Murmur was built without gRPC support. Ignoring 'grpc' option from configuration file.");
-	}
-#endif
-
 	meta->getOSInfo();
 
-	int major, minor, patch;
-	QString strver;
-	meta->getVersion(major, minor, patch, strver);
-
-	qWarning("Murmur %d.%d.%d (%s) running on %s: %s: Booting servers", major, minor, patch, qPrintable(strver),
+	qWarning("Murmur %s running on %s: %s: Booting servers", qPrintable(Version::toString(Version::get())),
 			 qPrintable(meta->qsOS), qPrintable(meta->qsOSVersion));
 
 	meta->bootAll();

@@ -1,10 +1,10 @@
-// Copyright 2017-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
 
-#include "Message.h"
 #include "PacketDataStream.h"
+
 #include <QObject>
 #include <QtCore>
 #include <QtNetwork>
@@ -26,7 +26,7 @@ private slots:
 void TestPacketDataStream::floating_data() {
 	QTest::addColumn< double >("value");
 	for (int i = 1; i < 256; i++) {
-		double v = 1.0L / (1.0L * i);
+		double v = 1.0 / (1.0 * i);
 		QTest::newRow("Positive") << v;
 		QTest::newRow("Negative") << -v;
 	}

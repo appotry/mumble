@@ -1,4 +1,4 @@
-// Copyright 2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -7,7 +7,6 @@
 
 #include "Log.h"
 #include "MainWindow.h"
-#include "Message.h"
 #include "MumbleApplication.h"
 #include "PluginInstaller.h"
 #include "PluginManager.h"
@@ -38,6 +37,12 @@ PluginConfig::PluginConfig(Settings &st) : ConfigWidget(st) {
 	qtwPlugins->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 	qtwPlugins->header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
 	qtwPlugins->header()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+
+	qtwPlugins->headerItem()->setData(0, Qt::AccessibleTextRole, tr("Plugin name"));
+	qtwPlugins->headerItem()->setData(1, Qt::AccessibleTextRole, tr("Plugin enabled checkbox"));
+	qtwPlugins->headerItem()->setData(2, Qt::AccessibleTextRole, tr("Plugin positional audio permission checkbox"));
+	qtwPlugins->headerItem()->setData(3, Qt::AccessibleTextRole,
+									  tr("Plugin keyboard event listen permission checkbox"));
 
 	qpbUnload->setEnabled(false);
 
@@ -91,15 +96,15 @@ void PluginConfig::save() const {
 		Global::get().pluginManager->unlinkPositionalData();
 	}
 
-	constexpr int enableCol          = 1;
-	constexpr int positionalDataCol  = 2;
-	constexpr int keyboardMonitorCol = 3;
+	constexpr int ENABLE_COL           = 1;
+	constexpr int POSITIONAL_DATA_COL  = 2;
+	constexpr int KEYBOARD_MONITOR_COL = 3;
 
 	QList< QTreeWidgetItem * > list = qtwPlugins->findItems(QString(), Qt::MatchContains);
 	for (QTreeWidgetItem *i : list) {
-		bool enable                    = (i->checkState(enableCol) == Qt::Checked);
-		bool positionalDataEnabled     = (i->checkState(positionalDataCol) == Qt::Checked);
-		bool keyboardMonitoringEnabled = (i->checkState(keyboardMonitorCol) == Qt::Checked);
+		bool enable                    = (i->checkState(ENABLE_COL) == Qt::Checked);
+		bool positionalDataEnabled     = (i->checkState(POSITIONAL_DATA_COL) == Qt::Checked);
+		bool keyboardMonitoringEnabled = (i->checkState(KEYBOARD_MONITOR_COL) == Qt::Checked);
 
 		const_plugin_ptr_t plugin = pluginForItem(i);
 		if (plugin) {
@@ -231,6 +236,10 @@ void PluginConfig::refillPluginList() {
 		i->setToolTip(0, currentPlugin->getDescription().toHtmlEscaped());
 		i->setToolTip(1, tr("Whether this plugin should be enabled"));
 		i->setData(0, Qt::UserRole, currentPlugin->getID());
+
+		on_qtwPlugins_itemChanged(i, 1);
+		on_qtwPlugins_itemChanged(i, 2);
+		on_qtwPlugins_itemChanged(i, 3);
 	}
 
 	qtwPlugins->setCurrentItem(qtwPlugins->topLevelItem(0));
@@ -250,5 +259,29 @@ void PluginConfig::on_qtwPlugins_currentItemChanged(QTreeWidgetItem *current, QT
 		qpbAbout->setEnabled(false);
 		qpbConfig->setEnabled(false);
 		qpbUnload->setEnabled(false);
+	}
+}
+
+void PluginConfig::on_qtwPlugins_itemChanged(QTreeWidgetItem *item, int column) {
+	const_plugin_ptr_t plugin = pluginForItem(item);
+
+	if (!plugin) {
+		return;
+	}
+
+	switch (column) {
+		case 1:
+		case 3:
+			item->setData(column, Qt::AccessibleDescriptionRole,
+						  item->checkState(column) == Qt::Checked ? tr("checked") : tr("unchecked"));
+			break;
+		case 2:
+			if (plugin->getFeatures() & MUMBLE_FEATURE_POSITIONAL) {
+				item->setData(column, Qt::AccessibleDescriptionRole,
+							  item->checkState(column) == Qt::Checked ? tr("checked") : tr("unchecked"));
+			} else {
+				item->setData(column, Qt::AccessibleDescriptionRole, tr("Not available"));
+			}
+			break;
 	}
 }

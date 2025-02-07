@@ -1,4 +1,4 @@
-// Copyright 2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -72,7 +72,7 @@ const QList< audioDevice > PipeWireInputRegistrar::getDeviceChoices() {
 }
 
 void PipeWireInputRegistrar::setDeviceChoice(const QVariant &choice, Settings &settings) {
-	settings.pipeWireInput = choice.toUInt();
+	settings.pipeWireInput = static_cast< std::uint8_t >(choice.toUInt());
 }
 
 bool PipeWireInputRegistrar::canEcho(EchoCancelOptionID, const QString &) const {
@@ -101,7 +101,7 @@ const QList< audioDevice > PipeWireOutputRegistrar::getDeviceChoices() {
 }
 
 void PipeWireOutputRegistrar::setDeviceChoice(const QVariant &choice, Settings &settings) {
-	settings.pipeWireOutput = choice.toUInt();
+	settings.pipeWireOutput = static_cast< std::uint8_t >(choice.toUInt());
 }
 
 bool PipeWireOutputRegistrar::usesOutputDelay() const {
@@ -128,7 +128,15 @@ void PipeWireInit::destroy() {
 static PipeWireInit pwi;
 
 PipeWireSystem::PipeWireSystem() : m_ok(false), m_users(0) {
-	const QStringList names{ "libpipewire.so", "libpipewire-0.3.so" };
+	// clang-format off
+	const QStringList names {
+		// Common names used by Linux distributions.
+		"libpipewire.so",
+		"libpipewire-0.3.so",
+		// Name used by the Flatpak FreeDesktop runtime.
+		"libpipewire-0.3.so.0"
+	};
+	// clang-format on
 
 	for (const auto &name : names) {
 		m_lib.setFileName(name);
@@ -150,8 +158,11 @@ PipeWireSystem::PipeWireSystem() : m_ok(false), m_users(0) {
 	RESOLVE(pw_thread_loop_destroy);
 	RESOLVE(pw_thread_loop_start);
 	RESOLVE(pw_thread_loop_stop);
+	RESOLVE(pw_thread_loop_lock);
+	RESOLVE(pw_thread_loop_unlock);
 	RESOLVE(pw_properties_new);
 	RESOLVE(pw_stream_new_simple);
+	RESOLVE(pw_stream_set_active);
 	RESOLVE(pw_stream_destroy);
 	RESOLVE(pw_stream_connect);
 	RESOLVE(pw_stream_dequeue_buffer);
@@ -205,13 +216,14 @@ PipeWireEngine::~PipeWireEngine() {
 		return;
 	}
 
+	if (m_stream) {
+		pws->pw_stream_destroy(m_stream);
+	}
+
 	if (m_thread) {
 		pws->pw_thread_loop_destroy(m_thread);
 	}
 
-	if (m_stream) {
-		pws->pw_stream_destroy(m_stream);
-	}
 
 	if (m_loop) {
 		pws->pw_loop_destroy(m_loop);
@@ -299,6 +311,11 @@ void PipeWireEngine::queueBuffer(pw_buffer *buffer) {
 	}
 }
 
+void PipeWireEngine::setActive(const bool active) {
+	pws->pw_thread_loop_lock(m_thread);
+	pws->pw_stream_set_active(m_stream, active);
+	pws->pw_thread_loop_unlock(m_thread);
+}
 PipeWireInput::PipeWireInput() {
 	m_engine = std::make_unique< PipeWireEngine >("Capture", this, processCallback);
 	if (!m_engine->isOk()) {
@@ -307,12 +324,12 @@ PipeWireInput::PipeWireInput() {
 
 	iMicChannels = Global::get().s.pipeWireInput;
 
-	constexpr uint32_t channels[]{
+	constexpr uint32_t CHANNELS[]{
 		SPEAKER_FRONT_LEFT,
 		SPEAKER_FRONT_RIGHT,
 	};
 
-	if (!m_engine->connect(PW_DIRECTION_INPUT, channels, iMicChannels)) {
+	if (!m_engine->connect(PW_DIRECTION_INPUT, CHANNELS, static_cast< std::uint8_t >(iMicChannels))) {
 		return;
 	}
 
@@ -340,12 +357,20 @@ void PipeWireInput::processCallback(void *param) {
 		return;
 	}
 
-	pwi->addMic(data.data, data.chunk->size / sizeof(float));
+	pwi->addMic(data.data, static_cast< unsigned int >(data.chunk->size / sizeof(float)));
 
 	pwi->m_engine->queueBuffer(buffer);
 }
 
 void PipeWireInput::run() {
+}
+void PipeWireInput::onUserMutedChanged() {
+	if (bUserIsMuted && Global::get().s.bTxMuteCue) {
+		// Do not disable the stream if mute cue is enabled (otherwise mute cue will not work).
+		return;
+	}
+
+	m_engine->setActive(!bUserIsMuted);
 }
 
 PipeWireOutput::PipeWireOutput() {
@@ -366,16 +391,16 @@ PipeWireOutput::PipeWireOutput() {
 	// - 7.1 surround
 	//
 	// Ideally this should be configurable by the user.
-	constexpr uint32_t channels[]{ SPEAKER_FRONT_LEFT, SPEAKER_FRONT_RIGHT, SPEAKER_LOW_FREQUENCY, SPEAKER_FRONT_CENTER,
+	constexpr uint32_t CHANNELS[]{ SPEAKER_FRONT_LEFT, SPEAKER_FRONT_RIGHT, SPEAKER_LOW_FREQUENCY, SPEAKER_FRONT_CENTER,
 								   SPEAKER_BACK_LEFT,  SPEAKER_BACK_RIGHT,  SPEAKER_SIDE_LEFT,     SPEAKER_SIDE_RIGHT };
 
-	if (!m_engine->connect(PW_DIRECTION_OUTPUT, channels, iChannels)) {
+	if (!m_engine->connect(PW_DIRECTION_OUTPUT, CHANNELS, static_cast< std::uint8_t >(iChannels))) {
 		return;
 	}
 
 	eSampleFormat = SampleFloat;
 	iMixerFreq    = SAMPLE_RATE;
-	initializeMixer(channels);
+	initializeMixer(CHANNELS);
 
 	m_engine->start();
 }
@@ -403,14 +428,18 @@ void PipeWireOutput::processCallback(void *param) {
 	}
 
 	chunk->offset = 0;
-	chunk->stride = sizeof(float) * pwo->iChannels;
+	chunk->stride = static_cast< int >(sizeof(float) * pwo->iChannels);
 
-	const uint32_t frames = std::min(data.maxsize / chunk->stride, pwo->iFrameSize);
+	const uint32_t frames = std::min(data.maxsize / static_cast< std::uint32_t >(chunk->stride), pwo->iFrameSize);
 
-	if (pwo->mix(data.data, frames)) {
-		chunk->size = frames * chunk->stride;
-	} else {
-		chunk->size = 0;
+	chunk->size = frames * static_cast< unsigned int >(chunk->stride);
+	if (!pwo->mix(data.data, frames)) {
+		// When the mixer has no data available to write, we still need to push silence.
+		// This is to avoid an infinite loop when destroying the stream.
+		// In that infinite loop, Pipewire would wait until the stream starts draining.
+		// But this never happens, if we don't push new data.
+		// Thus pw_stream_destroy() would block forever.
+		memset(data.data, 0, sizeof(float) * chunk->size);
 	}
 
 	pwo->m_engine->queueBuffer(buffer);

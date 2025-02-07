@@ -1,4 +1,4 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -11,6 +11,7 @@
 #include <QtWidgets/QStyledItemDelegate>
 #include <QtWidgets/QToolButton>
 
+#include "Channel.h"
 #include "ConfigDialog.h"
 #include "MUComboBox.h"
 #include "Timer.h"
@@ -50,15 +51,18 @@ public:
  *
  * @see GlobalShortcutEngine
  */
-class ShortcutActionWidget : public MUComboBox {
+class ShortcutActionWidget : public QWidget {
 private:
 	Q_OBJECT
 	Q_DISABLE_COPY(ShortcutActionWidget)
 	Q_PROPERTY(unsigned int index READ index WRITE setIndex USER true)
+
+	MUComboBox *m_comboBox;
+
 public:
 	ShortcutActionWidget(QWidget *p = nullptr);
 	unsigned int index() const;
-	void setIndex(int);
+	void setIndex(unsigned int);
 };
 
 class ShortcutToggleWidget : public MUComboBox {
@@ -70,6 +74,31 @@ public:
 	ShortcutToggleWidget(QWidget *p = nullptr);
 	int index() const;
 	void setIndex(int);
+};
+
+class ChannelSelectWidget : public MUComboBox {
+	Q_OBJECT
+	Q_DISABLE_COPY(ChannelSelectWidget)
+	Q_PROPERTY(ChannelTarget currentChannel READ currentChannel WRITE setCurrentChannel USER true)
+public:
+	ChannelSelectWidget(QWidget *parent = nullptr);
+
+	ChannelTarget currentChannel() const;
+	void setCurrentChannel(const ChannelTarget &);
+};
+
+class TextEditWidget : public QWidget {
+private:
+	Q_OBJECT
+	Q_DISABLE_COPY(TextEditWidget)
+	Q_PROPERTY(QString currentString READ currentString WRITE setCurrentString USER true)
+
+	QLineEdit *m_lineEdit;
+
+public:
+	TextEditWidget(QWidget *p = nullptr);
+	QString currentString() const;
+	void setCurrentString(const QString &);
 };
 
 /**
@@ -136,6 +165,7 @@ public slots:
  * @see ShortcutKeyWidget
  * @see ShortcutActionWidget
  * @see ShortcutTargetWidget
+ * @see ChannelSelectWidget
  */
 class ShortcutDelegate : public QStyledItemDelegate {
 	Q_OBJECT
@@ -188,7 +218,7 @@ public slots:
 
 struct ShortcutKey {
 	Shortcut s;
-	int iNumUp;
+	qsizetype iNumUp;
 	GlobalShortcut *gs;
 };
 

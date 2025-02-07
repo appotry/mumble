@@ -1,10 +1,18 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
 
 // For detailed info about RAWKEYBOARD handling:
 // https://blog.molecular-matters.com/2011/09/05/properly-handling-keyboard-input
+
+#ifdef _MSVC_LANG
+#	pragma warning(push)
+// SPSCQueue does some funky alignment tricks which trigger the C4316
+// warning about potential misalignment on the heap.
+// We just have to trust the SPSCQueue implementation here.
+#	pragma warning(disable : 4316)
+#endif
 
 #include "GlobalShortcut_win.h"
 
@@ -14,11 +22,12 @@
 #	include "GKey.h"
 #endif
 
-#include <codecvt>
+#include "win.h"
+
 #include <iomanip>
+#include <mutex>
 #include <sstream>
 
-#include <QTimer>
 #include <QUuid>
 
 extern "C" {
@@ -28,6 +37,8 @@ extern "C" {
 #include <hidpi.h>
 // clang-format on
 }
+
+#include <utf8/cpp11.h>
 
 // From os_win.cpp
 extern HWND mumble_mw_hwnd;
@@ -185,35 +196,23 @@ void GlobalShortcutWin::registerMetaTypes() {
 		registered = true;
 
 		qRegisterMetaType< InputHid >();
-		qRegisterMetaTypeStreamOperators< InputHid >();
-		QMetaType::registerComparators< InputHid >();
-
 		qRegisterMetaType< InputKeyboard >();
-		qRegisterMetaTypeStreamOperators< InputKeyboard >();
-		QMetaType::registerComparators< InputKeyboard >();
-
 		qRegisterMetaType< InputMouse >();
-		qRegisterMetaTypeStreamOperators< InputMouse >();
-		QMetaType::registerComparators< InputMouse >();
 #ifdef USE_XBOXINPUT
 		qRegisterMetaType< InputXinput >();
-		qRegisterMetaTypeStreamOperators< InputXinput >();
-		QMetaType::registerComparators< InputXinput >();
 #endif
 #ifdef USE_GKEY
 		qRegisterMetaType< InputGkey >();
-		qRegisterMetaTypeStreamOperators< InputGkey >();
-		QMetaType::registerComparators< InputGkey >();
 #endif
 	}
 }
 
 QList< Shortcut > GlobalShortcutWin::migrateSettings(const QList< Shortcut > &oldShortcuts) {
-	constexpr QUuid keyboardUuid(0x6F1D2B61, 0xD5A0, 0x11CF, 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00);
-	constexpr QUuid mouseUuid(0x6F1D2B60, 0xD5A0, 0x11CF, 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00);
-	constexpr QUuid xinputUuid(0xCA3937E3, 0x640C, 0x4D9E, 0x9E, 0xF3, 0x90, 0x3F, 0x8B, 0x4F, 0xBC, 0xAB);
-	constexpr QUuid gkeyKeyboardUuid(0x153E64E6, 0x98C8, 0x4E, 0x03, 0x80EF, 0x5F, 0xFD, 0x33, 0xD2, 0x5B, 0x8A);
-	constexpr QUuid gkeyMouseUuid(0xC41E60AF, 0x9022, 0x46CF, 0xBC, 0x39, 0x37, 0x98, 0x10, 0x82, 0xD7, 0x16);
+	constexpr QUuid KEYBOARD_UUID(0x6F1D2B61, 0xD5A0, 0x11CF, 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00);
+	constexpr QUuid MOUSE_UUID(0x6F1D2B60, 0xD5A0, 0x11CF, 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00);
+	constexpr QUuid XINPUT_UUID(0xCA3937E3, 0x640C, 0x4D9E, 0x9E, 0xF3, 0x90, 0x3F, 0x8B, 0x4F, 0xBC, 0xAB);
+	constexpr QUuid GKEY_KEYBOARD_UUID(0x153E64E6, 0x98C8, 0x4E03, 0x80, 0xEF, 0x5F, 0xFD, 0x33, 0xD2, 0x5B, 0x8A);
+	constexpr QUuid GKEY_MOUSE_UUID(0xC41E60AF, 0x9022, 0x46CF, 0xBC, 0x39, 0x37, 0x98, 0x10, 0x82, 0xD7, 0x16);
 
 	QList< Shortcut > newShortcuts;
 
@@ -253,7 +252,7 @@ QList< Shortcut > GlobalShortcutWin::migrateSettings(const QList< Shortcut > &ol
 			}
 
 			const auto uuid = entries.at(1).toUuid();
-			if (uuid == keyboardUuid) {
+			if (uuid == KEYBOARD_UUID) {
 				InputKeyboard input;
 				input.code = (value & ~0x8000U) >> 8;
 				input.e0   = value & 0x8000U;
@@ -267,7 +266,7 @@ QList< Shortcut > GlobalShortcutWin::migrateSettings(const QList< Shortcut > &ol
 				}
 
 				button = QVariant::fromValue(input);
-			} else if (uuid == mouseUuid) {
+			} else if (uuid == MOUSE_UUID) {
 				value >>= 8;
 				if (value < 3 || value > 7) {
 					ok = false;
@@ -276,7 +275,7 @@ QList< Shortcut > GlobalShortcutWin::migrateSettings(const QList< Shortcut > &ol
 
 				button = QVariant::fromValue(static_cast< InputMouse >(value - 2));
 #ifdef USE_XBOXINPUT
-			} else if (uuid == xinputUuid) {
+			} else if (uuid == XINPUT_UUID) {
 				InputXinput input;
 				input.device = (value >> 24) & 0xFF;
 				input.code   = value & 0x00FFFFFF;
@@ -284,14 +283,14 @@ QList< Shortcut > GlobalShortcutWin::migrateSettings(const QList< Shortcut > &ol
 				button = QVariant::fromValue(input);
 #endif
 #ifdef USE_GKEY
-			} else if (uuid == gkeyKeyboardUuid) {
+			} else if (uuid == GKEY_KEYBOARD_UUID) {
 				InputGkey input = {};
 				input.keyboard  = true;
 				input.mode      = value >> 16;
 				input.button    = value & 0xFFFF;
 
 				button = QVariant::fromValue(input);
-			} else if (uuid == gkeyMouseUuid) {
+			} else if (uuid == GKEY_MOUSE_UUID) {
 				InputGkey input = {};
 				input.button    = value;
 
@@ -312,22 +311,21 @@ QList< Shortcut > GlobalShortcutWin::migrateSettings(const QList< Shortcut > &ol
 }
 
 GlobalShortcutWin::GlobalShortcutWin()
+	: m_msgQueue(64)
 #ifdef USE_XBOXINPUT
-	: m_xinputDevices(0), m_xinputLastPacket()
+	  ,
+	  m_xinputDevices(0), m_xinputLastPacket()
 #endif
 {
 	// Register the MetaTypes if they have not already been registered (e.g in Settings)
 	registerMetaTypes();
 
-	connect(this, &GlobalShortcutWin::hidMessage, this, &GlobalShortcutWin::on_hidMessage);
-	connect(this, &GlobalShortcutWin::keyboardMessage, this, &GlobalShortcutWin::on_keyboardMessage);
-	connect(this, &GlobalShortcutWin::mouseMessage, this, &GlobalShortcutWin::on_mouseMessage);
-
-	start(QThread::LowestPriority);
+	start();
 }
 
 GlobalShortcutWin::~GlobalShortcutWin() {
-	quit();
+	requestInterruption();
+	m_condVar.notify_all();
 	wait();
 }
 
@@ -363,8 +361,8 @@ void GlobalShortcutWin::run() {
 		yieldCurrentThread();
 	}
 
-	constexpr uint8_t nRid   = 5;
-	RAWINPUTDEVICE rid[nRid] = {};
+	constexpr uint8_t NRID   = 5;
+	RAWINPUTDEVICE rid[NRID] = {};
 
 	rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
 	rid[0].usUsage     = HID_USAGE_GENERIC_MOUSE;
@@ -391,15 +389,39 @@ void GlobalShortcutWin::run() {
 	rid[4].dwFlags     = RIDEV_INPUTSINK | RIDEV_DEVNOTIFY;
 	rid[4].hwndTarget  = mumble_mw_hwnd;
 
-	if (!RegisterRawInputDevices(rid, nRid, sizeof(RAWINPUTDEVICE))) {
+	if (!RegisterRawInputDevices(rid, NRID, sizeof(RAWINPUTDEVICE))) {
 		qWarning("GlobalShortcutWindows: RegisterRawInputDevices() failed with error %u!", GetLastError());
 	}
 
-	QTimer timer;
-	connect(&timer, &QTimer::timeout, this, &GlobalShortcutWin::timeTicked);
-	timer.start(20);
+	std::mutex mutex;
+	std::unique_lock< decltype(mutex) > lock(mutex);
 
-	exec();
+	do {
+		m_condVar.wait(lock);
+
+		if (bNeedRemap) {
+			remap();
+		}
+
+		while (const std::unique_ptr< MsgRaw > *item = m_msgQueue.front()) {
+			const std::unique_ptr< MsgRaw > &msg = *item;
+
+			switch (msg->type()) {
+				case MsgRaw::Hid:
+					processOther();
+					processMsgHid(static_cast< MsgHid & >(*msg));
+					break;
+				case MsgRaw::Keyboard:
+					processMsgKeyboard(static_cast< MsgKeyboard & >(*msg));
+					break;
+				case MsgRaw::Mouse:
+					processMsgMouse(static_cast< MsgMouse & >(*msg));
+					break;
+			}
+
+			m_msgQueue.pop();
+		}
+	} while (!isInterruptionRequested());
 }
 
 void GlobalShortcutWin::injectRawInputMessage(HRAWINPUT handle) {
@@ -417,7 +439,7 @@ void GlobalShortcutWin::injectRawInputMessage(HRAWINPUT handle) {
 	switch (input->header.dwType) {
 		case RIM_TYPEMOUSE: {
 			const RAWMOUSE &mouse = input->data.mouse;
-			emit mouseMessage(mouse.usButtonFlags, mouse.usButtonData);
+			m_msgQueue.emplace(std::make_unique< MsgMouse >(mouse.usButtonFlags));
 			break;
 		}
 		case RIM_TYPEKEYBOARD: {
@@ -433,24 +455,26 @@ void GlobalShortcutWin::injectRawInputMessage(HRAWINPUT handle) {
 				return;
 			}
 
-			emit keyboardMessage(keyboard.Flags, keyboard.MakeCode, keyboard.VKey);
+			m_msgQueue.emplace(std::make_unique< MsgKeyboard >(keyboard.Flags, keyboard.MakeCode, keyboard.VKey));
 			break;
 		}
 		case RIM_TYPEHID: {
 			const RAWHID &hid = input->data.hid;
-			std::vector< char > reports(hid.dwSizeHid * hid.dwCount);
-			memcpy(reports.data(), hid.bRawData, reports.size());
-
-			emit hidMessage(input->header.hDevice, std::move(reports), hid.dwSizeHid);
+			MsgHid::RawReports reports(hid.bRawData, hid.dwSizeHid * hid.dwCount);
+			m_msgQueue.emplace(std::make_unique< MsgHid >(input->header.hDevice, reports, hid.dwSizeHid));
+			break;
 		}
+		default:
+			return;
 	}
+
+	m_condVar.notify_all();
 }
 
-void GlobalShortcutWin::on_hidMessage(const HANDLE deviceHandle, std::vector< char > reports,
-									  const uint32_t reportSize) {
-	auto iter = m_devices.find(deviceHandle);
+void GlobalShortcutWin::processMsgHid(MsgHid &msg) {
+	auto iter = m_devices.find(msg.deviceHandle);
 	if (iter == m_devices.end()) {
-		iter = addDevice(deviceHandle);
+		iter = addDevice(msg.deviceHandle);
 		if (iter == m_devices.cend()) {
 			return;
 		}
@@ -464,9 +488,10 @@ void GlobalShortcutWin::on_hidMessage(const HANDLE deviceHandle, std::vector< ch
 #endif
 	auto data = reinterpret_cast< PHIDP_PREPARSED_DATA >(&device.data[0]);
 
-	ULONG nUsages = device.buttons.size();
+	ULONG nUsages = static_cast< ULONG >(device.buttons.size());
 	std::vector< USAGE > usages(nUsages);
-	if (HidP_GetUsages(HidP_Input, HID_USAGE_PAGE_BUTTON, 0, &usages[0], &nUsages, data, &reports[0], reportSize)
+	if (HidP_GetUsages(HidP_Input, HID_USAGE_PAGE_BUTTON, 0, &usages[0], &nUsages, data, &msg.reports[0],
+					   msg.reportSize)
 		!= HIDP_STATUS_SUCCESS) {
 		return;
 	}
@@ -486,79 +511,71 @@ void GlobalShortcutWin::on_hidMessage(const HANDLE deviceHandle, std::vector< ch
 	}
 }
 
-void GlobalShortcutWin::on_keyboardMessage(const uint16_t flags, uint16_t scanCode, const uint16_t virtualKey) {
-	if (virtualKey == VK_NUMLOCK) {
+void GlobalShortcutWin::processMsgKeyboard(MsgKeyboard &msg) {
+	if (msg.virtualKey == VK_NUMLOCK) {
 		// Keys like “Pause / Break” and “Numlock” act strangely,
 		// sometimes like they are not even the same physical key.
 		// They use the so called escaped sequences, which we have to decipher.
-		scanCode = MapVirtualKey(virtualKey, MAPVK_VK_TO_VSC) | 0x100;
+		msg.scanCode = MapVirtualKey(msg.virtualKey, MAPVK_VK_TO_VSC) | 0x100;
 	}
 
 	// E0 and E1 are escape sequences used for certain special keys, such as PRINT and PAUSE/BREAK.
 	// See https://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html.
-	if (flags & RI_KEY_E1) {
+	if (msg.flags & RI_KEY_E1) {
 		// For escaped sequences, turn the virtual key into the correct scan code using MapVirtualKey().
 		// MapVirtualKey() is unable to map VK_PAUSE (this is a known bug), hence we map that by hand.
-		scanCode = virtualKey != VK_PAUSE ? MapVirtualKey(virtualKey, MAPVK_VK_TO_VSC) : 0x45;
+		msg.scanCode = msg.virtualKey != VK_PAUSE ? MapVirtualKey(msg.virtualKey, MAPVK_VK_TO_VSC) : 0x45;
 	}
 
 	InputKeyboard input = {};
-	input.code          = scanCode;
-	input.e0            = flags & RI_KEY_E0;
+	input.code          = msg.scanCode;
+	input.e0            = msg.flags & RI_KEY_E0;
 
-	handleButton(QVariant::fromValue(input), !(flags & RI_KEY_BREAK));
+	handleButton(QVariant::fromValue(input), !(msg.flags & RI_KEY_BREAK));
 }
 
-void GlobalShortcutWin::on_mouseMessage(const uint16_t flags, const uint16_t data) {
-	InputMouse input;
-	bool down;
-
-	switch (flags) {
-		case RI_MOUSE_BUTTON_1_DOWN:
-			input = InputMouse::Left;
-			down  = true;
-			break;
-		case RI_MOUSE_BUTTON_1_UP:
-			input = InputMouse::Left;
-			down  = false;
-			break;
-		case RI_MOUSE_BUTTON_2_DOWN:
-			input = InputMouse::Right;
-			down  = true;
-			break;
-		case RI_MOUSE_BUTTON_2_UP:
-			input = InputMouse::Right;
-			down  = false;
-			break;
-		case RI_MOUSE_BUTTON_3_DOWN:
-			input = InputMouse::Middle;
-			down  = true;
-			break;
-		case RI_MOUSE_BUTTON_3_UP:
-			input = InputMouse::Middle;
-			down  = false;
-			break;
-		case RI_MOUSE_BUTTON_4_DOWN:
-			input = InputMouse::Side_1;
-			down  = true;
-			break;
-		case RI_MOUSE_BUTTON_4_UP:
-			input = InputMouse::Side_1;
-			down  = false;
-			break;
-		case RI_MOUSE_BUTTON_5_DOWN:
-			input = InputMouse::Side_2;
-			down  = true;
-			break;
-		case RI_MOUSE_BUTTON_5_UP:
-			input = InputMouse::Side_2;
-			down  = false;
-			break;
-		default:
-			return;
+void GlobalShortcutWin::processMsgMouse(const MsgMouse &msg) {
+	// Multiple mouse transitions can be contained in a single message.
+	// See https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-rawmouse.
+	if (msg.buttonFlags & RI_MOUSE_BUTTON_1_DOWN) {
+		handleButton(QVariant::fromValue(InputMouse::Left), true);
 	}
 
-	handleButton(QVariant::fromValue(input), down);
+	if (msg.buttonFlags & RI_MOUSE_BUTTON_1_UP) {
+		handleButton(QVariant::fromValue(InputMouse::Left), false);
+	}
+
+	if (msg.buttonFlags & RI_MOUSE_BUTTON_2_DOWN) {
+		handleButton(QVariant::fromValue(InputMouse::Right), true);
+	}
+
+	if (msg.buttonFlags & RI_MOUSE_BUTTON_2_UP) {
+		handleButton(QVariant::fromValue(InputMouse::Right), false);
+	}
+
+	if (msg.buttonFlags & RI_MOUSE_BUTTON_3_DOWN) {
+		handleButton(QVariant::fromValue(InputMouse::Middle), true);
+	}
+
+	if (msg.buttonFlags & RI_MOUSE_BUTTON_3_UP) {
+		handleButton(QVariant::fromValue(InputMouse::Middle), false);
+	}
+
+	if (msg.buttonFlags & RI_MOUSE_BUTTON_4_DOWN) {
+		handleButton(QVariant::fromValue(InputMouse::Side_1), true);
+	}
+
+	if (msg.buttonFlags & RI_MOUSE_BUTTON_4_UP) {
+		handleButton(QVariant::fromValue(InputMouse::Side_1), false);
+	}
+
+	if (msg.buttonFlags & RI_MOUSE_BUTTON_5_DOWN) {
+		handleButton(QVariant::fromValue(InputMouse::Side_2), true);
+	}
+
+	if (msg.buttonFlags & RI_MOUSE_BUTTON_5_UP) {
+		handleButton(QVariant::fromValue(InputMouse::Side_2), false);
+	}
 }
 
 GlobalShortcutWin::DeviceMap::iterator GlobalShortcutWin::addDevice(const HANDLE deviceHandle) {
@@ -603,15 +620,13 @@ GlobalShortcutWin::DeviceMap::iterator GlobalShortcutWin::addDevice(const HANDLE
 				name.clear();
 				name.resize(127);
 
-				std::wstring_convert< std::codecvt_utf8_utf16< wchar_t > > conv;
-
-				if (HidD_GetManufacturerString(handle, &name[0], sizeof(wchar_t) * name.size())) {
-					nameStream << ' ' << conv.to_bytes(name);
+				if (HidD_GetManufacturerString(handle, &name[0], static_cast< ULONG >(sizeof(wchar_t) * name.size()))) {
+					nameStream << ' ' << utf16To8(name);
 					name.clear();
 				}
 
-				if (HidD_GetProductString(handle, &name[0], sizeof(wchar_t) * name.size())) {
-					nameStream << ' ' << conv.to_bytes(name);
+				if (HidD_GetProductString(handle, &name[0], static_cast< ULONG >(sizeof(wchar_t) * name.size()))) {
+					nameStream << ' ' << utf16To8(name);
 				}
 
 				CloseHandle(handle);
@@ -699,10 +714,7 @@ bool GlobalShortcutWin::xinputIsPressed(const uint8_t bit, const XboxInputState 
 	}
 }
 #endif
-void GlobalShortcutWin::timeTicked() {
-	if (bNeedRemap) {
-		remap();
-	}
+void GlobalShortcutWin::processOther() {
 #ifdef USE_XBOXINPUT
 	if (m_xinput && m_xinputDevices > 0) {
 		for (uint8_t i = 0; i < XBOXINPUT_MAX_DEVICES; ++i) {
@@ -865,4 +877,22 @@ GlobalShortcutWin::ButtonInfo GlobalShortcutWin::buttonInfo(const QVariant &butt
 #endif
 
 	return info;
+}
+
+#ifdef _MSVC_LANG
+#	pragma warning(pop)
+#endif
+
+std::string GlobalShortcutWin::utf16To8(const std::wstring &wstr) {
+	if (wstr.empty()) {
+		return {};
+	}
+
+	const std::u16string str16{ wstr.cbegin(), wstr.cend() };
+
+	try {
+		return utf8::utf16to8(str16);
+	} catch (const utf8::invalid_utf16 &) {
+		return {};
+	}
 }

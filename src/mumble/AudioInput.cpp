@@ -1,18 +1,14 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
 
 #include "AudioInput.h"
 
-#include "AudioOutput.h"
-#include "CELTCodec.h"
-#ifdef USE_OPUS
-#	include "OpusCodec.h"
-#endif
 #include "API.h"
+#include "AudioOutput.h"
 #include "MainWindow.h"
-#include "Message.h"
+#include "MumbleProtocol.h"
 #include "NetworkConfig.h"
 #include "PacketDataStream.h"
 #include "PluginManager.h"
@@ -20,23 +16,20 @@
 #include "User.h"
 #include "Utils.h"
 #include "VoiceRecorder.h"
-
 #include "Global.h"
 
-#ifdef USE_RNNOISE
+#include <opus.h>
+
+#ifdef USE_RENAMENOISE
 extern "C" {
-#	include "rnnoise.h"
+#	include "renamenoise.h"
 }
 #endif
 
 #include <algorithm>
+#include <cassert>
+#include <exception>
 #include <limits>
-
-/// Clip the given float value to a range that can be safely converted into a short (without causing integer overflow)
-static short clampFloatSample(float v) {
-	return static_cast< short >(std::min(std::max(v, static_cast< float >(std::numeric_limits< short >::min())),
-										 static_cast< float >(std::numeric_limits< short >::max())));
-}
 
 void Resynchronizer::addMic(short *mic) {
 	bool drop = false;
@@ -212,7 +205,8 @@ bool AudioInputRegistrar::isMicrophoneAccessDeniedByOS() {
 	return false;
 }
 
-AudioInput::AudioInput() : opusBuffer(Global::get().s.iFramesPerPacket * (SAMPLE_RATE / 100)) {
+AudioInput::AudioInput()
+	: opusBuffer(static_cast< std::size_t >(Global::get().s.iFramesPerPacket * (SAMPLE_RATE / 100))) {
 	bDebugDumpInput         = Global::get().bDebugDumpInput;
 	resync.bDebugPrintQueue = Global::get().bDebugPrintQueue;
 	if (bDebugDumpInput) {
@@ -225,34 +219,26 @@ AudioInput::AudioInput() : opusBuffer(Global::get().s.iFramesPerPacket * (SAMPLE
 
 	Global::get().iAudioBandwidth = getNetworkBandwidth(iAudioQuality, iAudioFrames);
 
-	umtType = MessageHandler::UDPVoiceCELTAlpha;
+	m_codec = Mumble::Protocol::AudioCodec::Opus;
 
 	activityState = ActivityStateActive;
-	oCodec        = nullptr;
 	opusState     = nullptr;
-	cCodec        = nullptr;
-	ceEncoder     = nullptr;
 
-#ifdef USE_OPUS
-	oCodec = Global::get().oCodec;
-	if (oCodec) {
-		if (bAllowLowDelay && iAudioQuality >= 64000) { // > 64 kbit/s bitrate and low delay allowed
-			opusState = oCodec->opus_encoder_create(SAMPLE_RATE, 1, OPUS_APPLICATION_RESTRICTED_LOWDELAY, nullptr);
-			qWarning("AudioInput: Opus encoder set for low delay");
-		} else if (iAudioQuality >= 32000) { // > 32 kbit/s bitrate
-			opusState = oCodec->opus_encoder_create(SAMPLE_RATE, 1, OPUS_APPLICATION_AUDIO, nullptr);
-			qWarning("AudioInput: Opus encoder set for high quality speech");
-		} else {
-			opusState = oCodec->opus_encoder_create(SAMPLE_RATE, 1, OPUS_APPLICATION_VOIP, nullptr);
-			qWarning("AudioInput: Opus encoder set for low quality speech");
-		}
-
-		oCodec->opus_encoder_ctl(opusState, OPUS_SET_VBR(0)); // CBR
+	if (bAllowLowDelay && iAudioQuality >= 64000) { // > 64 kbit/s bitrate and low delay allowed
+		opusState = opus_encoder_create(SAMPLE_RATE, 1, OPUS_APPLICATION_RESTRICTED_LOWDELAY, nullptr);
+		qWarning("AudioInput: Opus encoder set for low delay");
+	} else if (iAudioQuality >= 32000) { // > 32 kbit/s bitrate
+		opusState = opus_encoder_create(SAMPLE_RATE, 1, OPUS_APPLICATION_AUDIO, nullptr);
+		qWarning("AudioInput: Opus encoder set for high quality speech");
+	} else {
+		opusState = opus_encoder_create(SAMPLE_RATE, 1, OPUS_APPLICATION_VOIP, nullptr);
+		qWarning("AudioInput: Opus encoder set for low quality speech");
 	}
-#endif
 
-#ifdef USE_RNNOISE
-	denoiseState = rnnoise_create(nullptr);
+	opus_encoder_ctl(opusState, OPUS_SET_VBR(0)); // CBR
+
+#ifdef USE_RENAMENOISE
+	denoiseState = renamenoise_create(nullptr);
 #endif
 
 	qWarning("AudioInput: %d bits/s, %d hz, %d sample", iAudioQuality, iSampleRate, iFrameSize);
@@ -263,12 +249,13 @@ AudioInput::AudioInput() : opusBuffer(Global::get().s.iFramesPerPacket * (SAMPLE
 	iHoldFrames     = 0;
 	iBufferedFrames = 0;
 
+	bUserIsMuted = false;
+
 	bResetProcessor = true;
 
 	bEchoMulti = false;
 
-	sppPreprocess = nullptr;
-	sesEcho       = nullptr;
+	sesEcho = nullptr;
 	srsMic = srsEcho = nullptr;
 
 	iEchoChannels = iMicChannels = 0;
@@ -293,30 +280,23 @@ AudioInput::AudioInput() : opusBuffer(Global::get().s.iFramesPerPacket * (SAMPLE
 
 	connect(this, SIGNAL(doDeaf()), Global::get().mw->qaAudioDeaf, SLOT(trigger()), Qt::QueuedConnection);
 	connect(this, SIGNAL(doMute()), Global::get().mw->qaAudioMute, SLOT(trigger()), Qt::QueuedConnection);
+	connect(this, SIGNAL(doMuteCue()), Global::get().mw, SLOT(on_muteCuePopup_triggered()));
 }
 
 AudioInput::~AudioInput() {
 	bRunning = false;
 	wait();
 
-#ifdef USE_OPUS
 	if (opusState) {
-		oCodec->opus_encoder_destroy(opusState);
+		opus_encoder_destroy(opusState);
 	}
-#endif
 
-#ifdef USE_RNNOISE
+#ifdef USE_RENAMENOISE
 	if (denoiseState) {
-		rnnoise_destroy(denoiseState);
+		renamenoise_destroy(denoiseState);
 	}
 #endif
 
-	if (ceEncoder) {
-		cCodec->celt_encoder_destroy(ceEncoder);
-	}
-
-	if (sppPreprocess)
-		speex_preprocess_state_destroy(sppPreprocess);
 	if (sesEcho)
 		speex_echo_state_destroy(sesEcho);
 
@@ -331,7 +311,7 @@ AudioInput::~AudioInput() {
 
 bool AudioInput::isTransmitting() const {
 	return bPreviousVoice;
-};
+}
 
 #define IN_MIXER_FLOAT(channels)                                                                             \
 	static void inMixerFloat##channels(float *RESTRICT buffer, const void *RESTRICT ipt, unsigned int nsamp, \
@@ -368,7 +348,8 @@ static void inMixerFloatMask(float *RESTRICT buffer, const void *RESTRICT ipt, u
 	const float *RESTRICT input = reinterpret_cast< const float * >(ipt);
 
 	unsigned int chancount = 0;
-	STACKVAR(unsigned int, chanindex, N);
+	static std::vector< unsigned int > chanindex;
+	chanindex.resize(N);
 	for (unsigned int j = 0; j < N; ++j) {
 		if ((mask & (1ULL << j)) == 0) {
 			continue;
@@ -392,7 +373,8 @@ static void inMixerShortMask(float *RESTRICT buffer, const void *RESTRICT ipt, u
 	const short *RESTRICT input = reinterpret_cast< const short * >(ipt);
 
 	unsigned int chancount = 0;
-	STACKVAR(unsigned int, chanindex, N);
+	static std::vector< unsigned int > chanindex;
+	chanindex.resize(N);
 	for (unsigned int j = 0; j < N; ++j) {
 		if ((mask & (1ULL << j)) == 0) {
 			continue;
@@ -548,9 +530,10 @@ void AudioInput::initializeMixer() {
 	imfMic  = chooseMixer(iMicChannels, eMicFormat, uiMicChannelMask);
 	imfEcho = chooseMixer(iEchoChannels, eEchoFormat, uiEchoChannelMask);
 
-	iMicSampleSize = static_cast< int >(iMicChannels * ((eMicFormat == SampleFloat) ? sizeof(float) : sizeof(short)));
+	iMicSampleSize =
+		static_cast< unsigned int >(iMicChannels * ((eMicFormat == SampleFloat) ? sizeof(float) : sizeof(short)));
 	iEchoSampleSize =
-		static_cast< int >(iEchoChannels * ((eEchoFormat == SampleFloat) ? sizeof(float) : sizeof(short)));
+		static_cast< unsigned int >(iEchoChannels * ((eEchoFormat == SampleFloat) ? sizeof(float) : sizeof(short)));
 
 	bResetProcessor = true;
 
@@ -665,7 +648,7 @@ void AudioInput::addEcho(const void *data, unsigned int nsamp) {
 
 			// float -> 16bit PCM
 			const float mul = 32768.f;
-			for (int j = 0; j < iEchoFrameSize; ++j) {
+			for (unsigned int j = 0; j < iEchoFrameSize; ++j) {
 				outbuff[j] = static_cast< short >(qBound(-32768.f, (ptr[j] * mul), 32767.f));
 			}
 
@@ -754,43 +737,34 @@ void AudioInput::resetAudioProcessor() {
 	if (!bResetProcessor)
 		return;
 
-	int iArg;
-
-	if (sppPreprocess)
-		speex_preprocess_state_destroy(sppPreprocess);
 	if (sesEcho)
 		speex_echo_state_destroy(sesEcho);
 
-	sppPreprocess = speex_preprocess_state_init(iFrameSize, iSampleRate);
+	m_preprocessor.init(iSampleRate, iFrameSize);
 	resync.reset();
 	selectNoiseCancel();
 
-	iArg = 1;
-	speex_preprocess_ctl(sppPreprocess, SPEEX_PREPROCESS_SET_VAD, &iArg);
-	speex_preprocess_ctl(sppPreprocess, SPEEX_PREPROCESS_SET_AGC, &iArg);
-	speex_preprocess_ctl(sppPreprocess, SPEEX_PREPROCESS_SET_DEREVERB, &iArg);
+	m_preprocessor.setVAD(true);
+	m_preprocessor.setAGC(true);
+	m_preprocessor.setDereverb(true);
 
-	iArg = 30000;
-	speex_preprocess_ctl(sppPreprocess, SPEEX_PREPROCESS_SET_AGC_TARGET, &iArg);
+	m_preprocessor.setAGCTarget(30000);
 
-	float v = 30000.0f / static_cast< float >(Global::get().s.iMinLoudness);
-	iArg    = iroundf(floorf(20.0f * log10f(v)));
-	speex_preprocess_ctl(sppPreprocess, SPEEX_PREPROCESS_SET_AGC_MAX_GAIN, &iArg);
-
-	iArg = -60;
-	speex_preprocess_ctl(sppPreprocess, SPEEX_PREPROCESS_SET_AGC_DECREMENT, &iArg);
+	const float v = 30000.0f / static_cast< float >(Global::get().s.iMinLoudness);
+	m_preprocessor.setAGCMaxGain(static_cast< std::int32_t >(floorf(20.0f * log10f(v))));
+	m_preprocessor.setAGCDecrement(-60);
 
 	if (noiseCancel == Settings::NoiseCancelSpeex) {
-		iArg = Global::get().s.iSpeexNoiseCancelStrength;
-		speex_preprocess_ctl(sppPreprocess, SPEEX_PREPROCESS_SET_NOISE_SUPPRESS, &iArg);
+		m_preprocessor.setNoiseSuppress(Global::get().s.iSpeexNoiseCancelStrength);
 	}
 
 	if (iEchoChannels > 0) {
 		int filterSize = iFrameSize * (10 + resync.getNominalLag());
-		sesEcho        = speex_echo_state_init_mc(iFrameSize, filterSize, 1, bEchoMulti ? iEchoChannels : 1);
-		iArg           = iSampleRate;
+		sesEcho =
+			speex_echo_state_init_mc(iFrameSize, filterSize, 1, bEchoMulti ? static_cast< int >(iEchoChannels) : 1);
+		int iArg = iSampleRate;
 		speex_echo_ctl(sesEcho, SPEEX_ECHO_SET_SAMPLING_RATE, &iArg);
-		speex_preprocess_ctl(sppPreprocess, SPEEX_PREPROCESS_SET_ECHO_STATE, sesEcho);
+		m_preprocessor.setEchoState(sesEcho);
 
 		qWarning("AudioInput: ECHO CANCELLER ACTIVE");
 	} else {
@@ -803,75 +777,14 @@ void AudioInput::resetAudioProcessor() {
 }
 
 bool AudioInput::selectCodec() {
-	bool useOpus = false;
+	// We only ever use Opus
+	Mumble::Protocol::AudioCodec previousCodec = m_codec;
 
-	// Currently talking, use previous Opus status.
-	if (bPreviousVoice) {
-		useOpus = (umtType == MessageHandler::UDPVoiceOpus);
-	} else {
-#ifdef USE_OPUS
-		if (Global::get().bOpus || (Global::get().s.lmLoopMode == Settings::Local)) {
-			useOpus = true;
-		}
-#endif
-	}
+	assert(previousCodec == Mumble::Protocol::AudioCodec::Opus);
 
-	if (!useOpus) {
-		CELTCodec *switchto = nullptr;
-		if ((!Global::get().uiSession || (Global::get().s.lmLoopMode == Settings::Local))
-			&& (!Global::get().qmCodecs.isEmpty())) {
-			// Use latest for local loopback
-			QMap< int, CELTCodec * >::const_iterator i = Global::get().qmCodecs.constEnd();
-			--i;
-			switchto = i.value();
-		} else {
-			// Currently talking, don't switch unless you must.
-			if (cCodec && bPreviousVoice) {
-				int v = cCodec->bitstreamVersion();
-				if ((v == Global::get().iCodecAlpha) || (v == Global::get().iCodecBeta))
-					switchto = cCodec;
-			}
-		}
-		if (!switchto) {
-			switchto = Global::get().qmCodecs.value(Global::get().bPreferAlpha ? Global::get().iCodecAlpha
-																			   : Global::get().iCodecBeta);
-			if (!switchto)
-				switchto = Global::get().qmCodecs.value(Global::get().bPreferAlpha ? Global::get().iCodecBeta
-																				   : Global::get().iCodecAlpha);
-		}
-		if (switchto != cCodec) {
-			if (cCodec && ceEncoder) {
-				cCodec->celt_encoder_destroy(ceEncoder);
-				ceEncoder = nullptr;
-			}
-			cCodec = switchto;
-			if (cCodec)
-				ceEncoder = cCodec->encoderCreate();
-		}
+	m_codec = Mumble::Protocol::AudioCodec::Opus;
 
-		if (!cCodec)
-			return false;
-	}
-
-	MessageHandler::UDPMessageType previousType = umtType;
-	if (useOpus) {
-		umtType = MessageHandler::UDPVoiceOpus;
-	} else {
-		if (!Global::get().uiSession) {
-			umtType = MessageHandler::UDPVoiceCELTAlpha;
-		} else {
-			int v = cCodec->bitstreamVersion();
-			if (v == Global::get().iCodecAlpha)
-				umtType = MessageHandler::UDPVoiceCELTAlpha;
-			else if (v == Global::get().iCodecBeta)
-				umtType = MessageHandler::UDPVoiceCELTBeta;
-			else {
-				qWarning() << "Couldn't find message type for codec version" << v;
-			}
-		}
-	}
-
-	if (umtType != previousType) {
+	if (m_codec != previousCodec) {
 		iBufferedFrames = 0;
 		qlFrames.clear();
 		opusBuffer.clear();
@@ -884,83 +797,53 @@ void AudioInput::selectNoiseCancel() {
 	noiseCancel = Global::get().s.noiseCancelMode;
 
 	if (noiseCancel == Settings::NoiseCancelRNN || noiseCancel == Settings::NoiseCancelBoth) {
-#ifdef USE_RNNOISE
+#ifdef USE_RENAMENOISE
 		if (!denoiseState || iFrameSize != 480) {
-			qWarning("AudioInput: Ignoring request to enable RNNoise: internal error");
+			qWarning("AudioInput: Ignoring request to enable ReNameNoise: internal error");
 			noiseCancel = Settings::NoiseCancelSpeex;
 		}
 #else
-		qWarning("AudioInput: Ignoring request to enable RNNoise: Mumble was built without support for it");
+		qWarning("AudioInput: Ignoring request to enable ReNameNoise: Mumble was built without support for it");
 		noiseCancel = Settings::NoiseCancelSpeex;
 #endif
 	}
 
-	int iArg = 0;
+	bool preprocessorDenoise = false;
 	switch (noiseCancel) {
 		case Settings::NoiseCancelOff:
 			qWarning("AudioInput: Noise canceller disabled");
 			break;
 		case Settings::NoiseCancelSpeex:
 			qWarning("AudioInput: Using Speex as noise canceller");
-			iArg = 1;
+			preprocessorDenoise = true;
 			break;
 		case Settings::NoiseCancelRNN:
-			qWarning("AudioInput: Using RNNoise as noise canceller");
+			qWarning("AudioInput: Using ReNameNoise as noise canceller");
 			break;
 		case Settings::NoiseCancelBoth:
-			iArg = 1;
-			qWarning("AudioInput: Using RNNoise and Speex as noise canceller");
+			preprocessorDenoise = true;
+			qWarning("AudioInput: Using ReNameNoise and Speex as noise canceller");
 			break;
 	}
-	speex_preprocess_ctl(sppPreprocess, SPEEX_PREPROCESS_SET_DENOISE, &iArg);
+	m_preprocessor.setDenoise(preprocessorDenoise);
 }
 
 int AudioInput::encodeOpusFrame(short *source, int size, EncodingOutputBuffer &buffer) {
-#ifdef USE_OPUS
 	int len;
-	if (!oCodec) {
-		return 0;
-	}
-
 	if (bResetEncoder) {
-		oCodec->opus_encoder_ctl(opusState, OPUS_RESET_STATE, nullptr);
+		opus_encoder_ctl(opusState, OPUS_RESET_STATE, nullptr);
 		bResetEncoder = false;
 	}
 
-	oCodec->opus_encoder_ctl(opusState, OPUS_SET_BITRATE(iAudioQuality));
+	opus_encoder_ctl(opusState, OPUS_SET_BITRATE(iAudioQuality));
 
-	len = oCodec->opus_encode(opusState, source, size, &buffer[0], static_cast< opus_int32 >(buffer.size()));
+	len = opus_encode(opusState, source, size, &buffer[0], static_cast< opus_int32 >(buffer.size()));
 	const int tenMsFrameCount = (size / iFrameSize);
 	iBitrate                  = (len * 100 * 8) / tenMsFrameCount;
-	return len;
-#else
-	return 0;
-#endif
-}
-
-int AudioInput::encodeCELTFrame(short *psSource, EncodingOutputBuffer &buffer) {
-	int len;
-	if (!cCodec)
-		return 0;
-
-	if (bResetEncoder) {
-		cCodec->celt_encoder_ctl(ceEncoder, CELT_RESET_STATE);
-		bResetEncoder = false;
-	}
-
-	cCodec->celt_encoder_ctl(ceEncoder, CELT_SET_PREDICTION(0));
-
-	cCodec->celt_encoder_ctl(ceEncoder, CELT_SET_VBR_RATE(iAudioQuality));
-	len      = cCodec->encode(ceEncoder, psSource, &buffer[0],
-                         qMin< int >(iAudioQuality / (8 * 100), static_cast< int >(buffer.size())));
-	iBitrate = len * 100 * 8;
-
 	return len;
 }
 
 void AudioInput::encodeAudioFrame(AudioChunk chunk) {
-	int iArg;
-	int i;
 	float sum;
 	short max;
 
@@ -973,14 +856,14 @@ void AudioInput::encodeAudioFrame(AudioChunk chunk) {
 	// if the value of Global::get().iTarget changes during the execution of this function,
 	// it won't cause any inconsistencies and the change is reflected once this
 	// function is called again.
-	int voiceTargetID = Global::get().iTarget;
+	std::int32_t voiceTargetID = Global::get().iTarget;
 
 	if (!bRunning)
 		return;
 
 	sum = 1.0f;
 	max = 1;
-	for (i = 0; i < iFrameSize; i++) {
+	for (unsigned int i = 0; i < iFrameSize; i++) {
 		sum += static_cast< float >(chunk.mic[i] * chunk.mic[i]);
 		max = std::max(static_cast< short >(abs(chunk.mic[i])), max);
 	}
@@ -989,7 +872,7 @@ void AudioInput::encodeAudioFrame(AudioChunk chunk) {
 
 	if (chunk.speaker && (iEchoChannels > 0)) {
 		sum = 1.0f;
-		for (i = 0; i < iEchoFrameSize; ++i) {
+		for (unsigned int i = 0; i < iEchoFrameSize; ++i) {
 			sum += static_cast< float >(chunk.speaker[i] * chunk.speaker[i]);
 		}
 		dPeakSpeaker = qMax(20.0f * log10f(sqrtf(sum / static_cast< float >(iFrameSize)) / 32768.0f), -96.0f);
@@ -1000,11 +883,10 @@ void AudioInput::encodeAudioFrame(AudioChunk chunk) {
 	QMutexLocker l(&qmSpeex);
 	resetAudioProcessor();
 
-	speex_preprocess_ctl(sppPreprocess, SPEEX_PREPROCESS_GET_AGC_GAIN, &iArg);
-	float gainValue = static_cast< float >(iArg);
+	const std::int32_t gainValue = m_preprocessor.getAGCGain();
+
 	if (noiseCancel == Settings::NoiseCancelSpeex || noiseCancel == Settings::NoiseCancelBoth) {
-		iArg = Global::get().s.iSpeexNoiseCancelStrength - iArg;
-		speex_preprocess_ctl(sppPreprocess, SPEEX_PREPROCESS_SET_NOISE_SUPPRESS, &iArg);
+		m_preprocessor.setNoiseSuppress(Global::get().s.iSpeexNoiseCancelStrength - gainValue);
 	}
 
 	short psClean[iFrameSize];
@@ -1015,26 +897,22 @@ void AudioInput::encodeAudioFrame(AudioChunk chunk) {
 		psSource = chunk.mic;
 	}
 
-#ifdef USE_RNNOISE
-	// At the time of writing this code, RNNoise only supports a sample rate of 48000 Hz.
+#ifdef USE_RENAMENOISE
+	// At the time of writing this code, ReNameNoise only supports a sample rate of 48000 Hz.
 	if (noiseCancel == Settings::NoiseCancelRNN || noiseCancel == Settings::NoiseCancelBoth) {
 		float denoiseFrames[480];
-		for (int i = 0; i < 480; i++) {
+		for (unsigned int i = 0; i < 480; i++) {
 			denoiseFrames[i] = psSource[i];
 		}
 
-		rnnoise_process_frame(denoiseState, denoiseFrames, denoiseFrames);
-
-		for (int i = 0; i < 480; i++) {
-			psSource[i] = clampFloatSample(denoiseFrames[i]);
-		}
+		renamenoise_process_frame_clamped(denoiseState, psSource, denoiseFrames);
 	}
 #endif
 
-	speex_preprocess_run(sppPreprocess, psSource);
+	m_preprocessor.run(*psSource);
 
 	sum = 1.0f;
-	for (i = 0; i < iFrameSize; i++)
+	for (unsigned int i = 0; i < iFrameSize; i++)
 		sum += static_cast< float >(psSource[i] * psSource[i]);
 	float micLevel = sqrtf(sum / static_cast< float >(iFrameSize));
 	dPeakSignal    = qMax(20.0f * log10f(micLevel / 32768.0f), -96.0f);
@@ -1042,17 +920,17 @@ void AudioInput::encodeAudioFrame(AudioChunk chunk) {
 	if (bDebugDumpInput) {
 		outMic.write(reinterpret_cast< const char * >(chunk.mic), iFrameSize * sizeof(short));
 		if (chunk.speaker) {
-			outSpeaker.write(reinterpret_cast< const char * >(chunk.speaker), iEchoFrameSize * sizeof(short));
+			outSpeaker.write(reinterpret_cast< const char * >(chunk.speaker),
+							 static_cast< std::streamsize >(iEchoFrameSize * sizeof(short)));
 		}
-		outProcessed.write(reinterpret_cast< const char * >(psSource), iFrameSize * sizeof(short));
+		outProcessed.write(reinterpret_cast< const char * >(psSource),
+						   static_cast< std::streamsize >(iFrameSize * sizeof(short)));
 	}
 
-	spx_int32_t prob = 0;
-	speex_preprocess_ctl(sppPreprocess, SPEEX_PREPROCESS_GET_PROB, &prob);
-	fSpeechProb = static_cast< float >(prob) / 100.0f;
+	fSpeechProb = static_cast< float >(m_preprocessor.getSpeechProb()) / 100.0f;
 
 	// clean microphone level: peak of filtered signal attenuated by AGC gain
-	dPeakCleanMic = qMax(dPeakSignal - gainValue, -96.0f);
+	dPeakCleanMic = qMax(dPeakSignal - static_cast< float >(gainValue), -96.0f);
 	float level   = (Global::get().s.vsVAD == Settings::SignalToNoise) ? fSpeechProb : (1.0f + dPeakCleanMic / 96.0f);
 
 	bool bIsSpeech = false;
@@ -1068,25 +946,32 @@ void AudioInput::encodeAudioFrame(AudioChunk chunk) {
 	if (!bIsSpeech) {
 		iHoldFrames++;
 		if (iHoldFrames < Global::get().s.iVoiceHold)
+			// Hold mic open until iVoiceHold threshold is reached
 			bIsSpeech = true;
 	} else {
 		iHoldFrames = 0;
 	}
 
+	// If Global::get().iPushToTalk > 0 that means that we are currently in some sort of PTT action. For
+	// instance this could mean we're currently whispering
+	bool isPTT = Global::get().iPushToTalk > 0;
+
 	if (Global::get().s.atTransmit == Settings::Continuous
 		|| API::PluginData::get().overwriteMicrophoneActivation.load()) {
-		// Continous transmission is enabled
+		// Continuous transmission is enabled
 		bIsSpeech = true;
 	} else if (Global::get().s.atTransmit == Settings::PushToTalk) {
 		// PTT is enabled, so check if it is currently active
-		bIsSpeech = Global::get().s.uiDoublePush
-					&& ((Global::get().uiDoublePush < Global::get().s.uiDoublePush)
-						|| (Global::get().tDoublePush.elapsed() < Global::get().s.uiDoublePush));
+		bool doublePush = Global::get().s.uiDoublePush > 0
+						  && ((Global::get().uiDoublePush < Global::get().s.uiDoublePush)
+							  || (Global::get().tDoublePush.elapsed() < Global::get().s.uiDoublePush));
+
+		// With double push enabled, we might be in a PTT state without pressing any PTT key
+		isPTT     = isPTT || doublePush;
+		bIsSpeech = isPTT;
 	}
 
-	// If Global::get().iPushToTalk > 0 that means that we are currently in some sort of PTT action. For
-	// instance this could mean we're currently whispering
-	bIsSpeech = bIsSpeech || (Global::get().iPushToTalk > 0);
+	bIsSpeech = bIsSpeech || isPTT;
 
 	ClientUser *p          = ClientUser::get(Global::get().uiSession);
 	bool bTalkingWhenMuted = false;
@@ -1107,29 +992,44 @@ void AudioInput::encodeAudioFrame(AudioChunk chunk) {
 	if (p) {
 		if (!bIsSpeech)
 			p->setTalking(Settings::Passive);
-		else if (voiceTargetID == 0)
+		else if (voiceTargetID == Mumble::Protocol::ReservedTargetIDs::REGULAR_SPEECH)
 			p->setTalking(Settings::Talking);
 		else
 			p->setTalking(Settings::Shouting);
 	}
 
-	if (Global::get().uiSession != 0 && (Global::get().s.bTxAudioCue || Global::get().s.bTxMuteCue)) {
+	if (Global::get().uiSession != 0) {
 		AudioOutputPtr ao = Global::get().ao;
 
 		if (ao) {
-			if (Global::get().s.bTxAudioCue) {
-				if (bIsSpeech && !bPreviousVoice) {
-					ao->playSample(Global::get().s.qsTxAudioCueOn);
-				} else if (!bIsSpeech && bPreviousVoice) {
-					ao->playSample(Global::get().s.qsTxAudioCueOff);
-				}
+			const bool treatAsPTT         = isPTT || previousPTT;
+			const bool audioCueEnabledPTT = Global::get().s.audioCueEnabledPTT && treatAsPTT;
+			const bool audioCueEnabledVAD =
+				Global::get().s.audioCueEnabledVAD && Global::get().s.atTransmit == Settings::VAD && !treatAsPTT;
+			const bool audioCueEnabled = audioCueEnabledPTT || audioCueEnabledVAD;
+
+			const bool playAudioOnCue  = bIsSpeech && !bPreviousVoice && audioCueEnabled;
+			const bool playAudioOffCue = !bIsSpeech && bPreviousVoice && audioCueEnabled;
+			const bool stopActiveCue   = m_activeAudioCue && (playAudioOnCue || playAudioOffCue);
+
+			if (stopActiveCue) {
+				// Cancel active cue first, if there is any
+				ao->invalidateToken(m_activeAudioCue);
+				m_activeAudioCue = {};
+			}
+
+			if (playAudioOnCue) {
+				m_activeAudioCue = ao->playSample(Global::get().s.qsTxAudioCueOn, Global::get().s.cueVolume);
+			} else if (playAudioOffCue) {
+				m_activeAudioCue = ao->playSample(Global::get().s.qsTxAudioCueOff, Global::get().s.cueVolume);
 			}
 
 			if (Global::get().s.bTxMuteCue && !Global::get().bPushToMute && !Global::get().s.bDeaf
 				&& bTalkingWhenMuted) {
-				if (!qetLastMuteCue.isValid() || qetLastMuteCue.elapsed() > iMuteCueDelay) {
+				if (!qetLastMuteCue.isValid() || qetLastMuteCue.elapsed() > MUTE_CUE_DELAY) {
 					qetLastMuteCue.start();
-					ao->playSample(Global::get().s.qsTxMuteCue);
+					ao->playSample(Global::get().s.qsTxMuteCue, Global::get().s.cueVolume);
+					emit doMuteCue();
 				}
 			}
 		}
@@ -1159,12 +1059,10 @@ void AudioInput::encodeAudioFrame(AudioChunk chunk) {
 			}
 		}
 
-		spx_int32_t increment = 0;
-		speex_preprocess_ctl(sppPreprocess, SPEEX_PREPROCESS_SET_AGC_INCREMENT, &increment);
+		m_preprocessor.setAGCIncrement(0);
 		return;
 	} else {
-		spx_int32_t increment = 12;
-		speex_preprocess_ctl(sppPreprocess, SPEEX_PREPROCESS_SET_AGC_INCREMENT, &increment);
+		m_preprocessor.setAGCIncrement(12);
 	}
 
 	if (bIsSpeech && !bPreviousVoice) {
@@ -1176,7 +1074,9 @@ void AudioInput::encodeAudioFrame(AudioChunk chunk) {
 	EncodingOutputBuffer buffer;
 	Q_ASSERT(buffer.size() >= static_cast< size_t >(iAudioQuality / 100 * iAudioFrames / 8));
 
-	emit audioInputEncountered(psSource, iFrameSize, iMicChannels, SAMPLE_RATE, bIsSpeech);
+	assert(iFrameSize % iMicChannels == 0);
+	const unsigned int samplesPerChannel = iFrameSize / iMicChannels;
+	emit audioInputEncountered(psSource, samplesPerChannel, iMicChannels, SAMPLE_RATE, bIsSpeech);
 
 	int len = 0;
 
@@ -1184,43 +1084,36 @@ void AudioInput::encodeAudioFrame(AudioChunk chunk) {
 	if (!selectCodec())
 		return;
 
-	if (umtType == MessageHandler::UDPVoiceCELTAlpha || umtType == MessageHandler::UDPVoiceCELTBeta) {
-		len = encodeCELTFrame(psSource, buffer);
+	assert(m_codec == Mumble::Protocol::AudioCodec::Opus);
+
+	// Encode via Opus
+	encoded = false;
+	opusBuffer.insert(opusBuffer.end(), psSource, psSource + iFrameSize);
+	++iBufferedFrames;
+
+	if (!bIsSpeech || iBufferedFrames >= iAudioFrames) {
+		if (iBufferedFrames < iAudioFrames) {
+			// Stuff frame to framesize if speech ends and we don't have enough audio
+			// this way we are guaranteed to have a valid framecount and won't cause
+			// a codec configuration switch by suddenly using a wildly different
+			// framecount per packet.
+			const int missingFrames = iAudioFrames - iBufferedFrames;
+			opusBuffer.insert(opusBuffer.end(), static_cast< std::size_t >(iFrameSize * missingFrames), 0);
+			iBufferedFrames += missingFrames;
+			iFrameCounter += missingFrames;
+		}
+
+		Q_ASSERT(iBufferedFrames == iAudioFrames);
+
+		len = encodeOpusFrame(&opusBuffer[0], iBufferedFrames * iFrameSize, buffer);
+		opusBuffer.clear();
 		if (len <= 0) {
 			iBitrate = 0;
-			qWarning() << "encodeCELTFrame failed" << iBufferedFrames << iFrameSize << len;
+			qWarning() << "encodeOpusFrame failed" << iBufferedFrames << iFrameSize << len;
+			iBufferedFrames = 0; // These are lost. Make sure not to mess up our sequence counter next flushCheck.
 			return;
 		}
-		++iBufferedFrames;
-	} else if (umtType == MessageHandler::UDPVoiceOpus) {
-		encoded = false;
-		opusBuffer.insert(opusBuffer.end(), psSource, psSource + iFrameSize);
-		++iBufferedFrames;
-
-		if (!bIsSpeech || iBufferedFrames >= iAudioFrames) {
-			if (iBufferedFrames < iAudioFrames) {
-				// Stuff frame to framesize if speech ends and we don't have enough audio
-				// this way we are guaranteed to have a valid framecount and won't cause
-				// a codec configuration switch by suddenly using a wildly different
-				// framecount per packet.
-				const int missingFrames = iAudioFrames - iBufferedFrames;
-				opusBuffer.insert(opusBuffer.end(), iFrameSize * missingFrames, 0);
-				iBufferedFrames += missingFrames;
-				iFrameCounter += missingFrames;
-			}
-
-			Q_ASSERT(iBufferedFrames == iAudioFrames);
-
-			len = encodeOpusFrame(&opusBuffer[0], iBufferedFrames * iFrameSize, buffer);
-			opusBuffer.clear();
-			if (len <= 0) {
-				iBitrate = 0;
-				qWarning() << "encodeOpusFrame failed" << iBufferedFrames << iFrameSize << len;
-				iBufferedFrames = 0; // These are lost. Make sure not to mess up our sequence counter next flushCheck.
-				return;
-			}
-			encoded = true;
-		}
+		encoded = true;
 	}
 
 	if (encoded) {
@@ -1231,32 +1124,26 @@ void AudioInput::encodeAudioFrame(AudioChunk chunk) {
 		iBitrate = 0;
 
 	bPreviousVoice = bIsSpeech;
+	previousPTT    = isPTT;
 }
 
-static void sendAudioFrame(const char *data, PacketDataStream &pds) {
+static void sendAudioFrame(gsl::span< const Mumble::Protocol::byte > encodedPacket) {
 	ServerHandlerPtr sh = Global::get().sh;
 	if (sh) {
-		VoiceRecorderPtr recorder(sh->recorder);
-		if (recorder)
-			recorder->getRecordUser().addFrame(QByteArray(data, pds.size() + 1));
+		sh->sendMessage(encodedPacket.data(), static_cast< int >(encodedPacket.size()));
 	}
-
-	if (Global::get().s.lmLoopMode == Settings::Local)
-		LoopUser::lpLoopy.addFrame(QByteArray(data, pds.size() + 1));
-	else if (sh)
-		sh->sendMessage(data, pds.size() + 1);
 }
 
-void AudioInput::flushCheck(const QByteArray &frame, bool terminator, int voiceTargetID) {
+void AudioInput::flushCheck(const QByteArray &frame, bool terminator, std::int32_t voiceTargetID) {
 	qlFrames << frame;
 
 	if (!terminator && iBufferedFrames < iAudioFrames)
 		return;
 
-	int flags = 0;
-	if (voiceTargetID > 0) {
-		flags = voiceTargetID;
-	}
+	Mumble::Protocol::AudioData audioData;
+	audioData.targetOrContext = static_cast< std::uint32_t >(voiceTargetID);
+	audioData.isLastFrame     = terminator;
+
 	if (terminator && Global::get().iPrevTarget > 0) {
 		// If we have been whispering to some target but have just ended, terminator will be true. However
 		// in the case of whispering this means that we just released the whisper key so this here is the
@@ -1264,65 +1151,83 @@ void AudioInput::flushCheck(const QByteArray &frame, bool terminator, int voiceT
 		// is reset to 0 by now. In order to send the last whisper frame correctly, we have to use
 		// Global::get().iPrevTarget which is set to whatever Global::get().iTarget has been before its last change.
 
-		flags = Global::get().iPrevTarget;
+		audioData.targetOrContext = static_cast< std::uint32_t >(Global::get().iPrevTarget);
 
 		// We reset Global::get().iPrevTarget as it has fulfilled its purpose for this whisper-action. It'll be set
 		// accordingly once the client whispers for the next time.
 		Global::get().iPrevTarget = 0;
 	}
+	if (Global::get().s.lmLoopMode == Settings::Server) {
+		audioData.targetOrContext = Mumble::Protocol::ReservedTargetIDs::SERVER_LOOPBACK;
+	}
 
-	if (Global::get().s.lmLoopMode == Settings::Server)
-		flags = 0x1f; // Server loopback
-
-	flags |= (umtType << 5);
-
-	char data[1024];
-	data[0] = static_cast< unsigned char >(flags);
+	audioData.usedCodec = m_codec;
 
 	int frames      = iBufferedFrames;
 	iBufferedFrames = 0;
 
-	PacketDataStream pds(data + 1, 1023);
-	// Sequence number
-	pds << iFrameCounter - frames;
-
-	if (umtType == MessageHandler::UDPVoiceOpus) {
-		const QByteArray &qba = qlFrames.takeFirst();
-		int size              = qba.size();
-		if (terminator)
-			size |= 1 << 13;
-		pds << size;
-		pds.append(qba.constData(), qba.size());
-	} else {
-		if (terminator) {
-			qlFrames << QByteArray();
-			++frames;
-		}
-
-		for (int i = 0; i < frames; ++i) {
-			const QByteArray &qba = qlFrames.takeFirst();
-			unsigned char head    = static_cast< unsigned char >(qba.size());
-			if (i < frames - 1)
-				head |= 0x80;
-			pds.append(head);
-			pds.append(qba.constData(), qba.size());
-		}
-	}
+	audioData.frameNumber = static_cast< std::size_t >(iFrameCounter - frames);
 
 	if (Global::get().s.bTransmitPosition && Global::get().pluginManager && !Global::get().bCenterPosition
 		&& Global::get().pluginManager->fetchPositionalData()) {
 		Position3D currentPos = Global::get().pluginManager->getPositionalData().getPlayerPos();
 
-		pds << currentPos.x;
-		pds << currentPos.y;
-		pds << currentPos.z;
+		audioData.position[0] = currentPos.x;
+		audioData.position[1] = currentPos.y;
+		audioData.position[2] = currentPos.z;
+
+		audioData.containsPositionalData = true;
 	}
 
-	sendAudioFrame(data, pds);
+	assert(m_codec == Mumble::Protocol::AudioCodec::Opus);
+	// In Opus mode we only expect a single frame per packet
+	assert(qlFrames.size() == 1);
 
-	Q_ASSERT(qlFrames.isEmpty());
+	audioData.payload = gsl::span< const Mumble::Protocol::byte >(
+		reinterpret_cast< const Mumble::Protocol::byte * >(qlFrames[0].constData()),
+		static_cast< std::size_t >(qlFrames[0].size()));
+
+	{
+		ServerHandlerPtr sh = Global::get().sh;
+		if (sh) {
+			VoiceRecorderPtr recorder(sh->recorder);
+			if (recorder) {
+				recorder->getRecordUser().addFrame(audioData);
+			}
+
+			m_udpEncoder.setProtocolVersion(sh->m_version);
+		}
+	}
+
+	if (Global::get().s.lmLoopMode == Settings::Local) {
+		// Only add audio data to local loop buffer
+		LoopUser::lpLoopy.addFrame(audioData);
+	} else {
+		// Encode audio frame and send out
+		gsl::span< const Mumble::Protocol::byte > encodedAudioPacket = m_udpEncoder.encodeAudioPacket(audioData);
+
+		sendAudioFrame(encodedAudioPacket);
+	}
+
+	qlFrames.clear();
 }
 
 bool AudioInput::isAlive() const {
 	return isRunning();
+}
+
+void AudioInput::onUserMuteDeafStateChanged() {
+	const ClientUser *user = qobject_cast< ClientUser * >(QObject::sender());
+	updateUserMuteDeafState(user);
+}
+
+void AudioInput::updateUserMuteDeafState(const ClientUser *user) {
+	bool bMuted = user->bSuppress || user->bSelfMute;
+	if (bUserIsMuted != bMuted) {
+		bUserIsMuted = bMuted;
+		onUserMutedChanged();
+	}
+}
+
+void AudioInput::onUserMutedChanged() {
 }

@@ -1,4 +1,4 @@
-// Copyright 2020-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -86,12 +86,9 @@ public class ClientInstaller : MumbleInstall {
 			// 64 bit
 			this.Platform = WixSharp.Platform.x64;
 			binaries = new List<string>() {
-				"celt0.0.7.0.dll",
-				"opus.dll",
-				"rnnoise.dll",
-				"speex.dll",
+				"renamenoise.dll",
+				"speexdsp.dll",
 				"mumble.exe",
-				"mumble_app.dll",
 			};
 
 			if (features.overlay) {
@@ -108,12 +105,9 @@ public class ClientInstaller : MumbleInstall {
 			// 32 bit
 			this.Platform = WixSharp.Platform.x86;
 			binaries = new List<string>() {
-				"celt0.0.7.0.dll",
-				"opus.dll",
-				"rnnoise.dll",
-				"speex.dll",
+				"renamenoise.dll",
+				"speexdsp.dll",
 				"mumble.exe",
-				"mumble_app.dll",
 			};
 
 			if (features.overlay) {
@@ -155,7 +149,7 @@ public class ClientInstaller : MumbleInstall {
 
 		for (int i = 0; i < binaries.Count; i++) {
 			if (binaries[i] == "mumble.exe") {
-				binaryFiles[i] = new File(@"..\..\" + binaries[i], new FileAssociation("mumble_plugin", "application/mumble", "Open", "\"%1\""));
+				binaryFiles[i] = new File(new Id("mumble.exe"), @"..\..\" + binaries[i], new FileAssociation("mumble_plugin", "application/mumble", "Open", "\"%1\""));
 			} else {
 				binaryFiles[i] = new File(@"..\..\" + binaries[i]);
 			}
@@ -182,6 +176,12 @@ public class ClientInstaller : MumbleInstall {
 			progsDir,
 			menuDir,
 			desktopDir
+		};
+		this.RegValues = new RegValue[] {
+			new RegValue(RegistryHive.ClassesRoot, "mumble", "", "URL:Mumble"),
+			new RegValue(RegistryHive.ClassesRoot, "mumble", "URL Protocol", ""),
+			new RegValue(RegistryHive.ClassesRoot, @"mumble\DefaultIcon", "", "[#mumble.exe]"),
+			new RegValue(RegistryHive.ClassesRoot, @"mumble\shell\open\command", "", "[#mumble.exe] \"%1\"")
 		};
 	}
 }

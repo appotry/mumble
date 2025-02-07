@@ -1,4 +1,4 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -8,18 +8,23 @@
 
 #include "Timer.h"
 
+#include "Version.h"
+
 #ifdef Q_OS_WIN
 #	include "win.h"
 #endif
 
 #include <QtCore/QDir>
 #include <QtCore/QList>
+#include <QtCore/QRegularExpression>
 #include <QtCore/QUrl>
 #include <QtCore/QVariant>
 #include <QtNetwork/QHostAddress>
 #include <QtNetwork/QSslCertificate>
 #include <QtNetwork/QSslCipher>
 #include <QtNetwork/QSslKey>
+
+#include <memory>
 
 class Server;
 class QSettings;
@@ -32,11 +37,11 @@ public:
 	unsigned short usPort;
 	int iTimeout;
 	int iMaxBandwidth;
-	int iMaxUsers;
-	int iMaxUsersPerChannel;
+	unsigned int iMaxUsers;
+	unsigned int iMaxUsersPerChannel;
 	int iMaxListenersPerChannel;
 	int iMaxListenerProxiesPerUser;
-	int iDefaultChan;
+	unsigned int iDefaultChan;
 	bool bRememberChan;
 	int iRememberChanDuration;
 	int iMaxTextMessageLength;
@@ -79,17 +84,10 @@ public:
 	bool bSendVersion;
 	bool bAllowPing;
 
-	QString qsDBus;
-	QString qsDBusService;
 	QString qsLogfile;
 	QString qsPid;
 	QString qsIceEndpoint;
 	QString qsIceSecretRead, qsIceSecretWrite;
-
-	QString qsGRPCAddress;
-	QString qsGRPCCert;
-	QString qsGRPCKey;
-	QString qsGRPCAuthorized;
 
 	QString qsRegName;
 	QString qsRegPassword;
@@ -98,14 +96,16 @@ public:
 	QUrl qurlRegWeb;
 	bool bBonjour;
 
-	QRegExp qrUserName;
-	QRegExp qrChannelName;
+	QRegularExpression qrUserName;
+	QRegularExpression qrChannelName;
 
 	unsigned int iMessageLimit;
 	unsigned int iMessageBurst;
 
 	unsigned int iPluginMessageLimit;
 	unsigned int iPluginMessageBurst;
+
+	bool broadcastListenerVolumeAdjustments;
 
 	QSslCertificate qscCert;
 	QSslKey qskKey;
@@ -141,7 +141,7 @@ public:
 	QString qsName;
 #endif
 
-	QVariant qvSuggestVersion;
+	Version::full_t m_suggestVersion;
 	QVariant qvSuggestPositional;
 	QVariant qvSuggestPushToTalk;
 
@@ -152,6 +152,9 @@ public:
 
 	/// A flag indicating whether recording is allowed on this server
 	bool allowRecording;
+
+	/// The number of seconds to keep rolling stats for per client
+	unsigned int rollingStatsWindow;
 
 	/// qsAbsSettingsFilePath is the absolute path to
 	/// the murmur.ini used by this Meta instance.
@@ -169,17 +172,17 @@ public:
 	bool loadSSLSettings();
 
 private:
-	template< class T >
-	T typeCheckedFromSettings(const QString &name, const T &variable, QSettings *settings = nullptr);
+	template< class ValueType, class ReturnType = ValueType >
+	ReturnType typeCheckedFromSettings(const QString &name, const ValueType &variable, QSettings *settings = nullptr);
 };
 
 class Meta : public QObject {
 private:
-	Q_OBJECT;
-	Q_DISABLE_COPY(Meta);
+	Q_OBJECT
+	Q_DISABLE_COPY(Meta)
 
 public:
-	static MetaParams mp;
+	static std::unique_ptr< MetaParams > mp;
 	QHash< int, Server * > qhServers;
 	QHash< QHostAddress, QList< Timer > > qhAttempts;
 	QHash< QHostAddress, Timer > qhBans;
@@ -210,7 +213,8 @@ public:
 	void killAll();
 	void getOSInfo();
 	void connectListener(QObject *);
-	static void getVersion(int &major, int &minor, int &patch, QString &string);
+	static void getVersion(Version::component_t &major, Version::component_t &minor, Version::component_t &patch,
+						   QString &string);
 signals:
 	void started(Server *);
 	void stopped(Server *);

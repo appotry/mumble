@@ -164,10 +164,6 @@ Denne verdien lar deg endre måten Mumble arrangerer kanalene i treet. En kanal 
         <translation>Aktive ACL-er</translation>
     </message>
     <message>
-        <source>List of entries</source>
-        <translation>Liste over oppføringer</translation>
-    </message>
-    <message>
         <source>Inherit ACL of parent?</source>
         <translation>Arv ACL fra forelder?</translation>
     </message>
@@ -229,7 +225,7 @@ Denne verdien lar deg endre måten Mumble arrangerer kanalene i treet. En kanal 
     </message>
     <message>
         <source>Context</source>
-        <translation>Bindeleddsinformasjon</translation>
+        <translation>Bindeleddsinfo</translation>
     </message>
     <message>
         <source>Entry should apply to this channel.</source>
@@ -344,7 +340,7 @@ Disse er alle grupper definert for kanalen. For å opprette en ny gruppe, skriv 
     </message>
     <message>
         <source>&lt;b&gt;Remove&lt;/b&gt;&lt;br /&gt;This removes the currently selected group. If the group was inherited, it will not be removed from the list, but all local information about the group will be cleared.</source>
-        <translation>&lt;b&gt;Fjern&lt;/b&gt;&lt;br /&gt;Fjerner valgt gruppe. Hvis gruppen var nedarvet, vil den ikke bli fjernet fra listen, men all lokal informasjon om gruppen vil bli fjernet.</translation>
+        <translation>&lt;b&gt;Fjern&lt;/b&gt;&lt;br /&gt;Fjerner valgt gruppe. Hvis gruppen var nedarvet, vil den ikke bli fjernet fra listen, men all lokal info om gruppen vil bli fjernet.</translation>
     </message>
     <message>
         <source>&lt;b&gt;Inherit&lt;/b&gt;&lt;br /&gt;This inherits all the members in the group from the parent, if the group is marked as &lt;i&gt;Inheritable&lt;/i&gt; in the parent channel.</source>
@@ -419,10 +415,6 @@ Denne verdien gjør at du setter maksimalt antall brukere tillatt i kanalen. Hvi
         <translation>Kanalpassord</translation>
     </message>
     <message>
-        <source>Maximum users</source>
-        <translation>Maksimalt antall brukere</translation>
-    </message>
-    <message>
         <source>Channel name</source>
         <translation>Kanalnavn</translation>
     </message>
@@ -431,20 +423,60 @@ Denne verdien gjør at du setter maksimalt antall brukere tillatt i kanalen. Hvi
         <translation>Nedarvede gruppemedlemmer</translation>
     </message>
     <message>
-        <source>Foreign group members</source>
-        <translation>Fremmede gruppemedlemmer</translation>
-    </message>
-    <message>
         <source>Inherited channel members</source>
         <translation>Nedarvede kanalmedlemmer</translation>
     </message>
     <message>
-        <source>Add members to group</source>
-        <translation>Legg til medlemmer i gruppe</translation>
-    </message>
-    <message>
         <source>List of ACL entries</source>
         <translation>Liste over ACL-oppføringer</translation>
+    </message>
+    <message>
+        <source>Channel position</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Channel maximum users</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Channel description</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select member to add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Excluded group members</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select member to remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>List of access control list entries</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Selects a group this ACL entry applies to. Selecting a group and selecting a user are mutually exclusive.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select user</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Selects a user this ACL entry applies to. Selecting a group and selecting a user are mutually exclusive.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>List of available permissions</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -595,6 +627,30 @@ Denne verdien gjør at du setter maksimalt antall brukere tillatt i kanalen. Hvi
         <source>List of speakers</source>
         <translation type="unfinished">Liste over høyttalere</translation>
     </message>
+    <message>
+        <source>Device list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move from unused to microphone list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move from microphone to unused list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>List of unused devices</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move from unused to speakers list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move from speakers to unused list</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ASIOInput</name>
@@ -627,7 +683,7 @@ Denne verdien gjør at du setter maksimalt antall brukere tillatt i kanalen. Hvi
     </message>
     <message>
         <source>&amp;Third-Party Licenses</source>
-        <translation>%Tredjepartslisenser</translation>
+        <translation>&amp;Tredjepartslisenser</translation>
     </message>
     <message>
         <source>OK</source>
@@ -649,6 +705,10 @@ Denne verdien gjør at du setter maksimalt antall brukere tillatt i kanalen. Hvi
         <source>&lt;h3&gt;Mumble (%1)&lt;/h3&gt;&lt;p&gt;%3&lt;/p&gt;&lt;p&gt;&lt;b&gt;An Open Source, low-latency, high quality voice-chat utility&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;tt&gt;&lt;a href=&quot;%2&quot;&gt;%2&lt;/a&gt;&lt;/tt&gt;&lt;/p&gt;</source>
         <translation type="unfinished">&lt;h3&gt;Mumble (%1)&lt;/h3&gt;&lt;p&gt;%3&lt;/p&gt;&lt;p&gt;&lt;b&gt;Et prateverktøy for spillere&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;tt&gt;&lt;a href=&quot;%2&quot;&gt;%2&lt;/a&gt;&lt;/tt&gt;&lt;/p&gt;</translation>
     </message>
+    <message>
+        <source>For a list of authors, please see &lt;a href=&quot;https://github.com/mumble-voip/mumble/graphs/contributors&quot;&gt;https://github.com/mumble-voip/mumble/graphs/contributors&lt;/a&gt;</source>
+        <translation>En liste over utviklere er å finne i &lt;a href=&quot;https://github.com/mumble-voip/mumble/graphs/contributors&quot;&gt;https://github.com/mumble-voip/mumble/graphs/contributors&lt;/a&gt;</translation>
+    </message>
 </context>
 <context>
     <name>AudioInput</name>
@@ -659,10 +719,6 @@ Denne verdien gjør at du setter maksimalt antall brukere tillatt i kanalen. Hvi
     <message>
         <source>System</source>
         <translation>System</translation>
-    </message>
-    <message>
-        <source>Input method for audio</source>
-        <translation>Inndatametode for lyd</translation>
     </message>
     <message>
         <source>Device</source>
@@ -727,10 +783,6 @@ Denne verdien gjør at du setter maksimalt antall brukere tillatt i kanalen. Hvi
     <message>
         <source>On</source>
         <translation>Påslått</translation>
-    </message>
-    <message>
-        <source>Preview the audio cues</source>
-        <translation>Prøvehør lydhintene</translation>
     </message>
     <message>
         <source>Use SNR based speech detection</source>
@@ -799,10 +851,6 @@ Denne verdien gjør at du setter maksimalt antall brukere tillatt i kanalen. Hvi
     <message>
         <source>&lt;b&gt;This selects how many audio frames should be put in one packet.&lt;/b&gt;&lt;br /&gt;Increasing this will increase the latency of your voice, but will also reduce bandwidth requirements.</source>
         <translation>&lt;b&gt;Dette angir hvir mange lydrammer som skal puttes i en pakke.&lt;/b&gt;&lt;br /&gt;Å øke dette vil heve forsinkelsen for din stemme, men vil også senke båndbreddekrav.</translation>
-    </message>
-    <message>
-        <source>&lt;b&gt;This shows peak outgoing bandwidth used.&lt;/b&gt;&lt;br /&gt;This shows the peak amount of bandwidth sent out from your machine. Audio bitrate is the maximum bitrate (as we use VBR) for the audio data alone. Position is the bitrate used for positional information. Overhead is our framing and the IP packet headers (IP and UDP is 75% of this overhead).</source>
-        <translation>&lt;b&gt;Dette viser toppnivået for brukt utgående båndbredde.&lt;/b&gt;&lt;br /&gt; Dvs, akkurat i det tidspunktet der du sendte ut mest data. Lydbitraten er den maksimale bitraten (siden vi bruker VBR) for lyddataen alene. Posisjon er bitraten brukt for posisjonsbasert informasjon. Overskudd er vår innramming og IP-pakke hodene (IP og UDP er 75% av overskuddsdataen).</translation>
     </message>
     <message>
         <source>Audio Processing</source>
@@ -905,18 +953,6 @@ Denne verdien gjør at du setter maksimalt antall brukere tillatt i kanalen. Hvi
         <translation>Ymse</translation>
     </message>
     <message>
-        <source>Audible audio cue when starting or stopping to transmit</source>
-        <translation>Hørbar lydhint når lydoverføring stoppes eller startes</translation>
-    </message>
-    <message>
-        <source>&lt;b&gt;This enables transmission audio cues.&lt;/b&gt;&lt;br /&gt;Setting this will give you a short audio beep when you start and stop transmitting.</source>
-        <translation>&lt;b&gt;Dette skrur på lydhint for lydoverføringer.&lt;/b&gt;&lt;br /&gt;Å sette på dette vil gi deg et kort pip når du starter og slutter overføring.</translation>
-    </message>
-    <message>
-        <source>Audio cue</source>
-        <translation>Lydhint</translation>
-    </message>
-    <message>
         <source>Gets played when starting to transmit</source>
         <translation>Spilles når lydoverføring starter</translation>
     </message>
@@ -990,7 +1026,7 @@ Denne verdien gjør at du setter maksimalt antall brukere tillatt i kanalen. Hvi
     </message>
     <message>
         <source>If checked, Mumble will enable Opus&apos; low-delay mode when the quality is set to &lt;b&gt;64 kbit/s&lt;/b&gt; or higher. Low-delay mode decreases latency by &lt;b&gt;~15 milliseconds&lt;/b&gt; in the round trip. This mode may require an higher bitrate to preserve the same quality, in comparison with the music and VOIP modes.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Lavforsinkelsesmodus for Opus når kvalitet settes til &lt;b&gt;64 kbit/s&lt;/b&gt; eller høyere. Dette sparer &lt;b&gt;~15 millisekunder&lt;/b&gt; tur-retur. Mer data brukes for samme kvalitet sammenlignet med musikk og andre VoIP-modus.</translation>
     </message>
     <message>
         <source>Allow low delay mode</source>
@@ -1026,7 +1062,7 @@ Denne verdien gjør at du setter maksimalt antall brukere tillatt i kanalen. Hvi
     </message>
     <message>
         <source>Mute cue</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Forstum signal</translation>
     </message>
     <message>
         <source>Br&amp;owse...</source>
@@ -1035,6 +1071,166 @@ Denne verdien gjør at du setter maksimalt antall brukere tillatt i kanalen. Hvi
     <message>
         <source>Pre&amp;view</source>
         <translation>For&amp;hondsvis</translation>
+    </message>
+    <message>
+        <source>Audio cue when using...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audible audio cue when starting or stopping to transmit using Push To Talk</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;This enables transmission audio cues when using Push To Talk.&lt;/b&gt;&lt;br /&gt;Setting this will give you a short audio beep when you start and stop transmitting.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Push To Talk</source>
+        <translation type="unfinished">Trykk for å snakke</translation>
+    </message>
+    <message>
+        <source>Audible audio cue when starting or stopping to transmit using Voice Activity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;This enables transmission audio cues when using Voice Activity.&lt;/b&gt;&lt;br /&gt;Setting this will give you a short audio beep when you start and stop transmitting.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Voice Activity</source>
+        <translation type="unfinished">Stemmeaktivitet</translation>
+    </message>
+    <message>
+        <source>Input backend for audio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio input system</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio input device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Transmission mode</source>
+        <translation type="unfinished">Overvøringsmodus</translation>
+    </message>
+    <message>
+        <source>Push to talk lock threshold</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Switch between push to talk and continuous mode by double tapping in this time frame</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;Voice hold Time&lt;/b&gt;&lt;br /&gt;After you release the push-to-talk key Mumble will keep transmitting for the selected amount of time.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Push to talk hold threshold</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Extend push to talk send time after the key is released by this amount of time</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Voice hold time</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Silence below threshold</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This sets the threshold when Mumble will definitively consider a signal silence</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Speech above threshold</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This sets the threshold when Mumble will definitively consider a signal speech</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This sets how much speech is packed into a single network package</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio compression quality</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This sets the target compression bitrate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Maximum amplification</source>
+        <translation type="unfinished">Maksimal forsterkning</translation>
+    </message>
+    <message>
+        <source>Speech is dynamically amplified by at most this amount</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Noise suppression strength</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Echo cancellation mode</source>
+        <translation type="unfinished">Ekkokanselleringsmodus</translation>
+    </message>
+    <message>
+        <source>Path to audio file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Path to audio cue file when stopping to speak. Use the &quot;browse&quot; button to open a file dialog.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Idle action time threshold (in minutes)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select what to do when being idle for a configurable amount of time. Default: nothing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Gets played when you are trying to speak while being muted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Path to mute cue file. Use the &quot;browse&quot; button to open a file dialog.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Browse for mute cue audio file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Path to audio cue file when starting to speak. Use the &quot;browse&quot; button to open a file dialog.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Preview the mute cue</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The mute cue is an audio sample which plays when you are trying to speak while being muted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Preview both audio cues</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;This shows peak outgoing bandwidth used.&lt;/b&gt;&lt;br /&gt;This shows the peak amount of bandwidth sent out from your machine. Audio bitrate is the maximum bitrate for the audio data alone. Position is the bitrate used for positional information. Overhead is our framing and the IP packet headers (IP and UDP is 75% of this overhead).</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1080,78 +1276,6 @@ Denne verdien gjør at du setter maksimalt antall brukere tillatt i kanalen. Hvi
         <translation>%1 kbit/s (Lyd %2, Posisjon %4, Overskudd %3)</translation>
     </message>
     <message>
-        <source>Audio system</source>
-        <translation>Lydsystem</translation>
-    </message>
-    <message>
-        <source>Input device</source>
-        <translation>Lydenhet</translation>
-    </message>
-    <message>
-        <source>Echo cancellation mode</source>
-        <translation>Ekkokanselleringsmodus</translation>
-    </message>
-    <message>
-        <source>Transmission mode</source>
-        <translation>Overvøringsmodus</translation>
-    </message>
-    <message>
-        <source>PTT lock threshold</source>
-        <translation>TFT-låseterskel</translation>
-    </message>
-    <message>
-        <source>PTT hold threshold</source>
-        <translation>TFT-holdeterksel</translation>
-    </message>
-    <message>
-        <source>Silence below</source>
-        <translation>Stille under</translation>
-    </message>
-    <message>
-        <source>Current speech detection chance</source>
-        <translation>Nåværende taleoppdagelsessjanse</translation>
-    </message>
-    <message>
-        <source>Speech above</source>
-        <translation>Tale over</translation>
-    </message>
-    <message>
-        <source>Speech below</source>
-        <translation>Tale under</translation>
-    </message>
-    <message>
-        <source>Audio per packet</source>
-        <translation>Lyd per pakke</translation>
-    </message>
-    <message>
-        <source>Quality of compression (peak bandwidth)</source>
-        <translation type="unfinished">Kompresjonskvalitet (båndbreddespiss)</translation>
-    </message>
-    <message>
-        <source>Noise suppression</source>
-        <translation>Lydundertrykking</translation>
-    </message>
-    <message>
-        <source>Maximum amplification</source>
-        <translation>Maksimal forsterkning</translation>
-    </message>
-    <message>
-        <source>Transmission started sound</source>
-        <translation type="unfinished">Lyd for overføringsstart</translation>
-    </message>
-    <message>
-        <source>Transmission stopped sound</source>
-        <translation>Lyd for overføringsstopp</translation>
-    </message>
-    <message>
-        <source>Initiate idle action after (in minutes)</source>
-        <translation type="unfinished">Start lediggangshandling etter (antall minutter)</translation>
-    </message>
-    <message>
-        <source>Idle action</source>
-        <translation>Lediggangshandling</translation>
-    </message>
-    <message>
         <source>Access to the microphone was denied. Please allow Mumble to use the microphone by changing the settings in System Preferences -&gt; Security &amp; Privacy -&gt; Privacy -&gt; Microphone.</source>
         <translation type="unfinished">Innvilg tilgang til mikrofon i → Sikkerhet og personvern → Personvern →Mikrofon.</translation>
     </message>
@@ -1166,6 +1290,22 @@ Denne verdien gjør at du setter maksimalt antall brukere tillatt i kanalen. Hvi
     <message>
         <source>Disable echo cancellation.</source>
         <translation type="unfinished">Skru av ekkokansellering.</translation>
+    </message>
+    <message>
+        <source>milliseconds</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>seconds</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>kilobits per second</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>decibels</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1438,6 +1578,62 @@ Når du er lenger unna enn dette vil andres stemme ikke bli dempet ytterligere.<
         <source> m</source>
         <translation> m</translation>
     </message>
+    <message>
+        <source>Positional audio cannot work with mono output devices!</source>
+        <translation type="unfinished">Posisjonsbasert lyd fungerer ikke med lydenheter som kun spiller mono (én kanal).</translation>
+    </message>
+    <message>
+        <source>Audio output system</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio output device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Output delay of incoming speech</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Jitter buffer time</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Attenuation percentage</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>During speech, the volume of other applications will be reduced by this amount</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Minimum volume</source>
+        <translation type="unfinished">Minimumslydstyrke</translation>
+    </message>
+    <message>
+        <source>Minimum distance</source>
+        <translation type="unfinished">Minimumsavstand</translation>
+    </message>
+    <message>
+        <source>Maximum distance</source>
+        <translation type="unfinished">Maksimumsavstand</translation>
+    </message>
+    <message>
+        <source>Loopback artificial delay</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Loopback artificial packet loss</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Loopback test mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The loopback test can be used to test your audio configuration. While the loopback test is enabled, others will not be able to hear you.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>AudioOutputDialog</name>
@@ -1466,71 +1662,27 @@ Når du er lenger unna enn dette vil andres stemme ikke bli dempet ytterligere.<
         <translation>%1 %</translation>
     </message>
     <message>
-        <source>Output system</source>
-        <translation>Utgangssystem</translation>
-    </message>
-    <message>
-        <source>Output device</source>
-        <translation>Utgansenhet</translation>
-    </message>
-    <message>
-        <source>Default jitter buffer</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Volume of incoming speech</source>
-        <translation>Lydstyrke for innkommende tale</translation>
-    </message>
-    <message>
-        <source>Output delay</source>
-        <translation>Utgangsforsinkelse</translation>
-    </message>
-    <message>
-        <source>Attenuation of other applications during speech</source>
-        <translation>Demping av andre programmer under tale</translation>
-    </message>
-    <message>
-        <source>Minimum distance</source>
-        <translation>Minimumsavstand</translation>
-    </message>
-    <message>
-        <source>Maximum distance</source>
-        <translation>Maksimumsavstand</translation>
-    </message>
-    <message>
-        <source>Minimum volume</source>
-        <translation>Minimumslydstyrke</translation>
-    </message>
-    <message>
-        <source>Bloom</source>
-        <translation type="unfinished">Glød</translation>
-    </message>
-    <message>
-        <source>Delay variance</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Packet loss</source>
-        <translation>Pakketap</translation>
-    </message>
-    <message>
-        <source>Loopback</source>
-        <translation>Tilbakekobling</translation>
-    </message>
-    <message>
         <source>Distance at which audio volume from another player starts decreasing</source>
-        <translation type="unfinished"></translation>
+        <translation>Avstanden fra en annen spiller der lydstyrken begynner å falle</translation>
     </message>
     <message>
         <source>Distance at which a player&apos;s audio volume has reached its minimum value</source>
-        <translation type="unfinished"></translation>
+        <translation>Avstand der en spillers lydstyrke når sitt minste nivå</translation>
     </message>
     <message>
         <source>The minimum volume a player&apos;s audio will fade out to with increasing distance. Set to 0% for it to fade into complete silence for a realistic maximum hearing distance.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Minste lydstyrke lyd fra en annen spiller reduseres mer enn en gitt avstand. Sett til realistisk 0 % for å tone ut til fullstendig stillhet.</translation>
     </message>
     <message>
         <source>If an audio source is close enough, blooming will cause the audio to be played on all speakers more or less regardless of their position (albeit with lower volume)</source>
+        <translation type="unfinished">Hvis en lydkilde er nærme nok, vil lyden komme fra neste alle kanter (med redusert volum)</translation>
+    </message>
+    <message>
+        <source>milliseconds</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>meters</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1591,7 +1743,7 @@ Når du er lenger unna enn dette vil andres stemme ikke bli dempet ytterligere.<
     </message>
     <message>
         <source>This shows the peak power in the last frame (20 ms) after all processing. Ideally, this should be -96 dB when you&apos;re not talking. In reality, a sound studio should see -60 dB, and you should hopefully see somewhere around -20 dB. When you are talking, this should rise to somewhere between -5 and -10 dB.&lt;br /&gt;If you are using echo cancellation, and this rises to more than -15 dB when you&apos;re not talking, your setup is not working, and you&apos;ll annoy other users with echoes.</source>
-        <translation>&quot;Toppnivå for effekt i siste ramme (20 ms) (etter behandling).
+        <translation type="unfinished">Toppnivå for effekt i siste ramme (20 ms) (etter behandling).
 Dette er toppnivåene for forskjellige fall:
 -96dB ideell, teoretisk
 -60dB flott, studio
@@ -1695,11 +1847,11 @@ Når du bruker lydkansellering og du ser at det stiger til mer enn -15dB har du 
     </message>
     <message>
         <source>This shows the weights of the echo canceller, with time increasing downwards and frequency increasing to the right.&lt;br /&gt;Ideally, this should be black, indicating no echo exists at all. More commonly, you&apos;ll have one or more horizontal stripes of bluish color representing time delayed echo. You should be able to see the weights updated in real time.&lt;br /&gt;Please note that as long as you have nothing to echo off, you won&apos;t see much useful data here. Play some music and things should stabilize. &lt;br /&gt;You can choose to view the real or imaginary parts of the frequency-domain weights, or alternately the computed modulus and phase. The most useful of these will likely be modulus, which is the amplitude of the echo, and shows you how much of the outgoing signal is being removed at that time step. The other viewing modes are mostly useful to people who want to tune the echo cancellation algorithms.&lt;br /&gt;Please note: If the entire image fluctuates massively while in modulus mode, the echo canceller fails to find any correlation whatsoever between the two input sources (speakers and microphone). Either you have a very long delay on the echo, or one of the input sources is configured wrong.</source>
-        <translation>Dette viser vektingen af ekkokanselleringen, der tiden øker nedover og frekvens økes mot høyre.&lt;br /&gt;Ideelt sett skulle dette være svart, hvilket ville indikert at det overhodet ikke er noe ekko. Du bør være i stand til at se vektingen oppdateres i sanntid.&lt;br /&gt;Legg merke til at så lenge du ikke har noe som kan være ekko, vil du ikke se noe nyttig data her. Spill av noe musikk og tingene skulle vil begynne å stabilisere seg.&lt;br /&gt;Du kan velge å se den rette eller innbilte delen av frekvens-områdets vekt, eller alternativt den beregnede absolutte verdi og fase. Den mest brukbare av disse, vil være den absolutte verdi, som er amplituden av ekkoet, og som viser deg hvor mye av utgangssignalet, som blir fjernet på det tidspunktet. De andre visningstilstandene er mest brukbare for folk som gjerne vil justere ekkokansellerings-algoritmene.&lt;br /&gt;Merk: Hvis hele bildet svinger enormt i modulus-tilstand, vil det mislykkes ekkokanselleringen å finne noen sammenheng overhodet mellem de to inngangskildene (høyttalere og mikrofon). Enten har du en meget lang forsinkelse på ekkoet, eller så er en av inngangskildene satt opp feil.</translation>
+        <translation type="unfinished">Dette viser vektingen av ekkokanselleringen, der tiden øker nedover og frekvens økes mot høyre.&lt;br /&gt;Ideelt sett skulle dette være svart, hvilket ville indikert at det overhodet ikke er noe ekko. Du bør være i stand til at se vektingen oppdateres i sanntid.&lt;br /&gt;Legg merke til at så lenge du ikke har noe som kan være ekko, vil du ikke se noe nyttig data her. Spill av noe musikk og tingene skulle vil begynne å stabilisere seg.&lt;br /&gt;Du kan velge å se den rette eller innbilte delen av frekvens-områdets vekt, eller alternativt den beregnede absolutte verdi og fase. Den mest brukbare av disse, vil være den absolutte verdi, som er amplituden av ekkoet, og som viser deg hvor mye av utgangssignalet, som blir fjernet på det tidspunktet. De andre visningstilstandene er mest brukbare for folk som gjerne vil justere ekkokansellerings-algoritmene.&lt;br /&gt;Merk: Hvis hele bildet svinger enormt i modulus-tilstand, vil det misslykkes ekkokanselleringen å finne noen sammenheng overhodet mellem de to inngangskildene (høyttalere og mikrofon). Enten har du en meget lang forsinkelse på ekkoet, eller så er en av inngangskildene satt opp feil.</translation>
     </message>
     <message>
-        <source>This is the audio bitrate of the last compressed frame (20 ms), and as such will jump up and down as the VBR adjusts the quality. The peak bitrate can be adjusted in the Settings dialog.</source>
-        <translation>Bitraten for lyd i siste komprimerte ramme (20 ms), den vil hoppe opp og ned ettersom VBR justerer kvaliteten. Toppnivået for bitrate kan justeres i innstillingsdialogen.</translation>
+        <source>This is the audio bitrate of the last compressed frame (20 ms). The peak bitrate can be adjusted in the Settings dialog.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1963,11 +2115,11 @@ Ingen snakking. Rødt (Definitivt ikke tale)</translation>
     </message>
     <message>
         <source>Use Text-To-Speech to read notifications and messages to you.</source>
-        <translation>Bruk tekst-til-tale for å lese merknader og meldinger til deg.</translation>
+        <translation type="unfinished">Les merknader og meldinger til deg med talesyntese.</translation>
     </message>
     <message>
         <source>Disable Text-To-Speech and use sounds instead.</source>
-        <translation>Skru av tekst-til-tale og bruk lyder istedenfor.</translation>
+        <translation>Skru av talesyntese og bruk lyder istedenfor.</translation>
     </message>
     <message>
         <source>%1 ms</source>
@@ -2007,7 +2159,7 @@ Ingen snakking. Rødt (Definitivt ikke tale)</translation>
     </message>
     <message>
         <source>Keep custom Text-To-Speech settings.</source>
-        <translation>Behold brukerdefinerte tekst-til-tale -innstillinger.</translation>
+        <translation>Behold brukerdefinerte talesyntese-innstillinger.</translation>
     </message>
     <message>
         <source>&lt;p&gt;
@@ -2065,48 +2217,88 @@ Ingen snakking. Krysset (Definitivt ikke tale)</translation>
         <translation type="unfinished">&lt;b&gt;Utgangsmetoden brukt for lyd.&lt;/b&gt;</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the audio tuning wizard for Mumble. This will help you correctly set the input levels of your sound card, and also set the correct parameters for sound processing in Mumble. &lt;/p&gt;&lt;p&gt;Please be aware that as long as this wizard is active, audio will be looped locally to allow you to listen to it, and no audio will be sent to the server. &lt;/p&gt;&lt;p&gt;Note that you can cancel this wizard at any time without it having an effect on your current audio systems. The settings are only once this wizard has been completed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the audio tuning wizard for Mumble. This will help you correctly set the input levels of your sound card, and also set the correct parameters for sound processing in Mumble. &lt;/p&gt;&lt;p&gt;Please be aware that as long as this wizard is active, audio will be looped locally to allow you to listen to it, and no audio will be sent to the server. &lt;/p&gt;&lt;p&gt;Note that you can cancel this wizard at any time without it having an effect on your current audio systems. The settings are only applied once this wizard has been completed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Dette er lydveiviseren for Mumble. Den hjelper deg å sette riktige inngangsnivåer for lydkortet ditt, og riktige parameter for lydbehandling i Mumble.&lt;/p&gt;&lt;p&gt;Ha i minnet at så lenge denne veiviseren er aktiv vil lyd sendes tilbake til deg slik at du hører den, og ingen lyd sendes til tjeneren. &lt;/p&gt;&lt;p&gt;Merk at du kan avbryte denne veiviseren når som helst uten at det har noen effekt på oppsettet. Innstillingene lagres kun når veiviseren fullføres.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Mumble supports positional audio for some games, and will position the voice of other users relative to their position in game. Depending on their position, the volume of the voice will be changed between the speakers to simulate the direction and distance the other user is at. Such positioning depends on your speaker configuration being correct in your operating system, so a test is done here. &lt;/p&gt;&lt;p&gt;The graph below shows the position of &lt;span style=&quot; color:#56b4e9;&quot;&gt;you&lt;/span&gt;, the &lt;span style=&quot; color:#d55e00;&quot;&gt;speakers&lt;/span&gt; and a &lt;span style=&quot; color:#009e73;&quot;&gt;moving sound source&lt;/span&gt; as if seen from above. You should hear the audio move between the channels. &lt;/p&gt;&lt;p&gt;You can also use your mouse to position the &lt;span style=&quot; color:#009e73;&quot;&gt;sound source&lt;/span&gt; manually.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Input system</source>
-        <translation>Inngangssystem</translation>
-    </message>
-    <message>
-        <source>Input device</source>
-        <translation>Inngangsenhet</translation>
-    </message>
-    <message>
-        <source>Output system</source>
-        <translation>Utgangsenhet</translation>
-    </message>
-    <message>
-        <source>Output device</source>
-        <translation>Utgangsenhet</translation>
-    </message>
-    <message>
-        <source>Output delay</source>
-        <translation>Utgangsforsinkelse</translation>
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Mumble støtter posisjonell lyd for noen spill, og vil posisjonere lyden for andre brukere relativt til deres posisjon i spillet. Avhengig av posisjonen vil lydstyrken for stemmen endres mellom høyttalerne for å simulere retning og avstand til den andre brukeren. Slik posisjonering avhenger av at ditt høyttaleroppsett er rett i operativsystemet, så en test utføres her. &lt;/p&gt;&lt;p&gt;Diagrammet nedenfor viser &lt;span style=&quot; color:#56b4e9;&quot;&gt;deg&lt;/span&gt;, og &lt;span style=&quot; color:#d55e00;&quot;&gt;høyttalerne&lt;/span&gt; og en &lt;span style=&quot; color:#009e73;&quot;&gt;lydkilde som rører seg&lt;/span&gt; sett ovenfra. Du bør høre at lyden flytter seg mellom kanalene.. &lt;/p&gt;&lt;p&gt;Du kan høre at lyden flytter seg mellom kanalene. &lt;/p&gt;&lt;p&gt;Du kan også bruke musen for å posisjonere &lt;span style=&quot; color:#009e73;&quot;&gt;lydkilden&lt;/span&gt; manuelt.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Maximum amplification</source>
         <translation>Maksimal forsterkning</translation>
     </message>
     <message>
-        <source>VAD level</source>
+        <source>No buttons assigned</source>
+        <translation>Ingen knapper tilknyttet</translation>
+    </message>
+    <message>
+        <source>Audio input system</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>PTT shortcut</source>
-        <translation>Trykk-for-å-snakke -snarvei</translation>
+        <source>Audio input device</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>No buttons assigned</source>
-        <translation>Ingen knapper tilknyttet</translation>
+        <source>Select audio output device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio output system</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio output device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The Mumble positional audio system enables users to link the relative position of their voice to third party applications such as games.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Output delay for incoming speech</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Maximum amplification of input sound</source>
+        <translation type="unfinished">Maksimal forsterkning av inndatalyd</translation>
+    </message>
+    <message>
+        <source>Speech is dynamically amplified by at most this amount</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Voice activity detection level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will set the range in which Mumble will consider a signal speech. Increase value to make voice activation more sensitive.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Push to talk</source>
+        <translation type="unfinished">Trykk for å snakke</translation>
+    </message>
+    <message>
+        <source>Use the &quot;push to talk shortcut&quot; button to assign a key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set push to talk shortcut</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will open a shortcut edit dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Graphical positional audio simulation view</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This visually represents the positional audio that is currently being played</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2221,7 +2413,7 @@ Ingen snakking. Krysset (Definitivt ikke tale)</translation>
     </message>
     <message>
         <source>Use this button if you want to update ban information.</source>
-        <translation>Bruk denne kanppen hvis du ønsker å oppdatere blokkeringsinformasjon.</translation>
+        <translation>Bruk denne knappen hvis du ønsker å oppdatere blokkeringsinfo.</translation>
     </message>
     <message>
         <source>Use this button if you want to remove user from the ban list.</source>
@@ -2247,24 +2439,40 @@ Ingen snakking. Krysset (Definitivt ikke tale)</translation>
         </translation>
     </message>
     <message>
-        <source>Search</source>
-        <translation>Søk</translation>
-    </message>
-    <message>
-        <source>IP Address</source>
-        <translation>IP-adresse</translation>
-    </message>
-    <message>
         <source>Mask</source>
         <translation>Maske</translation>
     </message>
     <message>
-        <source>Start date/time</source>
-        <translation>Startdato/-tid</translation>
+        <source>Search for banned user</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>End date/time</source>
-        <translation>Sluttdato/-tid</translation>
+        <source>Username to ban</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP address to ban</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ban reason</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ban start date/time</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ban end date/time</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Certificate hash to ban</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>List of banned users</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2347,38 +2555,6 @@ Ingen snakking. Krysset (Definitivt ikke tale)</translation>
     <message>
         <source>&lt;b&gt;Certificate Expiry:&lt;/b&gt; Your certificate is about to expire. You need to renew it, or you will no longer be able to connect to servers you are registered on.</source>
         <translation>&lt;b&gt;Sertifikatsutløp:&lt;/b&gt;Ditt sertifikat er i ferd med å utløpe. Du må fornye det, ellers vil du ikke lenger kunne koble til tjenere du er registrert på.</translation>
-    </message>
-    <message>
-        <source>Current certificate</source>
-        <translation>Nåværende sertifikat</translation>
-    </message>
-    <message>
-        <source>Certificate file to import</source>
-        <translation>Sertifikat å importere</translation>
-    </message>
-    <message>
-        <source>Certificate password</source>
-        <translation>Sertifikatspassord</translation>
-    </message>
-    <message>
-        <source>Certificate to import</source>
-        <translation>Sertifikat å importere</translation>
-    </message>
-    <message>
-        <source>New certificate</source>
-        <translation>Nytt sertifikat</translation>
-    </message>
-    <message>
-        <source>File to export certificate to</source>
-        <translation>Fil å eksportere sertifikat til</translation>
-    </message>
-    <message>
-        <source>Email address</source>
-        <translation type="unfinished">E-postadresse</translation>
-    </message>
-    <message>
-        <source>Your name</source>
-        <translation>Ditt nav</translation>
     </message>
 </context>
 <context>
@@ -2467,10 +2643,6 @@ Ingen snakking. Krysset (Definitivt ikke tale)</translation>
     <message>
         <source>Select file to import from</source>
         <translation>Velg en fil å importere fra</translation>
-    </message>
-    <message>
-        <source>This opens a file selection dialog to choose a file to import a certificate from.</source>
-        <translation>Åpner en filutvalgsdialog for åpning av sertifikatet som skal importeres.</translation>
     </message>
     <message>
         <source>Open...</source>
@@ -2574,7 +2746,7 @@ Er du sikker på at du vil erstatte ditt sertifikat?
     </message>
     <message>
         <source>&lt;p&gt;Mumble will now generate a strong certificate for authentication to servers.&lt;/p&gt;&lt;p&gt;If you wish, you may provide some additional information to be stored in the certificate, which will be presented to servers when you connect. If you provide a valid email address, you can upgrade to a CA issued email certificate later on, which provides strong identification.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;Mumble vil nå opprette et sterkt sertifikat for identitetsbekreftelse til tjenere.&lt;/p&gt;&lt;p&gt;Hvis du ønsker kan du oppgi ytterligere informasjon som skal lagres i ditt sertifikat, som vil bli presentert ovenfor tjenerne du kobler til. Hvis du oppgir en gyldig e-postadresse, kan du oppgradere til en CA(sertifikasjonsmyndighets)-utstedt sertifikat senere, som gir sterk identifikasjon.&lt;/p&gt;</translation>
+        <translation>&lt;p&gt;Mumble vil nå opprette et sterkt sertifikat for identitetsbekreftelse til tjenere.&lt;/p&gt;&lt;p&gt;Hvis du ønsker kan du oppgi ytterligere info som skal lagres i ditt sertifikat, som vil bli presentert ovenfor tjenerne du kobler til. Hvis du oppgir en gyldig e-postadresse, kan du oppgradere til en CA(sertifikasjonsmyndighets)-utstedt sertifikat senere, som gir sterk identifikasjon.&lt;/p&gt;</translation>
     </message>
     <message>
         <source>Name</source>
@@ -2623,8 +2795,48 @@ Er du sikker på at du vil erstatte ditt sertifikat?
 &lt;p&gt;Merk at denne filen ikke er kryptert, slik at alle som får tilgang til den vil kunne opptre som deg, så ta godt vare på den.&lt;/p&gt;</translation>
     </message>
     <message>
-        <source>&lt;p&gt;Mumble can use certificates to authenticate with servers. Using certificates avoids passwords, meaning you don&apos;t need to disclose any password to the remote site. It also enables very easy user registration and a client side friends list independent of servers.&lt;/p&gt;&lt;p&gt;While Mumble can work without certificates, the majority of servers will expect you to have one.&lt;/p&gt;&lt;p&gt;Creating a new certificate automatically is sufficient for most use cases. But Mumble also supports certificates representing trust in the users ownership of an email address. These certificates are issued by third parties. For more information see our &lt;a href=&quot;http://mumble.info/certificate.php&quot;&gt;user certificate documentation&lt;/a&gt;. &lt;/p&gt;</source>
-        <translation>&lt;p&gt;Mumble kan bruke sertifikater for identitetsbekreftelse ovenfor tjenere. Bruk av sertifikater unngår bruk av passord, som betyr at du ikke må oppgi et passord fra brukersiden. Det gir også veldig enkel brukerregistrering og en venneliste som er uavhengig av tjenere.&lt;/p&gt;&lt;p&gt;Selv om Mumble kan fungere uten sertifikater, forventer de fleste tjenere at du har et. &lt;/p&gt;&lt;p&gt;Automatisk opprettelse av et nytt sertifikat er nok for de fleste brukstilfeller, men Mumble støtter også sertifikater som representerer tillit til brukernes eierforhold til en e-postadresse. Disse sertifikatene utstedes av tredjeparter. For mer informasjon, se vår&lt;a href=&quot;http://mumble.info/certificate.php&quot;&gt;brukersertifikatdokumentasjon&lt;/a&gt;&lt;/p&gt;</translation>
+        <source>Displays current certificate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Certificate file to import</source>
+        <translation type="unfinished">Sertifikat å importere</translation>
+    </message>
+    <message>
+        <source>Use the &quot;open&quot; button to select a file using a dialog.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Certificate password</source>
+        <translation type="unfinished">Sertifikatspassord</translation>
+    </message>
+    <message>
+        <source>Displays imported certificate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Displays new certificate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>File to export certificate to</source>
+        <translation type="unfinished">Fil å eksportere sertifikat til</translation>
+    </message>
+    <message>
+        <source>Use the &quot;save as&quot; button to select a file using a dialog.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Your name. For example: John Doe</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Your email address. For example: johndoe@mumble.info</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;Mumble can use certificates to authenticate with servers. Using certificates avoids passwords, meaning you don&apos;t need to disclose any password to the remote site. It also enables very easy user registration and a client side friends list independent of servers.&lt;/p&gt;&lt;p&gt;While Mumble can work without certificates, the majority of servers will expect you to have one.&lt;/p&gt;&lt;p&gt;Creating a new certificate automatically is sufficient for most use cases. But Mumble also supports certificates representing trust in the users ownership of an email address. These certificates are issued by third parties. For more information see our &lt;a href=&quot;https://www.mumble.info/documentation/user/certificates/&quot;&gt;user certificate documentation&lt;/a&gt;. &lt;/p&gt;</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2667,7 +2879,7 @@ Er du sikker på at du vil erstatte ditt sertifikat?
     </message>
     <message>
         <source>This represents total access to the channel, including the ability to change group and ACL information. This privilege implies all other privileges.</source>
-        <translation>Dette representerer total tilgang til kanalen, inkludert muligheten til å endre gruppe- og ACL -informasjon. Dette privilegiet impliserer alle andre privilegier.</translation>
+        <translation>Dette representerer total tilgang til kanalen, inkludert muligheten til å endre gruppe- og ACL -info. Dette privilegiet impliserer alle andre privilegier.</translation>
     </message>
     <message>
         <source>This represents the permission to traverse the channel. If a user is denied this privilege, he will be unable to access this channel and any sub-channels in any way, regardless of other permissions in the sub-channels.</source>
@@ -2759,7 +2971,7 @@ Er du sikker på at du vil erstatte ditt sertifikat?
     </message>
     <message>
         <source>This represents the permission to use the listen-feature allowing to listen to a channel without being in it.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Representerer tilgangen til å bruke lyttefunksjon for å tillate lytting til en kanal uten å være i den.</translation>
     </message>
     <message>
         <source>Listen</source>
@@ -2842,7 +3054,7 @@ Er du sikker på at du vil erstatte ditt sertifikat?
     </message>
     <message>
         <source>Local Ignore (Text-To-Speech)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Lokal ignorering (talesyntese)</translation>
     </message>
 </context>
 <context>
@@ -2905,7 +3117,7 @@ Er du sikker på at du vil erstatte ditt sertifikat?
     </message>
     <message>
         <source>Defaults (All)</source>
-        <translation type="unfinished"></translation>
+        <translation>Forvalg (alle)</translation>
     </message>
 </context>
 <context>
@@ -3044,7 +3256,7 @@ Er du sikker på at du vil erstatte ditt sertifikat?
     </message>
     <message>
         <source>&lt;p&gt;To measure the latency (ping) of public servers and determine the number of active users, your IP address must be transmitted to each public server.&lt;/p&gt;&lt;p&gt;Do you consent to the transmission of your IP address? If you answer no, the public server list will be deactivated. However, you can reactivate it at any time in the network settings.&lt;/p&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;p&gt;For å måle latensen til offentlige tjenere og fastsette antallet aktive brukere, blir IP-adressen din sendt til hver offentlige tjener.&lt;/p&gt;&lt;p&gt;Samtykker du til dette? Svarer du nei vil den offentlige tjenerlisten skrus av. (Til du skrur den på fra nettverksinnstillingene.)&lt;/p&gt;</translation>
     </message>
     <message>
         <source>C&amp;onnect</source>
@@ -3065,10 +3277,6 @@ Er du sikker på at du vil erstatte ditt sertifikat?
     <message>
         <source>Port</source>
         <translation>Port</translation>
-    </message>
-    <message>
-        <source>Addresses</source>
-        <translation>Adresser</translation>
     </message>
     <message>
         <source>Website</source>
@@ -3101,6 +3309,42 @@ Er du sikker på at du vil erstatte ditt sertifikat?
     <message>
         <source>Version</source>
         <translation>Versjon</translation>
+    </message>
+    <message>
+        <source>IPv4 address</source>
+        <translation>IPv4-adresse</translation>
+    </message>
+    <message>
+        <source>IPv6 address</source>
+        <translation>IPv6-adresse</translation>
+    </message>
+    <message>
+        <source>This is the connection dialog. There are two different ways to connect to a Mumble server. If the server is listed publicly, you can use the server list to find it. If you know the server IP address, you can manually add a new permanent entry to your favorites.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server list contains your favorites and all publicly listed servers.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>With this search interface you can filter the Mumble servers displayed in the server list.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Search for servername</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Search for location</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set filter mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Server</source>
+        <translation type="unfinished">Tjener</translation>
     </message>
 </context>
 <context>
@@ -3234,6 +3478,22 @@ Hva tjeneren er beskrevet som. Dette er hva tjeneren vil bli navngitt som i din 
         <source>&amp;Ignore</source>
         <translation>&amp;Ignorer</translation>
     </message>
+    <message>
+        <source>Server IP address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Server port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Username</source>
+        <translation type="unfinished">Brukernavn</translation>
+    </message>
+    <message>
+        <source>Label for server</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>CrashReporter</name>
@@ -3284,11 +3544,11 @@ Hva tjeneren er beskrevet som. Dette er hva tjeneren vil bli navngitt som i din 
     </message>
     <message>
         <source>HTTP error %1: &quot;%2&quot;</source>
-        <translation type="unfinished"></translation>
+        <translation>HTTP-feil %1: «%2»</translation>
     </message>
     <message>
         <source>Internal error encountered in CrashReporter.cpp: Received network reply does not contain an HTTP status code. Please inform a developer about error code %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Intern feil i CrashReporter.cpp: Mottatt nettverkssvar inneholder ikke en HTTP-statuskode. Informer en utvikler om feilkode %1</translation>
     </message>
 </context>
 <context>
@@ -3325,7 +3585,7 @@ Hva tjeneren er beskrevet som. Dette er hva tjeneren vil bli navngitt som i din 
     <name>GlobalShortcut</name>
     <message>
         <source>Shortcuts</source>
-        <translation>Tastatursnarveier</translation>
+        <translation type="unfinished">Snarveier</translation>
     </message>
     <message>
         <source>List of configured shortcuts</source>
@@ -3415,14 +3675,36 @@ Hva tjeneren er beskrevet som. Dette er hva tjeneren vil bli navngitt som i din 
         <source>&lt;b&gt;Enable shortcuts in privileged applications&lt;/b&gt;.&lt;br /&gt;Also known as &quot;UIAccess&quot;. This allows Mumble to receive global shortcut events from programs running at high privilege levels, such as an Admin Command Prompt or older games that run with admin privileges.
 &lt;br /&gt;&lt;br /&gt;
 Without this option enabled, using Mumble&apos;s global shortcuts in privileged applications will not work. This can seem inconsistent: for example, if the Push-to-Talk button is pressed in a non-privileged program, but released in a privileged application, Mumble will not observe that it has been released and you will continue to talk until you press the Push-to-Talk button again.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;b&gt;Skru på snarveier i priviligerte programmer&lt;/b&gt;.&lt;br /&gt;Dette heter også «grensesnittstilgang». Det lar Mumble hente snarveistrykk fra hele systemet fra programmet som kjører med høye privlilegiumsnivåer, som en administratorkommandospørring, eller eldre spill som kjører med administrator-privilegier.
+&lt;br /&gt;&lt;br /&gt;
+Uten dette påskrudd kan du ikke bruke Mumble-snarveier i priviligerte programmer. Dette kan virke periodisk, som for eksempel hvis trykk-for-å-snakke trykkes i et program uten privilegier, men slippes i et program med privilegier vil ikke Mumble finne ut at den har blitt sluppet, og du vil fortsette å sende til du trykker på knappen igjen.</translation>
     </message>
     <message>
         <source>Enable shortcuts in privileged applications</source>
         <translation type="unfinished">Skru på bruk av snarveier i priviligerte programmer</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Mumble&apos;s Global Shortcuts system does currently not work in combination with the Wayland protocol. For more information, visit &lt;a href=&quot;https://github.com/mumble-voip/mumble/issues/5257&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0057ae;&quot;&gt;https://github.com/mumble-voip/mumble/issues/5257&lt;/span&gt;&lt;/a&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Mumble&apos;s Global Shortcuts system does currently not work properly in combination with the Wayland protocol. For more information, visit &lt;a href=&quot;https://github.com/mumble-voip/mumble/issues/5257&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0057ae;&quot;&gt;https://github.com/mumble-voip/mumble/issues/5257&lt;/span&gt;&lt;/a&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Mumble sitt snarveissystem som fungerer overalt fungerer dog ikke med Wayland. Mer info er å finne i &lt;a href=&quot;https://github.com/mumble-voip/mumble/issues/5257&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0057ae;&quot;&gt;https://github.com/mumble-voip/mumble/issues/5257&lt;/span&gt;&lt;/a&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Configured shortcuts</source>
+        <translation type="unfinished">Oppsatte snarveier</translation>
+    </message>
+    <message>
+        <source>Use up and down keys to navigate through your added shortcuts. Use left and right keys to navigate between actions and options for a single shortcut. Entries can be added and deleted with the buttons below.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add unassigned shortcut</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This adds a new empty entry to the &quot;Configured Shortcut&quot; tree above. The tree will be automatically focused. Assign a key or an action by selecting the entry in the tree above.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This removes the selected entry from the &quot;Configured Shortcut&quot; tree above</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3452,6 +3734,18 @@ Without this option enabled, using Mumble&apos;s global shortcuts in privileged 
         <source>Remove</source>
         <translation>Fjern</translation>
     </message>
+    <message>
+        <source>List of shortcuts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggling this button will make the application listen for a shortcut. Once the shortcut is entered, the application stops listening for a shortcut. Multiple shortcuts can be assigned to the current action. Navigate to the shortcut list above to review the shortcuts currently assigned to the current action.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This button will remove the selected shortcut for the current action. Note that you will have to select a shortcut from the list above first before this button has any effect.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>GlobalShortcutConfig</name>
@@ -3477,8 +3771,28 @@ Without this option enabled, using Mumble&apos;s global shortcuts in privileged 
         <translation>&lt;b&gt;Dette skjuler tastetrykk fra andre programmer.&lt;/b&gt;&lt;br /&gt;Å skru på dette vil gjemme knappen (eller den siste knappen i en kombinasjonssnarvei) fra andre programmer. Merk at ikke alle knapper kan undertrykkes.</translation>
     </message>
     <message>
-        <source>Configured shortcuts</source>
-        <translation>Oppsatte snarveier</translation>
+        <source>Shortcut action</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Shortcut data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Shortcut input combinations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unassigned</source>
+        <translation type="unfinished">Utildelt</translation>
+    </message>
+    <message>
+        <source>checked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>unchecked</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -3535,7 +3849,7 @@ Without this option enabled, using Mumble&apos;s global shortcuts in privileged 
     </message>
     <message>
         <source>Do not send positional audio information when using this whisper shortcut.</source>
-        <translation>Ikke send posisjonsbasert lydinformasjon når denne hviske-snarveien brukes.</translation>
+        <translation>Ikke send posisjonsbasert lydinfo når denne hviske-snarveien brukes.</translation>
     </message>
     <message>
         <source>Ignore positional audio</source>
@@ -3696,13 +4010,6 @@ Dette feltet beskriver størrelsen på en LCD-enhet. Enten gitt i piksler (for g
     </message>
 </context>
 <context>
-    <name>ListenerLocalVolumeDialog</name>
-    <message>
-        <source>Adjusting local volume for listening to %1</source>
-        <translation>Justerer lokal lydstyrke for lytting til %1</translation>
-    </message>
-</context>
-<context>
     <name>Log</name>
     <message>
         <source>Debug</source>
@@ -3718,7 +4025,7 @@ Dette feltet beskriver størrelsen på en LCD-enhet. Enten gitt i piksler (for g
     </message>
     <message>
         <source>Information</source>
-        <translation>Informasjon</translation>
+        <translation>Info</translation>
     </message>
     <message>
         <source>Other self-muted/deafened</source>
@@ -3870,6 +4177,10 @@ Dette feltet beskriver størrelsen på en LCD-enhet. Enten gitt i piksler (for g
         <source>Plugin message</source>
         <translation>Programtilleggsmelding</translation>
     </message>
+    <message>
+        <source>[embedded content]</source>
+        <translation>[innebygd innhold]</translation>
+    </message>
 </context>
 <context>
     <name>LogConfig</name>
@@ -3883,7 +4194,7 @@ Dette feltet beskriver størrelsen på en LCD-enhet. Enten gitt i piksler (for g
     </message>
     <message>
         <source>Toggle Text-To-Speech for %1 events</source>
-        <translation>Veksle tekst-til-tale for %1-hendelser</translation>
+        <translation>Veksle talesyntese for %1-hendelser</translation>
     </message>
     <message>
         <source>Click here to toggle sound notification for %1 events</source>
@@ -3891,7 +4202,7 @@ Dette feltet beskriver størrelsen på en LCD-enhet. Enten gitt i piksler (for g
     </message>
     <message>
         <source>Toggle window highlight (if not active) for %1 events</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Veksle vindushøyde (hvis ikke aktiv) for %1-begivenheter</translation>
     </message>
     <message>
         <source>Path to sound file used for sound notifications in the case of %1 events&lt;br /&gt;Single click to play&lt;br /&gt;Double-click to change</source>
@@ -3908,7 +4219,7 @@ Dette feltet beskriver størrelsen på en LCD-enhet. Enten gitt i piksler (for g
     </message>
     <message>
         <source>Click here to toggle window highlight for %1 events.&lt;br /&gt;If checked, Mumble&apos;s window will be highlighted for every %1 event, if not active.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Klikk her for å veksle vindushøyde for %1-begivenheter.&lt;br /&gt;Hvis valgt må Mumbles vindushøyde framheves for hver %1-begivenhet, hvis ikke aktivt.</translation>
     </message>
     <message>
         <source>Path to sound file used for sound notifications in the case of %1 events.&lt;br /&gt;Single click to play&lt;br /&gt;Double-click to change&lt;br /&gt;Ensure that sound notifications for these events are enabled or this field will not have any effect.</source>
@@ -3917,12 +4228,12 @@ Dette feltet beskriver størrelsen på en LCD-enhet. Enten gitt i piksler (for g
     <message>
         <source>Click here to toggle Text-To-Speech for %1 events.&lt;br /&gt;If checked, Mumble uses Text-To-Speech to read %1 events out loud to you. Text-To-Speech is also able to read the contents of the event which is not true for sound files. Text-To-Speech and sound files cannot be used at the same time.</source>
         <oldsource>Click here to toggle sound notification for %1 events.&lt;br /&gt;If checked, Mumble uses a soundfile predefined by you to indicate %1 events. Soundfiles and Text-To-Speech cannot be used at the same time.</oldsource>
-        <translation>Klikk her for å veksle tekst-til-tale for %1-hendelser.&lt;br /&gt;Hvis valgt, vil Mumble bruke tekst-til-tale til opplesning av %1-hendelser for deg. Tekst-til-taler er også i stand til å lese innholdet av hendelsen, noe som ikke er tilfelle for lydfiler. Tekst-til-tale og lydfiler kan ikke brukes samtidig.</translation>
+        <translation>Klikk her for å veksle talesyntese for %1-hendelser.&lt;br /&gt;Hvis valgt, vil Mumble bruke tekst-til-tale til opplesning av %1-hendelser for deg. Tekst-til-taler er også i stand til å lese innholdet av hendelsen, noe som ikke er tilfelle for lydfiler. Tekst-til-tale og lydfiler kan ikke brukes samtidig.</translation>
     </message>
     <message>
         <source>Click here to toggle sound notification for %1 events.&lt;br /&gt;If checked, Mumble uses a sound file predefined by you to indicate %1 events. Sound files and Text-To-Speech cannot be used at the same time.</source>
         <oldsource>Path to soundfile used for sound notifications in the case of %1 events.&lt;br /&gt;Single click to play&lt;br /&gt;Doubleclick to change&lt;br /&gt;Be sure that sound notifications for these events are enabled or this field will not have any effect.</oldsource>
-        <translation>Klikk her for å veksle lydmerknader for %1-hendelser.&lt;br /&gt;Hvis valgt vil Mumble bruke ei lydfil oppgitt av deg for å indikere %1-hendelser. Lydfiler og tekst-til-tale kan ikke brukes samtidig.</translation>
+        <translation>Klikk her for å veksle lydmerknader for %1-hendelser.&lt;br /&gt;Hvis valgt vil Mumble bruke ei lydfil oppgitt av deg for å indikere %1-hendelser. Lydfiler og talesyntese kan ikke brukes samtidig.</translation>
     </message>
     <message>
         <source>Messages</source>
@@ -3942,7 +4253,7 @@ Dette feltet beskriver størrelsen på en LCD-enhet. Enten gitt i piksler (for g
     </message>
     <message>
         <source>Text-To-Speech</source>
-        <translation>Tekst-til-tale</translation>
+        <translation>Talesyntese</translation>
     </message>
     <message>
         <source>Soundfile</source>
@@ -3957,12 +4268,8 @@ Dette feltet beskriver størrelsen på en LCD-enhet. Enten gitt i piksler (for g
         <translation>Tekst til tale</translation>
     </message>
     <message>
-        <source>Volume</source>
-        <translation>Lydstyrke</translation>
-    </message>
-    <message>
         <source>Volume of Text-To-Speech Engine</source>
-        <translation>Lydstyrke for tekst-til-tale -motor</translation>
+        <translation>Lydstyrke for talesyntese-motor</translation>
     </message>
     <message>
         <source>&lt;b&gt;This is the volume used for the speech synthesis.&lt;/b&gt;</source>
@@ -3974,11 +4281,11 @@ Dette feltet beskriver størrelsen på en LCD-enhet. Enten gitt i piksler (for g
     </message>
     <message>
         <source>Message length threshold for Text-To-Speech Engine</source>
-        <translation>Maksimal lengdeterskel for tekst-til-tale -motor</translation>
+        <translation>Maksimal lengdeterskel for talesyntese-motor</translation>
     </message>
     <message>
         <source>&lt;b&gt;This is the length threshold used for the Text-To-Speech Engine.&lt;/b&gt;&lt;br /&gt;Messages longer than this limit will not be read aloud in their full length.</source>
-        <translation>&lt;b&gt;Dette er varighetsterskelen brukt for tekst-til-tale -motoren.&lt;/b&gt;&lt;br /&gt;Meldinger lenger enn denne grensen vil ikke bli lest høyt i deres fulle lengde.</translation>
+        <translation>&lt;b&gt;Dette er varighetsterskelen brukt for talesyntese-motoren.&lt;/b&gt;&lt;br /&gt;Meldinger lenger enn denne grensen vil ikke bli lest høyt i deres fulle lengde.</translation>
     </message>
     <message>
         <source> Characters</source>
@@ -3990,15 +4297,15 @@ Dette feltet beskriver størrelsen på en LCD-enhet. Enten gitt i piksler (for g
     </message>
     <message>
         <source>Only accept whispers from friends</source>
-        <translation>Bare aksepter hvisken fra venner</translation>
+        <translation>Kun aksepter hvisken fra venner</translation>
     </message>
     <message>
         <source>If enabled text messages you send will be read back to you with TTS</source>
-        <translation>Hvis påskrudd vil tekstmeldinger du sender bli lest opp for deg med tekst-til-tale</translation>
+        <translation>Hvis påskrudd vil tekstmeldinger du sender bli lest opp for deg med talesyntese</translation>
     </message>
     <message>
         <source>Read back own messages</source>
-        <translation>Less opp egne meldinger</translation>
+        <translation>Les opp egne meldinger</translation>
     </message>
     <message>
         <source>Chat Log</source>
@@ -4022,11 +4329,11 @@ Dette feltet beskriver størrelsen på en LCD-enhet. Enten gitt i piksler (for g
     </message>
     <message>
         <source>If enabled, TTS will not dictate the message scope.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Forhindrer talesyntese i å diktere meldingens rekkevidde.</translation>
     </message>
     <message>
         <source>Omit Message Scope</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Unngå meldingsrekkevidde</translation>
     </message>
     <message>
         <source>If enabled, TTS will not dictate the message author.</source>
@@ -4057,20 +4364,12 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
         <translation>Meldingsmarger</translation>
     </message>
     <message>
-        <source>Log messages</source>
-        <translation>Loggfør meldinger</translation>
-    </message>
-    <message>
-        <source>TTS engine volume</source>
-        <translation>TFT-motorlydstyrke</translation>
-    </message>
-    <message>
         <source>Chat message margins</source>
         <translation>Sludremeldingsmarger</translation>
     </message>
     <message>
         <source>Limit</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Grense</translation>
     </message>
     <message>
         <source>Misc.</source>
@@ -4078,7 +4377,7 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     </message>
     <message>
         <source>Number of users that will trigger message limiting functionality.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Antall brukere som utløser meldingsgrense-funksjonaliteten.</translation>
     </message>
     <message>
         <source>users on the server.</source>
@@ -4086,22 +4385,138 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     </message>
     <message>
         <source>Limit notifications when there are more than</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>User limit for message limiting</source>
-        <translation type="unfinished"></translation>
+        <translation>Begrens merknader når det er mer enn</translation>
     </message>
     <message>
         <source>Click here to toggle message limiting for all events - If using this option be sure to change the user limit below.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Klikk her for å skru av/på meldingsbegrensning for alle begivenheter. Hvis du bruker dette må du endre brukergrensen nedenfor.</translation>
     </message>
     <message>
         <source>Toggle message limiting behavior for %1 events </source>
+        <translation type="unfinished">Veksle meldingsgrenseoppførsel for %1- begivenheter </translation>
+    </message>
+    <message>
+        <source>Click to enable Text-to-Speech</source>
+        <translation type="unfinished">Klikk for å skru på tekst-til-tale</translation>
+    </message>
+    <message>
+        <source>Enable Text-to-Speech</source>
+        <translation type="unfinished">Skru på tekst-til-tale</translation>
+    </message>
+    <message>
+        <source>Click here to toggle limiting for %1 events.&lt;br /&gt;If checked, notifications for this event type will not be played when the user count on the server exceeds the set threshold.</source>
+        <translation type="unfinished">Klikk her for å veksle begrensning for %1-hendelser.&lt;br /&gt;Merknader av denne hendelsestypen vil ikke spilles når antall brukere på tjeneren overskrider angitt terskel.</translation>
+    </message>
+    <message>
+        <source>Message Volume</source>
+        <translation>Meldingslydstyrke</translation>
+    </message>
+    <message>
+        <source>Volume adjustment for audio cues</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Click here to toggle limiting for %1 events. &lt;br /&gt; If checked, notifications for this event typewill not be played when the user count on the server exceeds the set threshold.</source>
+        <source>&lt;b&gt;This is the volume adjustment for audio cues.&lt;/b&gt;&lt;br /&gt;A value of 0 dB means no change to the sound sample.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> dB</source>
+        <translation type="unfinished"> dB</translation>
+    </message>
+    <message>
+        <source>Text-to-Speech volume</source>
+        <translation>Tekst-til-tale -lydstyrke</translation>
+    </message>
+    <message>
+        <source>Notification volume adjustment</source>
+        <translation>Justering av merknadslydstyrke</translation>
+    </message>
+    <message>
+        <source>Volume adjustment for notification sounds</source>
+        <translation>Justering av lydstyrke for merknadslyder</translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;This is the volume adjustment for notification sounds.&lt;/b&gt;&lt;br /&gt;A value of 0 dB means no change to the sound sample.</source>
+        <translation>&lt;b&gt;Dette er lydstyrkejusteringen for merknadslyder.&lt;/b&gt;&lt;br /&gt;En verdi på 0 dB betyr ingen endring av lydklippet.</translation>
+    </message>
+    <message>
+        <source>Audio cue volume adjustment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> %</source>
+        <translation type="unfinished"> %</translation>
+    </message>
+    <message>
+        <source>Notification sound volume adjustment</source>
+        <translation>Justering av lydstyrke for merknadslyd</translation>
+    </message>
+    <message>
+        <source>Log message types and actions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use up and down keys to navigate through the message types. Use left and right keys to navigate between notification possibilities for a single message type.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set length threshold</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Text to speech volume</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Maximum chat log length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>User limit for notifications</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Message type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Log message to console checkbox</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Display pop-up notification for message checkbox</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Highlight window for message checkbox</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Read message using text to speech checkbox</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Limit message notification if user count is high checkbox</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Play sound file for message checkbox</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Path to sound file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>checked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>unchecked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>decibels</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4142,7 +4557,7 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     </message>
     <message>
         <source>User Interface</source>
-        <translation>Brukergrensesnitt</translation>
+        <translation type="unfinished">Grensesnitt</translation>
     </message>
     <message>
         <source>This sets which channels to automatically expand. &lt;i&gt;None&lt;/i&gt; and &lt;i&gt;All&lt;/i&gt; will expand no or all channels, while &lt;i&gt;Only with users&lt;/i&gt; will expand and collapse channels as users join and leave them.</source>
@@ -4160,10 +4575,6 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     <message>
         <source>Users above Channels</source>
         <translation>Brukere over kanaler</translation>
-    </message>
-    <message>
-        <source>&lt;b&gt;If set, will verify you want to quit if connected.&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Hvis satt, vil spørre deg om bekreftelse ved avslutting hvis tilkoblet.&lt;/b&gt;</translation>
     </message>
     <message>
         <source>Show number of users in each channel</source>
@@ -4231,14 +4642,6 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
         <translation>Kanaldraging</translation>
     </message>
     <message>
-        <source>Ask whether to close or minimize when quitting Mumble.</source>
-        <translation>Spør hvorvidt det skal lukkes eller minimeres når Mumble avsluttes.</translation>
-    </message>
-    <message>
-        <source>Ask on quit while connected</source>
-        <translation>Spør ved avslutning når tilkoblet</translation>
-    </message>
-    <message>
         <source>Always On Top</source>
         <translation>Alltid øverst</translation>
     </message>
@@ -4288,7 +4691,7 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     </message>
     <message>
         <source>Show context menu in menu bar</source>
-        <translation>Vis kontekstmeny i menylinjen</translation>
+        <translation>Vis bindeleddsmeny i menylinjen</translation>
     </message>
     <message>
         <source>Apply some high contrast optimizations for visually impaired users</source>
@@ -4332,7 +4735,7 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     </message>
     <message>
         <source>Theme to use to style the user interface</source>
-        <translation>Drakt til bruk for å skreddersy brukergrensesnittet</translation>
+        <translation>Drakt til bruk for skreddersøm av brukergrensesnittet</translation>
     </message>
     <message>
         <source>&lt;b&gt;Configures which theme the Mumble user interface should be styled with&lt;/b&gt;&lt;br /&gt;Mumble will pick up themes from certain directories and display them in this list. The one you select will be used to customize the visual appearance of Mumble. This includes colors, icons and more.</source>
@@ -4400,27 +4803,27 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     </message>
     <message>
         <source>Abbreviated prefix characters</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Forkortede innledende tegn</translation>
     </message>
     <message>
         <source>The names of how many parent channels should be included in the channel&apos;s name when displaying it in the TalkingUI?</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Navnene på hvor mange ovennevnte kanaler som skal inkluderes i kanalnavnet når det vises i snakkings-grensesnittet?</translation>
     </message>
     <message>
         <source>How many characters from the original name to display at the end of an abbreviated name.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Hvor mange tegn fra originalnavnet som skal vises på slutten av forkortede navn.</translation>
     </message>
     <message>
         <source>Abbreviated postfix characters</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Forkortetede endelses-tegn</translation>
     </message>
     <message>
         <source>Whether to also allow abbreviating the current channel of a user (instead of only its parent channels).</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Hvorvidt også nåværende kanalnavn for en bruker skal forkortes (istedenfor kun ovennevnte kanaler).</translation>
     </message>
     <message>
         <source>Abbreviate current channel name</source>
-        <translation type="unfinished"></translation>
+        <translation>Forkort nåværende kanalnavn</translation>
     </message>
     <message>
         <source>Channel hierarchy depth</source>
@@ -4428,19 +4831,19 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     </message>
     <message>
         <source>Abbreviation replacement</source>
-        <translation type="unfinished"></translation>
+        <translation>Forkortelseserstatning</translation>
     </message>
     <message>
         <source>Whether the channel (hierarchy) name should be abbreviated, if it exceeds the specified maximum length.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Hvorvidt det (hierarkiske) kanalnavnet skal forkortet om de overskrider den angitte maksimale lengden.</translation>
     </message>
     <message>
         <source>Abbreviate channel names</source>
-        <translation type="unfinished"></translation>
+        <translation>Forkort kanalnavn</translation>
     </message>
     <message>
         <source>The preferred maximum length of a channel (hierarchy) name in the Talking UI. Note that this is not a hard limit though.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Maksimal foretrukket lengde for en kanals (hierarkiske) navn i snakkings-grensesnittet.Merk at dette ikke er en absolutt grense.</translation>
     </message>
     <message>
         <source>Max. channel name length</source>
@@ -4448,7 +4851,7 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     </message>
     <message>
         <source>Relative font size to use in the Talking UI in percent.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Relativ prosentvis skriftstørrelse å bruke i snakkingsgrensesnittet.</translation>
     </message>
     <message>
         <source>Rel. font size (%)</source>
@@ -4456,47 +4859,19 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     </message>
     <message>
         <source>String that gets used instead of the cut-out part of an abbreviated name.</source>
-        <translation type="unfinished"></translation>
+        <translation>Streng som brukes istedenfor utklippet av et forkortet navn.</translation>
     </message>
     <message>
         <source>Prefix character count</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Antall innlednings-tall</translation>
     </message>
     <message>
         <source>Postfix character count</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Maximum name length</source>
-        <translation>Maksimal navnelengde</translation>
-    </message>
-    <message>
-        <source>Relative font size</source>
-        <translation>Relativ skriftstørrelse</translation>
-    </message>
-    <message>
-        <source>Always on top</source>
-        <translation>Alltid på toppen</translation>
-    </message>
-    <message>
-        <source>Channel dragging</source>
-        <translation>Kanaldraging</translation>
-    </message>
-    <message>
-        <source>Automatically expand channels when</source>
-        <translation type="unfinished">Utvid kanaler automatisk når</translation>
-    </message>
-    <message>
-        <source>User dragging behavior</source>
-        <translation>Oppførsel for brukerdraging</translation>
-    </message>
-    <message>
-        <source>Silent user lifetime</source>
-        <translation type="unfinished"></translation>
+        <translation>Etterfølgende antall tegn</translation>
     </message>
     <message>
         <source>Show the local volume adjustment for each user (if any).</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Vis lokal lydstyrkejustering for hver bruken (om de forefinnes).</translation>
     </message>
     <message>
         <source>Show volume adjustments</source>
@@ -4504,11 +4879,11 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     </message>
     <message>
         <source>Whether to show all of the local user&apos;s listeners (ears) in the TalkingUI (and thereby also the channels they are in). </source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Hvorvidt alle de lokale brukernes lyttere (ører) skal vises i snakkings-grensesnittet (og derav også kanalene de er i). </translation>
     </message>
     <message>
         <source>Show local user&apos;s listeners (ears)</source>
-        <translation type="unfinished"></translation>
+        <translation>Vis lokal brukers lyttere (ører)</translation>
     </message>
     <message>
         <source>Hide the username for each user if they have a nickname.</source>
@@ -4520,7 +4895,7 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     </message>
     <message>
         <source>Channel Hierarchy String</source>
-        <translation type="unfinished"></translation>
+        <translation>Kanal-hierarkistreng</translation>
     </message>
     <message>
         <source>Search</source>
@@ -4528,7 +4903,7 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     </message>
     <message>
         <source>The action to perform when a user is activated (via double-click or enter) in the search dialog.</source>
-        <translation type="unfinished"></translation>
+        <translation>Handling å utføre når en bruker aktiveres (via dobbeltklikk eller enter) i søkedialogen.</translation>
     </message>
     <message>
         <source>Action (User):</source>
@@ -4536,11 +4911,107 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     </message>
     <message>
         <source>The action to perform when a channel is activated (via double-click or enter) in the search dialog.</source>
-        <translation type="unfinished"></translation>
+        <translation>Handling å utføre når en kanal aktiveres (via dobbeltklikk eller enter) i søkedialogen.</translation>
     </message>
     <message>
         <source>Action (Channel):</source>
         <translation type="unfinished">Handling (kanal):</translation>
+    </message>
+    <message>
+        <source>Quit Behavior</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This setting controls the behavior of clicking on the X in the top right corner.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This setting controls the behavior when closing Mumble. You can choose between being asked for confirmation, minimize instead if closing or just closing without any additional prompt. Optionally, the first two options can only apply when you are currently connected to a server (in that case, Mumble will quit without asking, when not connected to any server).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Always Ask</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ask when connected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Always Minimize</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Minimize when connected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Always Quit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> seconds</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>If this is checked, users will always be visible in the TalkingUI (regardless of talking state).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Always keep users visible</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Channel expand mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>User dragging mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Channel dragging mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Always on top mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Quit behavior mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Channel separator string</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Maximum channel name length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Abbreviation replacement characters</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Relative font size (in percent)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Silent user display time (in seconds)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mumble theme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>User search action mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Channel search action mode</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4614,10 +5085,6 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
         <translation>Mumble</translation>
     </message>
     <message>
-        <source>Mumble -- %1</source>
-        <translation>Mumble -- %1</translation>
-    </message>
-    <message>
         <source>&amp;Window</source>
         <translation>&amp;Vindu</translation>
     </message>
@@ -4632,10 +5099,6 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     <message>
         <source>Close</source>
         <translation>Lukk</translation>
-    </message>
-    <message>
-        <source>Mumble is currently connected to a server. Do you want to Close or Minimize it?</source>
-        <translation>Mumble er ikke koblet til en tjener. Ønsker du å lukke eller minimere det?</translation>
     </message>
     <message>
         <source>Mute Self</source>
@@ -4690,20 +5153,12 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
         <translation>Filen finnes ikke</translation>
     </message>
     <message>
-        <source>File is not a configuration file.</source>
-        <translation>Filen er ikke en oppsettsfil.</translation>
-    </message>
-    <message>
         <source>Settings merged from file.</source>
         <translation>Innstillinger innflettet fra fil.</translation>
     </message>
     <message>
         <source>URL scheme is not &apos;mumble&apos;</source>
-        <translation>URL-forordningen er ikke &apos;mumble&apos;</translation>
-    </message>
-    <message>
-        <source>This version of Mumble can&apos;t handle URLs for Mumble version %1.%2.%3</source>
-        <translation>Denne versjonen av Mumble kan ikke håndtere URL-er for Mumble versjon %1.%2.%3</translation>
+        <translation type="unfinished">URL-forordningen er ikke &apos;mumble&apos;</translation>
     </message>
     <message>
         <source>Connecting to %1</source>
@@ -4772,10 +5227,6 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     <message>
         <source>&lt;p&gt;%1&lt;/p&gt;&lt;ul&gt;%2&lt;/ul&gt;&lt;p&gt;The specific errors with this certificate are:&lt;/p&gt;&lt;ol&gt;%3&lt;/ol&gt;&lt;p&gt;Do you wish to accept this certificate anyway?&lt;br /&gt;(It will also be stored so you won&apos;t be asked this again.)&lt;/p&gt;</source>
         <translation>&lt;p&gt;%1&lt;/p&gt;&lt;ul&gt;%2&lt;/ul&gt;&lt;p&gt;Den spesifikke feilen med dette sertifikatet er:&lt;/p&gt;&lt;ol&gt;%3&lt;/ol&gt;&lt;p&gt;Ønsker du å godta dette sertifikatet likevel?&lt;br /&gt;(dette vil også bli lagret og du vil ikke bli spurt igjen.)&lt;/p&gt;</translation>
-    </message>
-    <message>
-        <source>SSL Version mismatch</source>
-        <translation>SSL-versjon samsvarer ikke</translation>
     </message>
     <message>
         <source>Server connection failed.</source>
@@ -4848,7 +5299,7 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
     <message>
         <source>Set Transmit Mode to VAD</source>
         <comment>Global Shortcut</comment>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Sett overføringsmodus til VAD</translation>
     </message>
     <message>
         <source>Send Text Message</source>
@@ -4999,10 +5450,6 @@ Har kun innvirkning for nye meldinger. Gamle meldinger vises i foregående tidsf
         <translation>&lt;b&gt;ADVARSEL:&lt;/b&gt; Tjeneren presenterte et sertifikat som er forskjellig fra det som er lagret.</translation>
     </message>
     <message>
-        <source>This server is using an older encryption standard, and is no longer supported by modern versions of Mumble.</source>
-        <translation>Denne tjeneren kjører en gammel krypteringsstandard som ikke lenger støttes.</translation>
-    </message>
-    <message>
         <source>Server connection failed: %1.</source>
         <translation>Tilkobling til tjener feilet: %1.</translation>
     </message>
@@ -5064,7 +5511,7 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
     </message>
     <message>
         <source>This shows all recent activity. Connecting to servers, errors and information messages all show up here.&lt;br /&gt;To configure exactly which messages show up here, use the &lt;b&gt;Settings&lt;/b&gt; command from the menu.</source>
-        <translation>Dette viser nylig aktivitet. Tilkobling til tjenere, feil og informasjonsmeldinger vil alle vises her.&lt;br /&gt;For å bestemme akkurat hvilke meldinger som skal vises her, bruk &lt;b&gt;Innstillings&lt;/b&gt;-kommandoen fra menyen.</translation>
+        <translation>Dette viser nylig aktivitet. Tilkobling til tjenere, feil og infomeldinger vil alle vises her.&lt;br /&gt;For å bestemme akkurat hvilke meldinger som skal vises her, bruk &lt;b&gt;Innstillings&lt;/b&gt;-kommandoen fra menyen.</translation>
     </message>
     <message>
         <source>&amp;Quit Mumble</source>
@@ -5100,11 +5547,11 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
     </message>
     <message>
         <source>Show information about the server connection</source>
-        <translation>VIs informasjon om tjenerforbindelse</translation>
+        <translation>VIs info om tjenerforbindelse</translation>
     </message>
     <message>
         <source>This will show extended information about the connection to the server.</source>
-        <translation>Viser utvidet informasjon om din tilkobling til tjeneren.</translation>
+        <translation>Viser utvidet info om din tilkobling til tjeneren.</translation>
     </message>
     <message>
         <source>&amp;Mute</source>
@@ -5151,16 +5598,12 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
         <translation>Dette åpne gruppe- og ACL -dialogen for kanalen, for kontrolltilganger.</translation>
     </message>
     <message>
-        <source>&amp;Link</source>
-        <translation>&amp;Lenk</translation>
-    </message>
-    <message>
         <source>Link your channel to another channel</source>
         <translation>Lenk din kanal til en annen kanal</translation>
     </message>
     <message>
         <source>This is the chatbar&lt;br /&gt;If you enter text here and then press enter the text is sent to the user or channel that was selected. If nothing is selected the message is sent to your current channel.</source>
-        <translation>Dette er sludrefeltet&lt;br /&gt;Hvis du skriver inn tekst her og trykker enter vil teksten bli sendt til valgt bruker. Hvis ingenting er valgt vil meldingen sendes til din nåværende kanal.</translation>
+        <translation type="unfinished">Dette er sludrefeltet.&lt;br /&gt;Hvis du skriver inn tekst her og trykker enter vil teksten bli sendt til valgt bruker. Hvis ingenting er valgt vil meldingen sendes til din nåværende kanal.</translation>
     </message>
     <message>
         <source>Chatbar</source>
@@ -5249,10 +5692,6 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
         <translation>Dette vil tilbakestille lyd for-behandleren, inkludert lydkansellering, automatisk forsterkningsjustering og aktivitetsoppdagelse. Hvis noe plutselig forverrer lydmiljøet (som at noen mister mikrofonen) og det var midlertidig, bruk dette for å forhindre at for-behandleren skal rejustere seg.</translation>
     </message>
     <message>
-        <source>&amp;Mute Self</source>
-        <translation>&amp;Gjør deg selv stum</translation>
-    </message>
-    <message>
         <source>Mute yourself</source>
         <translation>Gjør deg selv stum</translation>
     </message>
@@ -5261,28 +5700,25 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
         <translation>Gjør deg selv stum eller fjern stumhet fra deg selv. Når du er stum vil du ikke sende noe data til tjeneren. Å fjerne stumhet mens du er døv vil også fjerne døvheten.</translation>
     </message>
     <message>
-        <source>&amp;Deafen Self</source>
-        <translation>&amp;Gjør deg selv døv</translation>
-    </message>
-    <message>
         <source>Deafen yourself</source>
         <translation>Gjør deg selv døv</translation>
     </message>
     <message>
         <source>Deafen or undeafen yourself. When deafened, you will not hear anything. Deafening yourself will also mute.</source>
-        <translation>Legg til eller fjern døvhet for deg selv. Når gjort døv, vil du ikke høre noe. Å gjøre deg selv døv gjør deg også stum.</translation>
+        <translation type="unfinished">Legg til eller fjern døvhet for deg selv. Når gjort døv, vil du ikke høre noe.
+Å gjøre deg selv døv gjør deg også stum.</translation>
     </message>
     <message>
         <source>&amp;Text-To-Speech</source>
-        <translation>&amp;Tekst-til-tale</translation>
+        <translation>&amp;Talesyntese</translation>
     </message>
     <message>
         <source>Toggle Text-To-Speech</source>
-        <translation>Veksle tekst-til-tale</translation>
+        <translation>Veksle talesyntese</translation>
     </message>
     <message>
         <source>Enable or disable the text-to-speech engine. Only messages enabled for TTS in the Configuration dialog will actually be spoken.</source>
-        <translation>Skru på eller av tekst-til-tale -motoren. Bare meldinger ment for TFT i oppsettsdialogen vil bli uttalt.</translation>
+        <translation>Skru på eller av talesyntese-motoren. Bare meldinger ment for tekst-til-tale i oppsettsdialogen vil bli uttalt.</translation>
     </message>
     <message>
         <source>Display audio statistics</source>
@@ -5290,7 +5726,7 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
     </message>
     <message>
         <source>Pops up a small dialog with information about your current audio input.</source>
-        <translation>Viser et lite oppsprettsvindu med informasjon om din nåværende lydinngang.</translation>
+        <translation>Viser et lite oppsprettsvindu med info om din nåværende lydinngang.</translation>
     </message>
     <message>
         <source>Forcibly unlink plugin</source>
@@ -5330,15 +5766,15 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
     </message>
     <message>
         <source>Information about Mumble</source>
-        <translation>Informasjon om Mumble</translation>
+        <translation>Info om Mumble</translation>
     </message>
     <message>
         <source>Shows a small dialog with information and license for Mumble.</source>
-        <translation>Viser en liten dialog med informasjon og lisensinfo om Mumble.</translation>
+        <translation>Viser en liten dialog med info om Mumble og dets lisensiering.</translation>
     </message>
     <message>
         <source>Information about Speex</source>
-        <translation>Informasjon om Speex</translation>
+        <translation>Info om Speex</translation>
     </message>
     <message>
         <source>Shows a small dialog with information about Speex.</source>
@@ -5501,10 +5937,6 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
         <translation>Velkomstmelding: %1</translation>
     </message>
     <message>
-        <source>Mumble: %1</source>
-        <translation>Mumble: %1</translation>
-    </message>
-    <message>
         <source>You were denied %1 privileges in %2.</source>
         <translation>Du ble nektet %1 privilegium i %2.</translation>
     </message>
@@ -5554,7 +5986,7 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
     </message>
     <message>
         <source>Channel count limit reached. Need to delete channels before creating new ones.</source>
-        <translation type="unfinished"></translation>
+        <translation>Grensen for antall tillatte kanaler er nådd. Slett noen kanaler før du oppretter nye.</translation>
     </message>
     <message>
         <source>Permission denied.</source>
@@ -5683,10 +6115,6 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
         <translation>Tjener</translation>
     </message>
     <message>
-        <source>Failed to load Opus, it will not be available for audio encoding/decoding.</source>
-        <translation type="unfinished">Klarte ikke å laste inn Opus til bruk for lydkoding og dekoding.</translation>
-    </message>
-    <message>
         <source>The server requests minimum client version %1</source>
         <translation>Tjeneren forespør minimum klientversjon %1</translation>
     </message>
@@ -5733,10 +6161,6 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
     <message>
         <source>%1 unmuted by %2.</source>
         <translation>%2 opphevet %1 sin stumhet.</translation>
-    </message>
-    <message>
-        <source>Unable to find matching CELT codecs with other clients. You will not be able to talk to all users.</source>
-        <translation>Kunne ikke finne samsvarende CELT-kodek delt av andre klienter. Du vil ikke kunne snakke med alle brukerne.</translation>
     </message>
     <message>
         <source>You were muted and deafened by %1.</source>
@@ -5840,16 +6264,8 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
         <translation>Dette vil veksle hvorvidt det minimale vinduet skal ha en ramme for flytting og endring av størrelse.</translation>
     </message>
     <message>
-        <source>&amp;Unlink All</source>
-        <translation>&amp;Fjern alle sammenlenkinger</translation>
-    </message>
-    <message>
         <source>Reset the comment of the selected user.</source>
         <translation>Tilbakestill kommentar for valgt bruker</translation>
-    </message>
-    <message>
-        <source>&amp;Join Channel</source>
-        <translation>&amp;Ta del i kanal</translation>
     </message>
     <message>
         <source>View comment in editor</source>
@@ -5880,10 +6296,6 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
         <translation>Fjern ditt avatarbilde på denne tjeneren</translation>
     </message>
     <message>
-        <source>&amp;Remove Avatar</source>
-        <translation>&amp;Fjern avatar</translation>
-    </message>
-    <message>
         <source>Remove currently defined avatar image.</source>
         <translation>Fjern gjeldende avatarbilde</translation>
     </message>
@@ -5896,24 +6308,12 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
         <translation>Endre din egen kommentar</translation>
     </message>
     <message>
-        <source>Recording</source>
-        <translation>Opptak</translation>
-    </message>
-    <message>
-        <source>Priority Speaker</source>
-        <translation>Prioritert taler</translation>
-    </message>
-    <message>
         <source>&amp;Copy URL</source>
         <translation>&amp;Kopier URL</translation>
     </message>
     <message>
         <source>Copies a link to this channel to the clipboard.</source>
         <translation>Kopierer en lenke til denne kanalen til utklippstavlen.</translation>
-    </message>
-    <message>
-        <source>Ignore Messages</source>
-        <translation>Ignorer meldinger</translation>
     </message>
     <message>
         <source>Locally ignore user&apos;s text chat messages.</source>
@@ -5932,54 +6332,21 @@ Ellers avbryt alt og sjekk ditt sertifikat og brukernavn.</translation>
         <translation>Dette lar deg endre den tjenerbaserte bannlysningslisten over IP-adresser.</translation>
     </message>
     <message>
-        <source>&amp;Filter on/off</source>
-        <translation>&amp;Filter på/av</translation>
-    </message>
-    <message>
         <source>Enable or disable the filtering of select channels.
 By default all empty channels will be filtered.
 You can mark additional channels for filtering from
 the channel&apos;s context menu.</source>
         <translation>Skru på eller av filtrering av valgte kanaler.
 Som forvalg vil alle tomme kanaler bli filtrert.
-Du kan markere ytterligere kanaler fra filtrering fra
-kanalens kontekstmeny.</translation>
+Du kan markere ytterligere kanaler fra filtrering fra kanalens bindeleddsmeny.</translation>
     </message>
     <message>
         <source>Ctrl+F</source>
         <translation>Ctrl+F</translation>
     </message>
     <message>
-        <source>&amp;Hide Channel when Filtering</source>
-        <translation>&amp;Skrul kanal ved filtrering</translation>
-    </message>
-    <message>
-        <source>Reset the avatar of the selected user.</source>
-        <translation>Tilbakestill avataren tilhørende valgt bruker.</translation>
-    </message>
-    <message>
-        <source>Locally adjust the user&apos;s speech volume.</source>
-        <translation>Lokal justering av brukerens talelydstyrkenivå</translation>
-    </message>
-    <message>
-        <source>Opens a dialog with a volume slider. Use this on other users in the same room.</source>
-        <translation>Åpner en dialog med en lydstyrkeglidebryter. Bruk denne på andre brukere i samme rom.</translation>
-    </message>
-    <message>
         <source>&amp;Developer</source>
         <translation>&amp;Utvikler</translation>
-    </message>
-    <message>
-        <source>&amp;Hide Mumble</source>
-        <translation>&amp;Skjul Mumble</translation>
-    </message>
-    <message>
-        <source>Hides the main Mumble window.</source>
-        <translation>Gjemmer hovedvinduet til Mumble.</translation>
-    </message>
-    <message>
-        <source>Hides the main Mumble window. Restore by clicking on the tray icon or starting Mumble again.</source>
-        <translation>Skjuler hovedvinduet til Mumble. Gjenopprett det ved å klikke på systemkurven eller å starte Mumble igjen.</translation>
     </message>
     <message>
         <source>Show the Developer Console</source>
@@ -5994,28 +6361,12 @@ kanalens kontekstmeny.</translation>
         <translation>&amp;Koble til…</translation>
     </message>
     <message>
-        <source>&amp;Ban list...</source>
-        <translation>&amp;Bannlysningsliste…</translation>
-    </message>
-    <message>
-        <source>&amp;Information...</source>
-        <translation>&amp;Informasjon…</translation>
-    </message>
-    <message>
         <source>&amp;Kick...</source>
         <translation>&amp;Kast ut…</translation>
     </message>
     <message>
         <source>&amp;Ban...</source>
         <translation>&amp;Bannlys…</translation>
-    </message>
-    <message>
-        <source>Local Volume Adjustment...</source>
-        <translation>Lokal lydstyrkejustering…</translation>
-    </message>
-    <message>
-        <source>Send &amp;Message...</source>
-        <translation>Send &amp;melding…</translation>
     </message>
     <message>
         <source>&amp;Add...</source>
@@ -6030,100 +6381,36 @@ kanalens kontekstmeny.</translation>
         <translation>&amp;Rediger…</translation>
     </message>
     <message>
-        <source>Audio S&amp;tatistics...</source>
-        <translation>&amp;Lydstatistikk…</translation>
-    </message>
-    <message>
-        <source>&amp;Settings...</source>
-        <translation>&amp;Innstillinger…</translation>
-    </message>
-    <message>
         <source>&amp;Audio Wizard...</source>
         <translation>&amp;Lydveiviser…</translation>
-    </message>
-    <message>
-        <source>Developer &amp;Console...</source>
-        <translation>&amp;Utviklerkonsoll</translation>
-    </message>
-    <message>
-        <source>&amp;About...</source>
-        <translation>&amp;Om…</translation>
     </message>
     <message>
         <source>About &amp;Speex...</source>
         <translation>Om &amp;Speex…</translation>
     </message>
     <message>
-        <source>About &amp;Qt...</source>
-        <translation>Om &amp;Qt…</translation>
-    </message>
-    <message>
         <source>&amp;Certificate Wizard...</source>
         <translation>&amp;Sertifikatsveiviser…</translation>
-    </message>
-    <message>
-        <source>&amp;Register...</source>
-        <translation>&amp;Registrer…</translation>
-    </message>
-    <message>
-        <source>Registered &amp;Users...</source>
-        <translation>Registrerte &amp;brukere…</translation>
     </message>
     <message>
         <source>Change &amp;Avatar...</source>
         <translation>Endre &amp;avatar…</translation>
     </message>
     <message>
-        <source>&amp;Access Tokens...</source>
-        <translation>&amp;Tilgangssymboler…</translation>
-    </message>
-    <message>
-        <source>Reset &amp;Comment...</source>
-        <translation>Tilbakestill &amp;kommentar…</translation>
-    </message>
-    <message>
-        <source>Reset &amp;Avatar...</source>
-        <translation>Tilbakestill &amp;avatar…</translation>
-    </message>
-    <message>
-        <source>View Comment...</source>
-        <translation>Vis kommentar…</translation>
-    </message>
-    <message>
         <source>&amp;Change Comment...</source>
         <translation>&amp;Endre kommentar…</translation>
     </message>
     <message>
-        <source>R&amp;egister...</source>
-        <translation>&amp;Registrer…</translation>
-    </message>
-    <message>
-        <source>Show</source>
-        <translation>Vis</translation>
-    </message>
-    <message>
-        <source>Shows the main Mumble window.</source>
-        <translation>Viser hovedvinduet i Mumble.</translation>
-    </message>
-    <message>
         <source>Server sync protocol violation. No user profile received.</source>
-        <translation type="unfinished"></translation>
+        <translation>Overtredelse av protokoll for tjenersynkronisering. Mottok ingen brukerprofil.</translation>
     </message>
     <message>
         <source>Protocol violation. Server sent remove for occupied channel.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Listen to channel</source>
-        <translation>Lytt til kanal</translation>
+        <translation type="unfinished">Protokollfeil. Tjeneren forespurte fjerning av kanal som ikke er tom.</translation>
     </message>
     <message>
         <source>Listen to this channel without joining it</source>
         <translation>Lytt til denne kanalen uten å ta del i den</translation>
-    </message>
-    <message>
-        <source>Locally adjust the volume for this virtual ear.</source>
-        <translation type="unfinished">Juster lydstyrken for dette virtuelle øret lokalt.</translation>
     </message>
     <message>
         <source>&amp;Listener</source>
@@ -6135,7 +6422,7 @@ kanalens kontekstmeny.</translation>
     </message>
     <message>
         <source>Unable to %1 into %2 - Adding the respective access (password) token might grant you access.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Kunne ikke %1 inn i %2. Å legge til respektive tilgangssymboler (passord) kan kanskje innvilge deg tilgang.</translation>
     </message>
     <message>
         <source>No more listeners allowed in this channel.</source>
@@ -6162,16 +6449,8 @@ kanalens kontekstmeny.</translation>
         <translation>%1 sluttet å lytte til din kanal</translation>
     </message>
     <message>
-        <source>Talking UI</source>
-        <translation>Snakkingsgrensesnitt</translation>
-    </message>
-    <message>
         <source>Toggles the visibility of the TalkingUI.</source>
         <translation>Skrur av eller på snakkingsgrensesnittet.</translation>
-    </message>
-    <message>
-        <source>Join user&apos;s channel</source>
-        <translation>Ta del i brukerens kanal</translation>
     </message>
     <message>
         <source>Joins the channel of this user.</source>
@@ -6186,20 +6465,12 @@ kanalens kontekstmeny.</translation>
         <translation>Aktivitetslogg</translation>
     </message>
     <message>
-        <source>Chat message</source>
-        <translation>Sludremelding</translation>
-    </message>
-    <message>
-        <source>Disable Text-To-Speech</source>
-        <translation>Skru av tekst-til-tale</translation>
-    </message>
-    <message>
         <source>Locally disable Text-To-Speech for this user&apos;s text chat messages.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Skru av talesyntese av denne brukerens tekstsludringsmeldinger.</translation>
     </message>
     <message>
         <source>Silently disables Text-To-Speech for all text messages from the user.</source>
-        <translation type="unfinished"></translation>
+        <translation>Skrur av talesyntese for denne brukerens tekstmeldinger uten varsel.</translation>
     </message>
     <message>
         <source>Tree</source>
@@ -6231,10 +6502,6 @@ kanalens kontekstmeny.</translation>
         <source>Hide/show main window</source>
         <comment>Global Shortcut</comment>
         <translation>Skjul/vis hovedvindu</translation>
-    </message>
-    <message>
-        <source>&amp;Set Nickname...</source>
-        <translation type="unfinished">&amp;Sett kallenavn …</translation>
     </message>
     <message>
         <source>Set a local nickname</source>
@@ -6269,6 +6536,496 @@ Valid actions are:
                 Stop talking
 
 </source>
+        <translation>Bruk: mumble rpc &lt;handling&gt; [innstillinger]
+
+Det er mulig å fjernkontrollere en kjørende instans av Mumble ved å bruke
+«mumble rpc»-kommandoen.
+
+Mulige handlinger:
+  mute
+                Forstum deg selv
+  unmute
+                Opphev forstummelse av deg selv
+  togglemute
+                Veksle status for egen forstummelse
+  deaf
+                Gjør deg selv døv
+  undeaf
+                Opphev egen døvhet
+  toggledeaf
+                Veksle status for egen døvhet
+  starttalking
+                Begynn å snakke
+  stoptalking
+                Slutt å snakke
+
+</translation>
+    </message>
+    <message>
+        <source>Toggle TalkingUI</source>
+        <comment>Global shortcut</comment>
+        <translation>Veksle snakkings-grensesnitt</translation>
+    </message>
+    <message>
+        <source>Toggles the visibility of the TalkingUI.</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished">Skrur av eller på snakkingsgrensesnittet.</translation>
+    </message>
+    <message>
+        <source>Toggle the channel filter (Alt+F)</source>
+        <translation>Veksle kanalfiltrering (Alt+F)</translation>
+    </message>
+    <message>
+        <source>Alt+F</source>
+        <translation>Alt+F</translation>
+    </message>
+    <message>
+        <source>Search for a user or channel (Ctrl+F)</source>
+        <translation>Søk etter en bruker eller kanal (Ctrl+F)</translation>
+    </message>
+    <message>
+        <source>Toggle search dialog</source>
+        <comment>Global Shortcut</comment>
+        <translation>Veksle søkedialog</translation>
+    </message>
+    <message>
+        <source>This will open or close the search dialog depending on whether it is currently opened already</source>
+        <translation type="unfinished">Åpner eller lukker søkedialogen avhengig av om den nylig har blitt åpnet</translation>
+    </message>
+    <message>
+        <source>Unmute yourself</source>
+        <translation>Opphev egen forstumming</translation>
+    </message>
+    <message>
+        <source>Undeafen yourself</source>
+        <translation>Opphev egen døvhet</translation>
+    </message>
+    <message>
+        <source>Show the Positional Audio Viewer</source>
+        <translation>Vis den posisjonelle lydvisualisereren</translation>
+    </message>
+    <message>
+        <source>Shows the Positional Audio Viewer. In it the current information used for positional audio can be inspected. Context and identity are also shown.</source>
+        <translation>Viser den posisjonelle lydviseren. I den brukes nåværende info for posisjonell lyd, som kan inspiseres. Bindeleddsinfo og identitet vises også.</translation>
+    </message>
+    <message>
+        <source>Mumble - Minimal View</source>
+        <translation>Mumble — minimal visning</translation>
+    </message>
+    <message>
+        <source>Invalid settings file encountered.</source>
+        <translation>Fant ugyldig innstillingsfil.</translation>
+    </message>
+    <message>
+        <source>Directory %1 does not exist.
+</source>
+        <translation type="unfinished">Mappen «%1» finnes ikke.
+</translation>
+    </message>
+    <message>
+        <source>You are currently in minimal view but not connected to a server. Use the context menu to connect to a server or disable minimal view.</source>
+        <translation type="unfinished">Du er nå i minimal visning, men ikke tilkoblet noen tjener. Bruk bindeleddsmenyen for å koble til en tjener, eller skru av den minimale visningen.</translation>
+    </message>
+    <message>
+        <source>Local Volume Adjustment:</source>
+        <translation>Lokal lydstyrkejustering:</translation>
+    </message>
+    <message>
+        <source>This version of Mumble can&apos;t handle URLs for Mumble version %1</source>
+        <translation type="unfinished">Denne versjonen av Mumble kan ikke håndtere URL-er for Mumble versjon %1</translation>
+    </message>
+    <message>
+        <source>Listen to Channel</source>
+        <comment>Global Shortcut</comment>
+        <translation>Lytt til kanalen</translation>
+    </message>
+    <message>
+        <source>Toggles listening to the given channel.</source>
+        <comment>Global Shortcut</comment>
+        <translation>Veksler lytting til gitt kanal.</translation>
+    </message>
+    <message>
+        <source>Server instructed us to use an audio codec different from Opus, which is no longer supported. Disconnecting...</source>
+        <translation>Tjeneren instruerte bruk av et annet lydkodeks enn Opus, noe som ikke lenger støttes. Kobler fra …</translation>
+    </message>
+    <message>
+        <source>Are you sure you want to close Mumble? Perhaps you prefer to minimize it instead?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remember this setting</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Channel &amp;Filter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Connect to a server</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will open the server connection dialog</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disconnect from server</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished">Koble fra tjeneren</translation>
+    </message>
+    <message>
+        <source>This will disconnect you from the server</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open server information</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will show information about the server connection</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open server tokens</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will open the server tokens dialog</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open server user list</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will open the server user list dialog</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open server ban list</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will open the server ban list dialog</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle priority speaker</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will enable/disable the priority speaker</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open recording dialog</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will open the recording dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Change comment</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will open the change comment dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Change avatar</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will open your file explorer to change your avatar image on this server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove avatar</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will reset your avatar on the server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Register on the server</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will register you on the server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio statistics</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will open the audio statistics dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open settings</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will open the settings dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start audio wizard</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will open the audio wizard dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start certificate wizard</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will open the certificate wizard dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle text to speech</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will enable/disable the text to speech</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open about dialog</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will open the about dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open about Qt dialog</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will open the about Qt dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Check for update</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will check if mumble is up to date</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>That sound was the mute cue. It activates when you speak while muted. Would you like to keep it enabled?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Yes</source>
+        <translation type="unfinished">Ja</translation>
+    </message>
+    <message>
+        <source>No</source>
+        <translation type="unfinished">Nei</translation>
+    </message>
+    <message>
+        <source>Enter chat message</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Ban List</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ig&amp;nore Messages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Send Message...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set Ni&amp;ckname...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>L&amp;ink</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>U&amp;nlink All</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>M&amp;ute Self</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>D&amp;eafen Self</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio &amp;Statistics</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Developer &amp;Console</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Positional &amp;Audio Viewer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;About</source>
+        <translation type="unfinished">&amp;Om</translation>
+    </message>
+    <message>
+        <source>About &amp;Qt</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re&amp;gister...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Registered &amp;Users</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Access Tokens</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remo&amp;ve Avatar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset Commen&amp;t...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remo&amp;ve Avatar...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove the avatar of the selected user.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Join</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Hide When Filtering</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Pin When Filtering</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Vie&amp;w Comment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Priority Speaker</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Record...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Listen To Channel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Talking &amp;UI</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Join User&apos;s Channel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>M&amp;ove To Own Channel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Moves this user to your current channel.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disable Te&amp;xt-To-Speech</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Search...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Filtered channels and users</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle positional audio</source>
+        <comment>Global Shortcut</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This will toggle positional audio on/off</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>SSL error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mumble is unable to establish a secure connection to the server. (&quot;%1&quot;)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This could be caused by one of the following scenarios:&lt;ul&gt;&lt;li&gt;Your client and the server use different encryption standards. This could be because you are using a very old client or the server you are connecting to is very old. In the first case, you should update your client and in the second case you should contact the server administrator so that they can update their server.&lt;/li&gt;&lt;li&gt;Either your client or the server is using an old operating system that doesn&apos;t provide up-to-date encryption methods. In this case you should consider updating your OS or contacting the server admin so that they can update theirs.&lt;/li&gt;&lt;li&gt;The server you are connecting to isn&apos;t actually a Mumble server. Please ensure that the used server address really belongs to a Mumble server and not e.g. to a game server.&lt;/li&gt;&lt;li&gt;The port you are connecting to does not belong to a Mumble server but instead is bound to a completely unrelated process on the server-side. Please double-check you have used the correct port.&lt;/li&gt;&lt;/ul&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6284,6 +7041,7 @@ correct client version. It currently defaults to 1.2.0.
 
 Valid options are:
   -h, --help    Show this help text and exit.
+  --version     Print version information and exit
   -m, --multiple
                 Allow multiple instances of the client to be started.
   -c, --config
@@ -6316,9 +7074,9 @@ Valid options are:
                 Print on stdout the echo cancellation queue state
                 (useful for debugging purposes)
   --translation-dir &lt;dir&gt;
-                Specifies an additional translation fir &lt;dir&gt; in which
-                Mumble will search for translation files that overwrite
-                the bundled ones
+                Specifies an additional translation directory &lt;dir&gt;
+                in which Mumble will search for translation files that
+                overwrite the bundled ones
                 Directories added this way have higher priority than
                 the default locations used otherwise
   --print-translation-dirs
@@ -6331,72 +7089,9 @@ Valid options are:
                 If the format is invalid, Mumble will error.
                 Otherwise the locale will be permanently saved to
                 Mumble&apos;s settings.
+  --hidden
+                Start Mumble hidden in the system tray.
 </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Directory %1 does not exist.
-</source>
-        <translation type="unfinished">Mappen %1 finnes ikke.
-</translation>
-    </message>
-    <message>
-        <source>Toggle TalkingUI</source>
-        <comment>Global shortcut</comment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Toggles the visibility of the TalkingUI.</source>
-        <comment>Global Shortcut</comment>
-        <translation type="unfinished">Skrur av eller på snakkingsgrensesnittet.</translation>
-    </message>
-    <message>
-        <source>Toggle the channel filter (Alt+F)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Alt+F</source>
-        <translation>Alt+F</translation>
-    </message>
-    <message>
-        <source>Search</source>
-        <translation type="unfinished">Søk</translation>
-    </message>
-    <message>
-        <source>Search for a user or channel (Ctrl+F)</source>
-        <translation>Søk etter en bruker eller kanal (Ctrl+F)</translation>
-    </message>
-    <message>
-        <source>Toggle search dialog</source>
-        <comment>Global Shortcut</comment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>This will open or close the search dialog depending on whether it is currently opened already</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Unmute yourself</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Undeafen yourself</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Positional &amp;Audio Viewer...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Show the Positional Audio Viewer</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Shows the Positional Audio Viewer. In it the current information used for positional audio can be inspected. Context and identity are also shown.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Mumble - Minimal View</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -6480,10 +7175,66 @@ Valid options are:
     </message>
     <message>
         <source>How long silent user&apos;s positions should stay marked after they have stopped talking (in seconds).</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Hvor mange sekunder en stille brukers posisjon skal forbli markert etter at vedkommende er ferdigsnakket.</translation>
     </message>
     <message>
         <source>Silent user displaytime:</source>
+        <translation type="unfinished">Forstummet tid for bruker:</translation>
+    </message>
+    <message>
+        <source>Graphical positional audio simulation view</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This visually represents the positional audio configuration that is currently being used</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Listener Z coordinate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Listener X coordinate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Listener Y coordinate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Silent user display time (in seconds)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Listener azimuth (in degrees)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Listener elevation (in degrees)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Context string</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use the &quot;set&quot; button to apply the context string</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Apply the context string</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Apply the identity string</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Identity string</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use the &quot;set&quot; button to apply the identity string</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -6500,11 +7251,11 @@ Valid options are:
     <message>
         <source>Use TCP compatibility mode</source>
         <oldsource>Use TCP compatability mode</oldsource>
-        <translation>Bruk TCP kompabilitetsmodus</translation>
+        <translation>Bruk TCP-kompatibilitetsmodus</translation>
     </message>
     <message>
         <source>&lt;b&gt;Enable TCP compatibility mode&lt;/b&gt;.&lt;br /&gt;This will make Mumble use only TCP when communicating with the server. This will increase overhead and cause lost packets to produce noticeable pauses in communication, so this should only be used if you are unable to use the default (which uses UDP for voice and TCP for control).</source>
-        <translation>&lt;b&gt;Skru på TCP kompabilitetsmodus&lt;/b&gt;.&lt;br /&gt;Dette får Mumble til å kommunisere bare ved bruk av TCP mot tjeneren. Dette øker overskuddet og forårsaker pakketap som igjen gir merkbare stopp i kommunikasjonen, så de bør bare brukes hvis du ikke kan bruke forvalget (som bruker UDP for tale og TCP for kontrollsignal).</translation>
+        <translation>&lt;b&gt;Skru på TCP-kompatibilitetsmodus&lt;/b&gt;.&lt;br /&gt;Dette får Mumble til å kommunisere bare ved bruk av TCP mot tjeneren. Dette øker overskuddet og forårsaker pakketap som igjen gir merkbare stopp i kommunikasjonen, så de bør bare brukes hvis du ikke kan bruke forvalget (som bruker UDP for tale og TCP for kontrollsignal).</translation>
     </message>
     <message>
         <source>Reconnect when disconnected</source>
@@ -6576,11 +7327,11 @@ Valid options are:
     </message>
     <message>
         <source>Suppress certificate and password storage</source>
-        <translation>Undertrykk sertifikat- og passords-lagring</translation>
+        <translation>Undertrykk sertifikat- og passordslagring</translation>
     </message>
     <message>
         <source>&lt;b&gt;Type of proxy to connect through.&lt;/b&gt;&lt;br /&gt;This makes Mumble connect through a proxy for all outgoing connections. Note: Proxy tunneling forces Mumble into TCP compatibility mode, causing all voice data to be sent via the control channel.</source>
-        <translation>&lt;b&gt;Typen mellomtjener Mumble kobler til gjennom.&lt;/b&gt;&lt;br /&gt; for alle utgående tilkoblinger. Merk: Mellomtjenertunnelering tvinger Mumble til å bruke TCP kompabilitetsmodus, slik at all taledata blir sendt gjennom kontrollkanalen.</translation>
+        <translation>&lt;b&gt;Typen mellomtjener Mumble kobler til gjennom.&lt;/b&gt;&lt;br /&gt; for alle utgående tilkoblinger. Merk: Mellomtjenertunnelering tvinger Mumble til å bruke TCP-kompatibilitetsmodus, slik at all taledata blir sendt gjennom kontrollkanalen.</translation>
     </message>
     <message>
         <source>&lt;b&gt;Hostname of the proxy.&lt;/b&gt;&lt;br /&gt;This field specifies the hostname of the proxy you wish to tunnel network traffic through.</source>
@@ -6686,7 +7437,7 @@ Forhindrer klienten fra å sende potensielt identifiserende informasjon om opera
     </message>
     <message>
         <source>When toggled this hides the public server list from the connect dialog</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Når aktivert skjuler dette den offentlige tjenerlisten fra tilkoblingsdialogen</translation>
     </message>
     <message>
         <source>Hide public server list</source>
@@ -6694,10 +7445,30 @@ Forhindrer klienten fra å sende potensielt identifiserende informasjon om opera
     </message>
     <message>
         <source>Check for plugin updates on startup</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Se etter nye versjoner av programtillegg ved oppstart av programmet</translation>
     </message>
     <message>
         <source>Automatically download and install plugin updates</source>
+        <translation type="unfinished">Last ned og installer nye versjoner av programtillegg automatisk</translation>
+    </message>
+    <message>
+        <source>Proxy type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Proxy hostname</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Proxy port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Proxy username</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Proxy password</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -6795,17 +7566,17 @@ Forhindrer klienten fra å sende potensielt identifiserende informasjon om opera
     <name>OverlayConfig</name>
     <message>
         <source>To move the users, drag the little red dot.</source>
-        <translation>For å flytte brukerne, dra den lille røde prikken.</translation>
+        <translation>Flytt brukere ved å dra den lille røde prikken.</translation>
     </message>
     <message>
         <source>To resize the users, mouse wheel over a user.</source>
         <oldsource>To resize the users, mousewheel over a user.</oldsource>
-        <translation>For å endre størrelsen på brukerne, drei musehjulet over en bruker.</translation>
+        <translation>Endre størrelsen på brukere ved å dreie musehjulet over en bruker.</translation>
     </message>
     <message>
         <source>For more options, right click a user.</source>
         <oldsource>For more options, rightclick a user.</oldsource>
-        <translation>For flere valgmuligheter, høyreklikk på en bruker.</translation>
+        <translation>Høyreklikk en bruker for flere valgmuligheter.</translation>
     </message>
     <message>
         <source>Launcher Filter</source>
@@ -6854,7 +7625,7 @@ Forhindrer klienten fra å sende potensielt identifiserende informasjon om opera
     <message>
         <source>This sets whether the overlay is enabled or not. This setting is only checked when applications are started, so make sure Mumble is running and this option is on before you start the application.&lt;br /&gt;Please note that if you start Mumble after starting the application, or if you disable the overlay while the application is running, there is no safe way to restart the overlay without also restarting the application.</source>
         <oldsource>This sets whether the overlay is enabled or not. This setting is only checked when applications are started, so make sure Mumble is running and this option is on before you start the application.&lt;br /&gt;Please note that if you start the application after starting Mumble, or if you disable the overlay while running, there is no safe way to restart the overlay without also restarting the application.</oldsource>
-        <translation>Endringer i forgrunnslag trer kun i effekt i det et program startes. Start programmer på ny etter å ha gjort endringer for å se dem.</translation>
+        <translation type="unfinished">Endringer i forgrunnslag trer kun i effekt i det et program startes.&lt;br /&gt;Start programmer på ny etter å ha gjort endringer for å se dem.</translation>
     </message>
     <message>
         <source>Layout</source>
@@ -7259,11 +8030,11 @@ Trykk på knappen nedefor for å oppgradere.</translation>
     </message>
     <message>
         <source>PA</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">PA</translation>
     </message>
     <message>
         <source>KeyEvents</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Tastaturhendelser</translation>
     </message>
     <message>
         <source>Install a plugin from a local file</source>
@@ -7275,38 +8046,74 @@ Trykk på knappen nedefor for å oppgradere.</translation>
     </message>
     <message>
         <source>Unload the currently selected plugin. This will remove it from the plugin list for the current session.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Last ut valgt programtillegg. Dette fjerner det fra programtilleggslisten for nåværende økt.</translation>
     </message>
     <message>
         <source>Unload</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Last ut</translation>
     </message>
     <message>
         <source>The plugin was installed successfully</source>
-        <translation type="unfinished"></translation>
+        <translation>Programtillegget ble installert</translation>
     </message>
     <message>
         <source>Unable to deactivate all requested features for plugin &quot;%1&quot;</source>
-        <translation type="unfinished"></translation>
+        <translation>Kunne ikke deaktivere alle forespurte funksjoner for programtillegget «%1»</translation>
     </message>
     <message>
         <source>Unable to load plugin &quot;%1&quot;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Kunne ikke laste inn «%1»-programtillegget</translation>
     </message>
     <message>
         <source>Whether the positional audio feature of this plugin should be enabled</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Hvorvidt den posisjonelle lydfunksjonen i programtillegget skal brukes</translation>
     </message>
     <message>
         <source>This plugin does not provide support for positional audio</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Dette programtillegget har ikke støtte for posisjonell lyd</translation>
     </message>
     <message>
         <source>Whether this plugin has the permission to be listening to all keyboard events that occur while Mumble has focus</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Hvorvidt dette programtillegget tillates å lytte til alle tastetrykk som oppstår når Mumble er i fokus</translation>
     </message>
     <message>
         <source>Whether this plugin should be enabled</source>
+        <translation type="unfinished">Hvorvidt programtillegget skal skrus på</translation>
+    </message>
+    <message>
+        <source>List of plugins</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use up and down keys to navigate through plugins. Use left and right keys to navigate between single plugin permissions.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Plugin name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Plugin enabled checkbox</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Plugin positional audio permission checkbox</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Plugin keyboard event listen permission checkbox</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>checked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>unchecked</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not available</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -7314,101 +8121,101 @@ Trykk på knappen nedefor for å oppgradere.</translation>
     <name>PluginInstaller</name>
     <message>
         <source>PluginInstaller</source>
-        <translation type="unfinished"></translation>
+        <translation>Programtillegg-installatør</translation>
     </message>
     <message>
         <source>You are about to install the plugin listed below. Do you wish to proceed?</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Installer programtillegget nedenfor?</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Name:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Navn:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Version:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Versjon:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Author(s):&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Utvikler(e):&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Description:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Beskrivelse:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&amp;No</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Nei</translation>
     </message>
     <message>
         <source>&amp;Yes</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Ja</translation>
     </message>
     <message>
         <source>The file &quot;%1&quot; is not a valid plugin file!</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">«%1» er ikke en gyldig programtilleggsfil.</translation>
     </message>
     <message>
         <source>Unable to load plugin &quot;%1&quot; - check the plugin interface!</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Kunne ikke laste inn «%1»-programtillegget. Sjekk programtilleggsgrensesnittet.</translation>
     </message>
     <message>
         <source>Unable to delete old plugin at &quot;%1&quot;</source>
-        <translation type="unfinished"></translation>
+        <translation>Kunne ikke slette gammelt programtillegg i «%1»</translation>
     </message>
     <message>
         <source>Unable to copy plugin library from &quot;%1&quot; to &quot;%2&quot;</source>
-        <translation type="unfinished"></translation>
+        <translation>Kunne ikke flytte programtilleggsbibliotek fra «%1» til «%2»</translation>
     </message>
     <message>
         <source>Unable to move plugin library to &quot;%1&quot;</source>
-        <translation type="unfinished"></translation>
+        <translation>Kunne ikke flytte programtilleggsbibliotek til «%1»</translation>
     </message>
     <message>
         <source>Unable to locate the plugin manifest (manifest.xml)</source>
-        <translation type="unfinished"></translation>
+        <translation>Fant ikke programtilleggs-manifest (manifest.xml)</translation>
     </message>
     <message>
         <source>Error while processing manifest: %1</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Kunne ikke behandle manifest: %1</translation>
     </message>
     <message>
         <source>Unable to find plugin for the current OS (&quot;%1&quot;) and architecture (&quot;%2&quot;)</source>
-        <translation type="unfinished"></translation>
+        <translation>Fant ikke programtillegg for nåværende OS («%1») og arkitekturen («%2»)</translation>
     </message>
     <message>
         <source>Unable to locate plugin library specified in manifest (&quot;%1&quot;) in the bundle</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Fant ikke programtilleggsbiblioteket spesifisert i manifestet («%1») i programknippet</translation>
     </message>
     <message>
         <source>Overwrite plugin?</source>
-        <translation type="unfinished"></translation>
+        <translation>Overskriv programtillegg?</translation>
     </message>
     <message>
         <source>The new plugin &quot;%1&quot; (%2) is about to overwrite the already installed plugin &quot;%3&quot; (%4). Do you wish to proceed?</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Det nye «%1»-programtillegget (%2) er i ferd med å overskrive det allerede installerte «%3» (%4). Vil du fortsette?</translation>
     </message>
 </context>
 <context>
     <name>PluginManager</name>
     <message>
         <source>%1 lost link</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">%1 mistet sammenkoblingen</translation>
     </message>
     <message>
         <source>%1 linked</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 sammenlenket</translation>
     </message>
     <message>
         <source>Plugin &quot;%1&quot; encountered a permanent error in positional data gathering</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Non-plugin found in plugin directory: &quot;%1&quot;</source>
-        <translation type="unfinished"></translation>
+        <translation>«%1»-programtillegget møtte på en permanent feil i innhenting av posisjonsdata</translation>
     </message>
     <message>
         <source>Failed at loading manual plugin: %1</source>
+        <translation>Klarte ikke å laste inn manual-programtillegg: %1</translation>
+    </message>
+    <message>
+        <source>Non-plugin found in plugin directory: &quot;%1&quot; (%2)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -7416,43 +8223,43 @@ Trykk på knappen nedefor for å oppgradere.</translation>
     <name>PluginUpdater</name>
     <message>
         <source>PluginUpdater</source>
-        <translation type="unfinished"></translation>
+        <translation>Programtilleggs-oppdaterer</translation>
     </message>
     <message>
         <source>The following plugins can be updated.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Følgende programtillegg kan oppgraderes.</translation>
     </message>
     <message>
         <source>Select all</source>
-        <translation type="unfinished"></translation>
+        <translation>Velg alle</translation>
     </message>
     <message>
         <source>Plugin</source>
-        <translation type="unfinished"></translation>
+        <translation>Programtillegg</translation>
     </message>
     <message>
         <source>Download-URL</source>
-        <translation type="unfinished"></translation>
+        <translation>Nedlastingsnettadresse</translation>
     </message>
     <message>
         <source>Do you want to update the selected plugins?</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Oppdater valgte programtillegg?</translation>
     </message>
     <message>
         <source>Unable to download plugin update for &quot;%1&quot; from &quot;%2&quot; (%3)</source>
-        <translation type="unfinished"></translation>
+        <translation>Kunne ikke laste ned programtilleggsoppgradering for «%1» fra «%2» (%3)</translation>
     </message>
     <message>
         <source>Update for plugin &quot;%1&quot; failed due to too many redirects</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Kunne ikke oppgradere «%1»-programtillegget som følge av for mange videresendinger</translation>
     </message>
     <message>
         <source>Unable to download plugin update for &quot;%1&quot; from &quot;%2&quot; (HTTP status code %3)</source>
-        <translation type="unfinished"></translation>
+        <translation>Kunne ikke laste ned oppgradering av «%1»-programtillegget fra «%2» (HTTP-statuskode %3)</translation>
     </message>
     <message>
         <source>Successfully updated plugin &quot;%1&quot;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Oppdaterte programtillegget «%1»</translation>
     </message>
 </context>
 <context>
@@ -7466,11 +8273,11 @@ Trykk på knappen nedefor for å oppgradere.</translation>
     <name>PositionalAudioViewer</name>
     <message>
         <source>Positional Audio Viewer</source>
-        <translation type="unfinished"></translation>
+        <translation>Posisjonell lyd-visualiserer</translation>
     </message>
     <message>
         <source>Camera direction</source>
-        <translation type="unfinished"></translation>
+        <translation>Kameraretning</translation>
     </message>
     <message>
         <source>X</source>
@@ -7546,21 +8353,12 @@ Trykk på knappen nedefor for å oppgradere.</translation>
 <context>
     <name>QObject</name>
     <message>
-        <source>CodecInit: Failed to load Opus, it will not be available for encoding/decoding audio.</source>
-        <translation type="unfinished">CodecInit: Klarte ikke å laste inn Opus for koding og dekoding av lyd.</translation>
-    </message>
-    <message>
         <source>Talking UI</source>
         <translation>Snakkingsgrensesnitt</translation>
     </message>
     <message>
         <source>Echo cancellation is not supported for the interface combination &quot;%1&quot; (in) and &quot;%2&quot; (out).</source>
         <translation>Ekko-kansellering støttes ikke for grensesnittskombinasjonen «%1» (i) og «%2» (ut).</translation>
-    </message>
-    <message>
-        <source>&lt;p&gt;If you&apos;re using Linux this is most likely because you are using a version from your distribution&apos;s package repository that have their own update cycles.&lt;/p&gt;&lt;p&gt;If you want to always have the most recent Mumble version, you should consider using a different method of installation.
-See &lt;a href=&quot;https://wiki.mumble.info/wiki/Installing_Mumble&quot;&gt;the Mumble wiki&lt;/a&gt; for what alternatives there are.&lt;/p&gt;</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Local Mute</source>
@@ -7572,11 +8370,11 @@ See &lt;a href=&quot;https://wiki.mumble.info/wiki/Installing_Mumble&quot;&gt;th
     </message>
     <message>
         <source>Disable Text-To-Speech</source>
-        <translation>Skru av tekst-til-tale</translation>
+        <translation>Skru av talesyntese</translation>
     </message>
     <message>
         <source>&quot;%1&quot; could not be saved permanently and is lost on restart because %2 does not have a certificate.</source>
-        <translation type="unfinished"></translation>
+        <translation>«%1» kunne ikke lagres permanent, og går tapt ved omstart fordi %2 ikke har et sertifikat.</translation>
     </message>
     <message>
         <source>Local Volume Adjustment...</source>
@@ -7584,7 +8382,7 @@ See &lt;a href=&quot;https://wiki.mumble.info/wiki/Installing_Mumble&quot;&gt;th
     </message>
     <message>
         <source>&lt;p&gt;You&apos;re using a Mumble version that &lt;b&gt;explicitly disabled&lt;/b&gt; update-checks.&lt;/p&gt;&lt;p&gt;This means that the update notification you might receive by using this option will &lt;b&gt;most likely be meaningless&lt;/b&gt; for you.&lt;/p&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;p&gt;Du bruker en Mumble-versjon som har oppgraderingssjekk &lt;b&gt;eksplisitt avskrudd&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;Dette betyr at oppgraderingsmerknader du kan motta med dette valget &lt;b&gt;for det meste vil være meningsløst&lt;/b&gt; for deg.&lt;/p&gt;</translation>
     </message>
     <message>
         <source>Talking (muted)</source>
@@ -7600,23 +8398,23 @@ See &lt;a href=&quot;https://wiki.mumble.info/wiki/Installing_Mumble&quot;&gt;th
     </message>
     <message>
         <source>Toggle pop-up notifications for all events</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Veksle oppsprettsmerknader for alle begivenheter</translation>
     </message>
     <message>
         <source>Toggle window highlight (if not active) for all events</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Veksle vindushøyde (hvis ikke aktivt) for alle begivenheter</translation>
     </message>
     <message>
         <source>Click here to toggle sound notifications for all events</source>
-        <translation type="unfinished"></translation>
+        <translation>Klikk her for å veksle lydmerknader for alle begivenheter</translation>
     </message>
     <message>
         <source>Toggle Text-to-Speech for all events</source>
-        <translation type="unfinished"></translation>
+        <translation>Veksle talesyntese for alle begivenheter</translation>
     </message>
     <message>
         <source>RNNoise is not available due to a sample rate mismatch.</source>
-        <translation type="unfinished"></translation>
+        <translation>RNNoise er ikke tilgjengelig som følge av samlingsrate som ikke samsvarer.</translation>
     </message>
     <message>
         <source>Reset all settings?</source>
@@ -7624,7 +8422,7 @@ See &lt;a href=&quot;https://wiki.mumble.info/wiki/Installing_Mumble&quot;&gt;th
     </message>
     <message>
         <source>Do you really want to reset all settings (not only the ones currently visible) to their default value?</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Tilbakestill alle innstillinger (ikke bare dem som er synlige)?</translation>
     </message>
     <message>
         <source>Local Nickname Adjustment...</source>
@@ -7632,11 +8430,11 @@ See &lt;a href=&quot;https://wiki.mumble.info/wiki/Installing_Mumble&quot;&gt;th
     </message>
     <message>
         <source>&lt;b&gt;Blocked URL scheme &quot;%1&quot;&lt;/b&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;b&gt;Blokkert nettadresse-forordning «%1»&lt;/b&gt;</translation>
     </message>
     <message>
         <source>The URL uses a scheme that has been blocked for security reasons.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Nettadressen bruker en forordning som har blitt blokkert av sikkerhetshensyn.</translation>
     </message>
     <message>
         <source>Blocked URL: &quot;%1&quot;</source>
@@ -7651,12 +8449,8 @@ See &lt;a href=&quot;https://wiki.mumble.info/wiki/Installing_Mumble&quot;&gt;th
         <translation type="unfinished">Innvilg tilgang til mikrofon i → Sikkerhet og personvern → Personvern →Mikrofon.</translation>
     </message>
     <message>
-        <source>Access to the microphone was denied due to system restrictions. You will not be ableto use the microphone in this session.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>If enabled this tries to cancel out echo from the audio stream.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Prøver å kansellere ekko fra lydstrømmen.</translation>
     </message>
     <message>
         <source>Disabled</source>
@@ -7672,7 +8466,7 @@ See &lt;a href=&quot;https://wiki.mumble.info/wiki/Installing_Mumble&quot;&gt;th
     </message>
     <message>
         <source>Mixed has low CPU impact, but only works well if your speakers are equally loud and equidistant from the microphone.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">«Blandet» har lav CPU-innvirkning, men fungerer kun hvis høyttalerne dine har lik lydstyrke og er ekvidistant fra mikrofonen.</translation>
     </message>
     <message>
         <source>Multichannel echo cancellation (speex)</source>
@@ -7680,7 +8474,7 @@ See &lt;a href=&quot;https://wiki.mumble.info/wiki/Installing_Mumble&quot;&gt;th
     </message>
     <message>
         <source>Multichannel echo cancellation provides much better echo cancellation, but at a higher CPU cost. Multichannel echo cancellation requires more CPU, so you should try mixed first.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Multikanal-ekkokansellering gir mye bedre ekko-kansellering, men bruker mer prosessorkraft. Prøv «blandet» først.</translation>
     </message>
     <message>
         <source>The provided URL uses an invalid version format: &quot;%1&quot;</source>
@@ -7689,7 +8483,8 @@ See &lt;a href=&quot;https://wiki.mumble.info/wiki/Installing_Mumble&quot;&gt;th
     <message>
         <source>The directories in which Mumble searches for extra translation files are:
 </source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Mappene Mumble søker etter ekstra oversettelsesfiler i:
+</translation>
     </message>
     <message>
         <source>Invocation</source>
@@ -7705,11 +8500,141 @@ See &lt;a href=&quot;https://wiki.mumble.info/wiki/Installing_Mumble&quot;&gt;th
     </message>
     <message>
         <source>Shortcuts migration incomplete</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Flytting av snarveier er ufullstendig</translation>
     </message>
     <message>
         <source>Unfortunately %1 shortcut(s) could not be migrated.
 You can register them again.</source>
+        <translation type="unfinished">%1 snarvei(er) kunne ikke flyttes.
+Du kan registrere dem igjen.</translation>
+    </message>
+    <message>
+        <source>Potentially broken settings</source>
+        <translation>Mulig skadede innstillinger</translation>
+    </message>
+    <message>
+        <source>Load backup settings?</source>
+        <translation>Last inn sikkerhetskopi-innstillinger?</translation>
+    </message>
+    <message>
+        <source>It seems that Mumble did not perform a normal shutdown. If you did not intentionally kill the application, this could mean that the used settings caused a crash. Do you want to load the setting&apos;s backup instead?</source>
+        <translation type="unfinished">Mumble ble ikke avsluttet på riktig vis. Hvis du ikke gjorde dette med hensikt, kan det bety at innstillingene dine forårsaket det. Vil du laste inn sikkerhetskopi-innstillingene istedenfor?</translation>
+    </message>
+    <message>
+        <source>The backed-up settings also seem to have been saved without Mumble exiting normally (potentially indicating a crash).</source>
+        <translation>De sikkerhetskopierte innstillingene ser også ut til å ha blitt lagret uten at Mumble avsluttet på riktig vis (noe som indikerer et krasj).</translation>
+    </message>
+    <message>
+        <source>If you experience repeated crashes with these settings, you might have to manually delete the settings files at &lt;pre&gt;%1&lt;/pre&gt; and &lt;pre&gt;%2&lt;/pre&gt; in order to reset all settings to their default value.</source>
+        <translation type="unfinished">Hvis du opplever gjentatte krasj med disse innstillingene kand det hende du må slette innstillingsfilene i &lt;pre&gt;%1&lt;/pre&gt; og &lt;pre&gt;%2&lt;/pre&gt; manuelt for å tilbakestille alle innstillingene til deres forvalgte verdier.</translation>
+    </message>
+    <message>
+        <source>Access to the microphone was denied due to system restrictions. You will not be able to use the microphone in this session.</source>
+        <translation>Tilgang til mikrofon ble ikke innvilget som følge av systembegrensninger. Du vil ikke kunne bruke mikrofonen i denne økten.</translation>
+    </message>
+    <message>
+        <source>Unknown Version</source>
+        <translation>Ukjent versjon</translation>
+    </message>
+    <message>
+        <source>Next</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Back</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This is you</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>friend</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>user</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>muted and deafened</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>muted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>locally muted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>unmuted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>recording</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>priority speaker</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>has a long comment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>text messages ignored</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>registered</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>channel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>your channel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>accessible</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>inaccessible</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>public</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>filtered</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>pinned</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Listening for input</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation type="unfinished">Legg til</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;If you&apos;re using Linux this is most likely because you are using a version from your distribution&apos;s package repository that have their own update cycles.&lt;/p&gt;&lt;p&gt;If you want to always have the most recent Mumble version, you should consider using a different method of installation.
+See &lt;a href=&quot;https://github.com/mumble-voip/mumble&quot;&gt;the project repository&lt;/a&gt; for what alternatives there are.&lt;/p&gt;</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -7822,7 +8747,7 @@ You can register them again.</source>
     </message>
     <message>
         <source>Whether to search for users</source>
-        <translation type="unfinished"></translation>
+        <translation>Hvorvidt det skal søkes etter brukere</translation>
     </message>
     <message>
         <source>&amp;Users</source>
@@ -7830,23 +8755,23 @@ You can register them again.</source>
     </message>
     <message>
         <source>Whether the search should be performed case-sensitively</source>
-        <translation type="unfinished"></translation>
+        <translation>Hvorvidt søket skal ta hensyn til små og store bokstaver</translation>
     </message>
     <message>
         <source>Case-&amp;sensitive</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Forskjell på små og store bokstaver</translation>
     </message>
     <message>
         <source>Options:</source>
-        <translation type="unfinished"></translation>
+        <translation>Alternativer:</translation>
     </message>
     <message>
         <source>Whether the search string should be interpreted as a regular expression</source>
-        <translation type="unfinished"></translation>
+        <translation>Hvorvidt søkestrengen skal tolkes som et regulært uttrykk</translation>
     </message>
     <message>
         <source>&amp;RegEx</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&amp;Regulært uttrykk</translation>
     </message>
     <message>
         <source>&amp;Channels</source>
@@ -7858,6 +8783,18 @@ You can register them again.</source>
     </message>
     <message>
         <source>Whether to search for channels</source>
+        <translation>Hvorvidt det skal søkes etter kanaler</translation>
+    </message>
+    <message>
+        <source>Search string</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Search results</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use up and down keys to navigate through the search results.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -7908,11 +8845,7 @@ You can register them again.</source>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Port:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>&lt;b&gt;Users&lt;/b&gt;:</source>
-        <translation>&lt;b&gt;Brukere&lt;/b&gt;:</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Port:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Protocol:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -7920,19 +8853,19 @@ You can register them again.</source>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Release:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Utgave:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;OS:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Operativsystem:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Audio</source>
-        <translation type="unfinished"></translation>
+        <translation>Lyd</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Allowed:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Tillatt:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;b&gt;Current:&lt;/b&gt;</source>
@@ -7956,7 +8889,7 @@ You can register them again.</source>
     </message>
     <message>
         <source>&lt;b&gt;Avg. latency:&lt;/b&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;b&gt;Gjen. forsinkelse:&lt;/b&gt;</translation>
     </message>
     <message>
         <source>Statistics</source>
@@ -7980,15 +8913,15 @@ You can register them again.</source>
     </message>
     <message>
         <source>Outgoing</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Utgående</translation>
     </message>
     <message>
         <source>Incoming</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Innkommende</translation>
     </message>
     <message>
         <source>Voice packets is currently sent over TCP.</source>
-        <translation type="unfinished"></translation>
+        <translation>Stemmepakker blir nå sendt over TCP.</translation>
     </message>
     <message>
         <source>TCP (Control)</source>
@@ -8000,34 +8933,46 @@ You can register them again.</source>
     </message>
     <message>
         <source>&lt;b&gt;Cipher suite:&lt;/b&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;b&gt;Chiffreringssystem:&lt;/b&gt;</translation>
     </message>
     <message>
         <source>&lt;forward secrecy&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>&amp;View certificate</source>
-        <translation>&amp;Vis sertifikat</translation>
-    </message>
-    <message>
-        <source>&amp;Ok</source>
-        <translation type="unfinished">&amp;OK</translation>
+        <translation type="unfinished">&lt;forover-sikkerhet&gt;</translation>
     </message>
     <message>
         <source>Unknown</source>
         <translation type="unfinished">Ukjent</translation>
     </message>
     <message>
-        <source>The connection provides perfect forward secrecy.</source>
+        <source>Whether the connection supports perfect forward secrecy (PFS).</source>
+        <translation type="unfinished">Hvorvidt tilkoblingen støtter perfekt forover-sikkerhet (PFS).</translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;PFS:&lt;/b&gt;</source>
+        <translation>&lt;b&gt;PFS&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <source>Yes</source>
+        <translation>Ja</translation>
+    </message>
+    <message>
+        <source>No</source>
+        <translation>Nei</translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;Users:&lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>The connection does NOT provide perfect forward secrecy.</source>
+        <source>TCP Parameters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>No information about forward secrecy available.</source>
+        <source>&amp;View Certificate</source>
+        <translation type="unfinished">&amp;Vis sertifikat</translation>
+    </message>
+    <message>
+        <source>&amp;OK</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -8078,6 +9023,10 @@ You can register them again.</source>
     <message>
         <source>Press to show button combination</source>
         <translation>Trykk for å vise tastekombinasjon</translation>
+    </message>
+    <message>
+        <source>&lt; Unknown Channel &gt;</source>
+        <translation>&lt; Ukjent kanal &gt;</translation>
     </message>
 </context>
 <context>
@@ -8215,8 +9164,12 @@ Et tilgangssymbol er en tekststring, som kan brukes som et passord for veldig en
         <translation>&amp;Fjern</translation>
     </message>
     <message>
-        <source>Tokens</source>
-        <translation>Symboler</translation>
+        <source>Token List</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use the arrow keys to navigate this list of access tokens. The tokens are displayed in plain text.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -8260,17 +9213,25 @@ Et tilgangssymbol er en tekststring, som kan brukes som et passord for veldig en
     <message numerus="yes">
         <source>Registered users: %n account(s)</source>
         <translation>
-            <numerusform>Registrerte brukere: %n konto(er)</numerusform>
-            <numerusform>Registrerte brukere: %n konto(er)</numerusform>
+            <numerusform>Registrerte brukere: %n konto</numerusform>
+            <numerusform>Registrerte brukere: %n kontoer</numerusform>
         </translation>
-    </message>
-    <message>
-        <source>Search</source>
-        <translation>Søk</translation>
     </message>
     <message>
         <source>User list</source>
         <translation>Brukerliste</translation>
+    </message>
+    <message>
+        <source>Search for user</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set inactivity filter mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Filter for inactivity</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -8298,14 +9259,6 @@ Et tilgangssymbol er en tekststring, som kan brukes som et passord for veldig en
     <message>
         <source>IP Address</source>
         <translation>IP-adresse</translation>
-    </message>
-    <message>
-        <source>CELT Versions</source>
-        <translation>CELT-versjoner</translation>
-    </message>
-    <message>
-        <source>Details...</source>
-        <translation>Detaljer…</translation>
     </message>
     <message>
         <source>Ping Statistics</source>
@@ -8426,6 +9379,50 @@ Et tilgangssymbol er en tekststring, som kan brukes som et passord for veldig en
         <source>Ping deviation</source>
         <translation>Svartidsavvik</translation>
     </message>
+    <message>
+        <source>Warning: The server seems to report a truncated protocol version for this client. (See: &lt;a href=&quot;https://github.com/mumble-voip/mumble/issues/5827/&quot;&gt;Issue #5827&lt;/a&gt;)</source>
+        <translation>Advarsel: Denne tjeneren rapporterer en forkortet protokollversjon for denne klienten. (Sjekk &lt;a href=&quot;https://github.com/mumble-voip/mumble/issues/5827/&quot;&gt;problem #5827&lt;/a&gt;)</translation>
+    </message>
+    <message>
+        <source>Details</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>to client rolling average</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Last X minutes:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>% lost</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>from client rolling average</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>% late</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Total:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Last %1 %2:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>seconds</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>minutes</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>UserListModel</name>
@@ -8471,33 +9468,6 @@ Et tilgangssymbol er en tekststring, som kan brukes som et passord for veldig en
     <message>
         <source>Adjusting local nickname for %1</source>
         <translation>Justerer lokalt kallenavn for %1</translation>
-    </message>
-</context>
-<context>
-    <name>UserLocalVolumeDialog</name>
-    <message>
-        <source>Local volume for other users</source>
-        <translation>Lokalt lydstyrkenivå for andre brukere</translation>
-    </message>
-    <message>
-        <source>&lt;b&gt;Adjust the volume of other users locally&lt;/b&gt;&lt;br /&gt;Mumble supports adjusting the volume of other users locally.</source>
-        <translation>&lt;b&gt;Juster lydstyrkenivået til andre brukere lokalt&lt;/b&gt;&lt;br /&gt;Mumble støtter justering av volumet til andre brukere lokalt.</translation>
-    </message>
-    <message>
-        <source>Adjusting local volume for %1</source>
-        <translation>Justerer lokalt voum for %1</translation>
-    </message>
-    <message>
-        <source> dB</source>
-        <translation> dB</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use the slider or the text box to change the volume of the user.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-weight:600;&quot;&gt;Attention!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Increasing the volume of a user too much can permanently damage your hearing. It may also increase the background noise of the user.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Bruk glidebryteren eller tekstboksen for å endre lydstyrken på brukeren.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-weight:600;&quot;&gt;Advarsel!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Økning av lydstyrken av en bruker kan skade hørselen din permanent. Det kan også øke bakgrunnstøten til brukeren.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>User volume</source>
-        <translation>Brukerlydstyrke</translation>
     </message>
 </context>
 <context>
@@ -8642,6 +9612,18 @@ Et tilgangssymbol er en tekststring, som kan brukes som et passord for veldig en
     <message>
         <source>Channel has access restrictions but you can enter nonetheless</source>
         <translation>Kanalen har tilgangsbegrensninger, men du kan ta del iden likevel</translation>
+    </message>
+    <message>
+        <source>Channel will be pinned when filtering is enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Channel Listener</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This channel listener belongs to %1</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -8791,6 +9773,10 @@ Et tilgangssymbol er en tekststring, som kan brukes som et passord for veldig en
     </message>
     <message>
         <source>.opus - Lossy compressed</source>
+        <translation>.opus — tapsbasert kompresjon</translation>
+    </message>
+    <message>
+        <source>.mp3 - Lossy compressed</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -8903,6 +9889,25 @@ Please contact your server administrator for further information.</source>
     </message>
     <message>
         <source>Unable to start recording - the audio output is miconfigured (0Hz sample rate)</source>
+        <translation type="unfinished">Kunne ikke starte opptak — lydutgangen er satt opp feil (0 Hz samplingstakt)</translation>
+    </message>
+    <message>
+        <source>This field contains the directory path to store any voice recordings in. Use the &quot;browse&quot; button to open a file dialog.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This field contains the filename any voice recording is saved as. Various variables can be used to augment the filename. For example %time for the current time.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>VolumeSliderWidgetAction</name>
+    <message>
+        <source>Volume Adjustment</source>
+        <translation>Lydstyrkejustering</translation>
+    </message>
+    <message>
+        <source>Local volume adjustment</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -1,4 +1,4 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -11,14 +11,17 @@
 #include <QtCore/QStack>
 
 #ifdef MUMBLE
+#	include <queue>
 #	include "PluginManager.h"
 #	include "Global.h"
+#	include "Database.h"
+#	include "ServerHandler.h"
 
-QHash< int, Channel * > Channel::c_qhChannels;
+QHash< unsigned int, Channel * > Channel::c_qhChannels;
 QReadWriteLock Channel::c_qrwlChannels;
 #endif
 
-Channel::Channel(int id, const QString &name, QObject *p) : QObject(p) {
+Channel::Channel(unsigned int id, const QString &name, QObject *p) : QObject(p) {
 	iId         = id;
 	iPosition   = 0;
 	qsName      = name;
@@ -30,11 +33,11 @@ Channel::Channel(int id, const QString &name, QObject *p) : QObject(p) {
 		cParent->addChannel(this);
 #ifdef MUMBLE
 	uiPermissions = 0;
-	bFiltered     = false;
+	m_filterMode  = ChannelFilterMode::NORMAL;
 
 	hasEnterRestrictions.store(false);
 	localUserCanEnter.store(true);
-#endif
+#endif // MUMBLE
 }
 
 Channel::~Channel() {
@@ -56,12 +59,12 @@ Channel::~Channel() {
 }
 
 #ifdef MUMBLE
-Channel *Channel::get(int id) {
+Channel *Channel::get(unsigned int id) {
 	QReadLocker lock(&c_qrwlChannels);
 	return c_qhChannels.value(id);
 }
 
-Channel *Channel::add(int id, const QString &name) {
+Channel *Channel::add(unsigned int id, const QString &name) {
 	QWriteLocker lock(&c_qrwlChannels);
 
 	if (c_qhChannels.contains(id))
@@ -84,7 +87,88 @@ void Channel::remove(Channel *c) {
 	QWriteLocker lock(&c_qrwlChannels);
 	c_qhChannels.remove(c->iId);
 }
-#endif
+
+void Channel::setFilterMode(ChannelFilterMode filterMode) {
+	m_filterMode        = filterMode;
+	ServerHandlerPtr sh = Global::get().sh;
+	if (sh) {
+		Global::get().db->setChannelFilterMode(sh->qbaDigest, iId, m_filterMode);
+	}
+}
+
+void Channel::clearFilterMode() {
+	if (m_filterMode != ChannelFilterMode::NORMAL) {
+		setFilterMode(ChannelFilterMode::NORMAL);
+	}
+}
+
+bool Channel::isFiltered() const {
+	if (!Global::get().s.bFilterActive) {
+		// Channel filtering is disabled
+		return false;
+	}
+
+	const Channel *userChannel = nullptr;
+
+	if (Global::get().uiSession != 0) {
+		const ClientUser *user = ClientUser::get(Global::get().uiSession);
+		if (user) {
+			userChannel = user->cChannel;
+		}
+	}
+
+	bool hasUser = false;
+	bool hasHide = false;
+	bool hasPin  = false;
+
+	// Iterate tree down
+	std::queue< const Channel * > channelSearch;
+	channelSearch.push(this);
+
+	while (!channelSearch.empty()) {
+		const Channel *c = channelSearch.front();
+		channelSearch.pop();
+
+		// Never hide channel, if user resides in this channel or a subchannel
+		if (userChannel && c == userChannel) {
+			return false;
+		}
+
+		if (c->m_filterMode == ChannelFilterMode::PIN) {
+			hasPin = true;
+		}
+
+		if (!c->qlUsers.isEmpty()) {
+			hasUser = true;
+		}
+
+		for (const Channel *currentSubChannel : c->qlChannels) {
+			channelSearch.push(currentSubChannel);
+		}
+	}
+
+	// Iterate tree up
+	const Channel *c = this;
+	while (c) {
+		if (c->m_filterMode == ChannelFilterMode::HIDE) {
+			hasHide = true;
+			break;
+		}
+		c = c->cParent;
+	}
+
+	if (hasPin) {
+		return false;
+	}
+
+	if (hasHide) {
+		return true;
+	}
+
+	return Global::get().s.bFilterHidesEmptyChannels && !hasUser;
+}
+
+#endif // MUMBLE
 
 bool Channel::lessThan(const Channel *first, const Channel *second) {
 	if ((first->iPosition != second->iPosition) && (first->cParent == second->cParent))
@@ -188,7 +272,7 @@ void Channel::removeUser(User *p) {
 
 Channel::operator QString() const {
 	return QString::fromLatin1("%1[%2:%3%4]")
-		.arg(qsName, QString::number(iId), QString::number(cParent ? cParent->iId : -1),
+		.arg(qsName, QString::number(iId), QString::number(cParent ? static_cast< int >(cParent->iId) : -1),
 			 bTemporary ? QLatin1String("*") : QLatin1String(""));
 }
 

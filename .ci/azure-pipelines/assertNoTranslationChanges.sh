@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2020-2021 The Mumble Developers. All rights reserved.
+# Copyright The Mumble Developers. All rights reserved.
 # Use of this source code is governed by a BSD-style license
 # that can be found in the LICENSE file at the root of the
 # Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -18,7 +18,7 @@ git config user.name "CI"
 git config user.email "ci@mumble.info"
 
 # Execute updatetranslations that'll commit any translation changes
-python $updateScript --ci-mode
+python3 $updateScript --ci-mode
 echo
 
 # Ger new commit hash

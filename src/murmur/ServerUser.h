@@ -1,4 +1,4 @@
-// Copyright 2010-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -12,6 +12,7 @@
 #	include "win.h"
 #endif
 
+#include "ClientType.h"
 #include "Connection.h"
 #include "HostAddress.h"
 #include "Timer.h"
@@ -25,6 +26,8 @@
 #else
 #	include <sys/socket.h>
 #endif
+
+#include <vector>
 
 // Unfortunately, this needs to be "large enough" to hold
 // enough frames to account for both short-term and
@@ -51,13 +54,14 @@ struct BandwidthRecord {
 
 struct WhisperTarget {
 	struct Channel {
-		int iId;
-		bool bChildren;
-		bool bLinks;
-		QString qsGroup;
+		unsigned int id;
+		bool includeChildren;
+		bool includeLinks;
+		QString targetGroup;
 	};
-	QList< unsigned int > qlSessions;
-	QList< WhisperTarget::Channel > qlChannels;
+
+	std::vector< unsigned int > sessions;
+	std::vector< WhisperTarget::Channel > channels;
 };
 
 class ServerUser;
@@ -65,7 +69,7 @@ class ServerUser;
 struct WhisperTargetCache {
 	QSet< ServerUser * > channelTargets;
 	QSet< ServerUser * > directTargets;
-	QSet< ServerUser * > listeningTargets;
+	QHash< ServerUser *, VolumeAdjustment > listeningTargets;
 };
 
 class Server;
@@ -75,13 +79,13 @@ class Server;
 class LeakyBucket {
 private:
 	/// The amount of tokens that are drained per second.
-	/// (The sze of the whole in the bucket)
+	/// (The size of the whole in the bucket)
 	unsigned int m_tokensPerSec;
 	/// The maximum amount of tokens that may be encountered.
 	/// (The capacity of the bucket)
 	unsigned int m_maxTokens;
 	/// The amount of tokens currently stored
-	/// (The amount of whater currently in the bucket)
+	/// (The amount of whatever currently is in the bucket)
 	long m_currentTokens;
 	/// A timer that is used to measure time intervals. It is essential
 	/// that this timer uses a monotonic clock (which is why QElapsedTimer is
@@ -108,13 +112,14 @@ protected:
 public:
 	enum State { Connected, Authenticated };
 	State sState;
+	ClientType m_clientType;
 	operator QString() const;
 
 	float dUDPPingAvg, dUDPPingVar;
 	float dTCPPingAvg, dTCPPingVar;
 	quint32 uiUDPPackets, uiTCPPackets;
 
-	unsigned int uiVersion;
+	Version::full_t m_version;
 	QString qsRelease;
 	QString qsOS;
 	QString qsOSVersion;

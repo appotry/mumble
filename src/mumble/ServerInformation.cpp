@@ -1,15 +1,13 @@
-// Copyright 2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
 
 #include "ServerInformation.h"
-#include "CELTCodec.h"
 #include "Connection.h"
 #include "MainWindow.h"
 #include "NetworkConfig.h"
 #include "SSL.h"
-#include "SSLCipherInfo.h"
 #include "ServerHandler.h"
 #include "UserModel.h"
 #include "Version.h"
@@ -28,6 +26,14 @@ ServerInformation::ServerInformation(QWidget *parent) : QDialog(parent) {
 	setupUi(this);
 
 	updateFields();
+
+	// Labels are not initialized properly here. We need to wait a tiny bit
+	// to make sure its contents are actually read.
+	QTimer::singleShot(0, [this]() {
+		qgbServerInformation->updateAccessibleText();
+		qgbAudioBandwidth->updateAccessibleText();
+		qgbTCPParameters->updateAccessibleText();
+	});
 }
 
 void ServerInformation::updateFields() {
@@ -55,7 +61,7 @@ void ServerInformation::updateServerInformation() {
 
 	Global::get().sh->getConnectionInfo(host, port, userName, password);
 
-	const int userCount             = ModelItem::c_qhUsers.count();
+	const auto userCount            = ModelItem::c_qhUsers.count();
 	const unsigned int maxUserCount = Global::get().uiMaxUsers;
 
 	QString release = Global::get().sh->qsRelease;
@@ -72,39 +78,28 @@ void ServerInformation::updateServerInformation() {
 	serverInfo_host->setText(host);
 	serverInfo_port->setText(QString::number(port));
 	serverInfo_users->setText(QString::fromLatin1("%1 / %2").arg(userCount).arg(maxUserCount));
-	serverInfo_protocol->setText(Version::toString(Global::get().sh->uiVersion));
+	serverInfo_protocol->setText(Version::toString(Global::get().sh->m_version));
 	serverInfo_release->setText(release);
 	serverInfo_os->setText(os);
+
+	qgbServerInformation->updateAccessibleText();
 }
 
 static const QString currentCodec() {
-	if (Global::get().bOpus)
-		return QLatin1String("Opus");
-
-	int v         = Global::get().bPreferAlpha ? Global::get().iCodecAlpha : Global::get().iCodecBeta;
-	CELTCodec *cc = Global::get().qmCodecs.value(v);
-	if (cc)
-		return QString::fromLatin1("CELT %1").arg(cc->version());
-	else
-		return QString::fromLatin1("CELT %1").arg(QString::number(v, 16));
+	// We now always use Opus
+	return "Opus";
 }
 
 void ServerInformation::updateAudioBandwidth() {
 	// The bandwidths are in bit/s, so we divide by 1000 to get kBit/s
-	const float maxBandwidthAllowed = Global::get().iMaxBandwidth / 1000.0f;
-	const float currentBandwidth    = Global::get().iAudioBandwidth / 1000.0f;
+	const float maxBandwidthAllowed = static_cast< float >(Global::get().iMaxBandwidth) / 1000.0f;
+	const float currentBandwidth    = static_cast< float >(Global::get().iAudioBandwidth) / 1000.0f;
 
 	audio_current->setText(QString::fromLatin1("%1 kBit/s").arg(currentBandwidth, 0, 'f', 1));
 	audio_allowed->setText(QString::fromLatin1("%1 kBit/s").arg(maxBandwidthAllowed, 0, 'f', 1));
 	audio_codec->setText(currentCodec());
-}
 
-QString getCipherID(const QSslCipher &cipher, const SSLCipherInfo *cipherInfo) {
-	if (cipherInfo && cipherInfo->rfc_name) {
-		return QString::fromUtf8(cipherInfo->rfc_name);
-	}
-
-	return cipher.name();
+	qgbAudioBandwidth->updateAccessibleText();
 }
 
 void ServerInformation::updateConnectionDetails() {
@@ -134,8 +129,9 @@ void ServerInformation::updateConnectionDetails() {
 		connection_udp_statisticsGroup->show();
 
 		// Actually fill in data
-		const float latency   = boost::accumulators::mean(Global::get().sh->accUDP);
-		const float deviation = std::sqrt(boost::accumulators::variance(Global::get().sh->accUDP));
+		const float latency = static_cast< float >(boost::accumulators::mean(Global::get().sh->accUDP));
+		const float deviation =
+			static_cast< float >(std::sqrt(boost::accumulators::variance(Global::get().sh->accUDP)));
 
 		connection_udp_encryption->setText("128 bit OCB-AES128");
 		connection_udp_latency->setText(latencyString.arg(latency, 0, 'f', 1).arg(deviation, 0, 'f', 1));
@@ -145,55 +141,46 @@ void ServerInformation::updateConnectionDetails() {
 
 
 	// TCP
-	const float latency   = boost::accumulators::mean(Global::get().sh->accTCP);
-	const float deviation = std::sqrt(boost::accumulators::variance(Global::get().sh->accTCP));
+	const float latency   = static_cast< float >(boost::accumulators::mean(Global::get().sh->accTCP));
+	const float deviation = static_cast< float >(std::sqrt(boost::accumulators::variance(Global::get().sh->accTCP)));
 
-	QSslCipher cipher               = Global::get().sh->qscCipher;
-	const SSLCipherInfo *cipherInfo = SSLCipherInfoLookupByOpenSSLName(cipher.name().toLatin1().constData());
-
-	const QString cipherID = getCipherID(cipher, cipherInfo);
+	QSslCipher cipher = Global::get().sh->qscCipher;
 
 	connection_tcp_tls->setText(MumbleSSL::protocolToString(connection->sessionProtocol()).toHtmlEscaped());
 	connection_tcp_latency->setText(latencyString.arg(latency, 0, 'f', 1).arg(deviation, 0, 'f', 1));
-	connection_tcp_cipher->setText(cipherID.isEmpty() ? m_unknownStr : cipherID);
+	connection_tcp_cipher->setText(cipher.name().isEmpty() ? m_unknownStr : cipher.name());
+	connection_tcp_forwardSecrecy->setText(Global::get().sh->connectionUsesPerfectForwardSecrecy ? tr("Yes")
+																								 : tr("No"));
 
-	if (cipherInfo) {
-		if (cipherInfo->forward_secret) {
-			connection_tcp_forwardSecrecy->setText(tr("The connection provides perfect forward secrecy."));
-		} else {
-			connection_tcp_forwardSecrecy->setText(tr("The connection does NOT provide perfect forward secrecy."));
-		}
-	} else {
-		connection_tcp_forwardSecrecy->setText(tr("No information about forward secrecy available."));
-	}
+	qgbTCPParameters->updateAccessibleText();
 }
 
 void ServerInformation::populateUDPStatistics(const Connection &connection) {
 	// statistics
-	constexpr int toServerCol   = 0;
-	constexpr int fromServerCol = 1;
-	constexpr int goodRow       = 0;
-	constexpr int lateRow       = 1;
-	constexpr int lostRow       = 2;
-	constexpr int resyncRow     = 3;
+	constexpr int TO_SERVER_COL   = 0;
+	constexpr int FROM_SERVER_COL = 1;
+	constexpr int GOOD_ROW        = 0;
+	constexpr int LATE_ROW        = 1;
+	constexpr int LOST_ROW        = 2;
+	constexpr int RESYNC_ROW      = 3;
 
-	QTableWidgetItem *toGoodItem     = new QTableWidgetItem(QString::number(connection.csCrypt->uiRemoteGood));
-	QTableWidgetItem *fromGoodItem   = new QTableWidgetItem(QString::number(connection.csCrypt->uiGood));
-	QTableWidgetItem *toLateItem     = new QTableWidgetItem(QString::number(connection.csCrypt->uiRemoteLate));
-	QTableWidgetItem *fromLateItem   = new QTableWidgetItem(QString::number(connection.csCrypt->uiLate));
-	QTableWidgetItem *toLostItem     = new QTableWidgetItem(QString::number(connection.csCrypt->uiRemoteLost));
-	QTableWidgetItem *fromLostItem   = new QTableWidgetItem(QString::number(connection.csCrypt->uiLost));
-	QTableWidgetItem *toResyncItem   = new QTableWidgetItem(QString::number(connection.csCrypt->uiRemoteResync));
-	QTableWidgetItem *fromResyncItem = new QTableWidgetItem(QString::number(connection.csCrypt->uiResync));
+	QTableWidgetItem *toGoodItem     = new QTableWidgetItem(QString::number(connection.csCrypt->m_statsRemote.good));
+	QTableWidgetItem *fromGoodItem   = new QTableWidgetItem(QString::number(connection.csCrypt->m_statsLocal.good));
+	QTableWidgetItem *toLateItem     = new QTableWidgetItem(QString::number(connection.csCrypt->m_statsRemote.late));
+	QTableWidgetItem *fromLateItem   = new QTableWidgetItem(QString::number(connection.csCrypt->m_statsLocal.late));
+	QTableWidgetItem *toLostItem     = new QTableWidgetItem(QString::number(connection.csCrypt->m_statsRemote.lost));
+	QTableWidgetItem *fromLostItem   = new QTableWidgetItem(QString::number(connection.csCrypt->m_statsLocal.lost));
+	QTableWidgetItem *toResyncItem   = new QTableWidgetItem(QString::number(connection.csCrypt->m_statsRemote.resync));
+	QTableWidgetItem *fromResyncItem = new QTableWidgetItem(QString::number(connection.csCrypt->m_statsLocal.resync));
 
-	connection_udp_statisticsTable->setItem(goodRow, toServerCol, toGoodItem);
-	connection_udp_statisticsTable->setItem(goodRow, fromServerCol, fromGoodItem);
-	connection_udp_statisticsTable->setItem(lateRow, toServerCol, toLateItem);
-	connection_udp_statisticsTable->setItem(lateRow, fromServerCol, fromLateItem);
-	connection_udp_statisticsTable->setItem(lostRow, toServerCol, toLostItem);
-	connection_udp_statisticsTable->setItem(lostRow, fromServerCol, fromLostItem);
-	connection_udp_statisticsTable->setItem(resyncRow, toServerCol, toResyncItem);
-	connection_udp_statisticsTable->setItem(resyncRow, fromServerCol, fromResyncItem);
+	connection_udp_statisticsTable->setItem(GOOD_ROW, TO_SERVER_COL, toGoodItem);
+	connection_udp_statisticsTable->setItem(GOOD_ROW, FROM_SERVER_COL, fromGoodItem);
+	connection_udp_statisticsTable->setItem(LATE_ROW, TO_SERVER_COL, toLateItem);
+	connection_udp_statisticsTable->setItem(LATE_ROW, FROM_SERVER_COL, fromLateItem);
+	connection_udp_statisticsTable->setItem(LOST_ROW, TO_SERVER_COL, toLostItem);
+	connection_udp_statisticsTable->setItem(LOST_ROW, FROM_SERVER_COL, fromLostItem);
+	connection_udp_statisticsTable->setItem(RESYNC_ROW, TO_SERVER_COL, toResyncItem);
+	connection_udp_statisticsTable->setItem(RESYNC_ROW, FROM_SERVER_COL, fromResyncItem);
 
 	connection_udp_statisticsTable->adjustSize();
 }

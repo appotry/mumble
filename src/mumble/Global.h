@@ -1,4 +1,4 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -31,13 +31,16 @@ class Overlay;
 class LCD;
 class Zeroconf;
 class OverlayClient;
-class CELTCodec;
-class OpusCodec;
-class LogEmitter;
 class DeveloperConsole;
 class TalkingUI;
+class TrayIcon;
 
 class QNetworkAccessManager;
+
+struct MigratedPath {
+	QString oldPath;
+	QString newPath;
+};
 
 struct Global Q_DECL_FINAL {
 private:
@@ -47,6 +50,7 @@ public:
 	static Global &get();
 
 	MainWindow *mw;
+	TrayIcon *trayIcon;
 	Settings s;
 	boost::shared_ptr< ServerHandler > sh;
 	boost::shared_ptr< AudioInput > ai;
@@ -58,29 +62,28 @@ public:
 	Log *l;
 	/// A pointer to the PluginManager that is used in this session
 	PluginManager *pluginManager;
-	QSettings *qs;
 #ifdef USE_OVERLAY
 	Overlay *o;
 #endif
 	LCD *lcd;
 	Zeroconf *zeroconf;
 	QNetworkAccessManager *nam;
-	QSharedPointer< LogEmitter > le;
 	DeveloperConsole *c;
 	TalkingUI *talkingUI;
 	int iPushToTalk;
 	Timer tDoublePush;
 	quint64 uiDoublePush;
 	/// Holds the current VoiceTarget ID to send audio to
-	int iTarget;
+	std::int32_t iTarget;
 	/// Holds the value of iTarget before its last change until the current
 	/// audio-stream ends (and it has a value > 0). See the comment in
 	/// AudioInput::flushCheck for further details on this.
-	int iPrevTarget;
+	std::int32_t iPrevTarget;
 	bool bPushToMute;
 	bool bCenterPosition;
 	bool bPosTest;
 	bool bInAudioWizard;
+	bool inConfigUI;
 #ifdef USE_OVERLAY
 	OverlayClient *ocIntercept;
 #endif
@@ -93,11 +96,6 @@ public:
 	int iMaxBandwidth;
 	int iAudioBandwidth;
 	QDir qdBasePath;
-	QMap< int, CELTCodec * > qmCodecs;
-	OpusCodec *oCodec;
-	int iCodecAlpha, iCodecBeta;
-	bool bPreferAlpha;
-	bool bOpus;
 	bool bAttenuateOthers;
 	/// If set the AudioOutput::mix will forcefully adjust the volume of all
 	/// non-priority speakers.
@@ -116,8 +114,14 @@ public:
 	bool bHappyEaster;
 	static const char ccHappyEaster[];
 
+	QString migratedDBPath;
+	MigratedPath migratedPluginDirPath;
+
 	Global(const QString &qsConfigPath = QString());
-	~Global();
+	~Global() = default;
+
+private:
+	void migrateDataDir(const QDir &toDir);
 };
 
 // Class to handle ordered initialization of globals.

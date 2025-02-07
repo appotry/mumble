@@ -1,4 +1,4 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -31,9 +31,7 @@
 #include "Timer.h"
 #include "crypto/CryptState.h"
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-#	include <QRandomGenerator>
-#endif
+#include <QRandomGenerator>
 
 class Client : public QThread {
 	Q_OBJECT
@@ -100,7 +98,7 @@ Client::Client(QObject *p, QHostAddress qha, unsigned short prt, bool send, bool
 
 	MumbleProto::Version mpv;
 	mpv.set_release(u8(QLatin1String("1.2.1 Benchmark")));
-	mpv.set_version(0x010203);
+	mpv.set_version_v1(Version::toLegacyVersion(Version::fromComponents(1, 2, 3)));
 
 	sendMessage(mpv, MessageHandler::Version);
 
@@ -150,12 +148,7 @@ void Client::ping() {
 
 void Client::sendVoice() {
 	unsigned char buffer[1024];
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
 	int len = 32 + (QRandomGenerator::global()->generate() & 0x3f);
-#else
-	// Qt 5.10 introduces the QRandomGenerator class and in Qt 5.15 qrand got deprecated in its favor
-	int len = 32 + (qrand() & 0x3f);
-#endif
 
 	// Regular voice, nothing special
 	buffer[0] = 0;
@@ -240,7 +233,7 @@ void Client::readyRead() {
 					} else if (msg.has_server_nonce()) {
 						const std::string &server_nonce = msg.server_nonce();
 						if (server_nonce.size() == AES_BLOCK_SIZE) {
-							crypt.uiResync++;
+							crypt.m_statsLocal.resync++;
 							crypt.setDecryptIV(server_nonce);
 						}
 					} else {

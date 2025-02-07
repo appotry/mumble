@@ -1,4 +1,4 @@
-// Copyright 2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -37,10 +37,11 @@ Plugin::Plugin(QString path, bool isBuiltIn, QObject *p)
 
 	if (!m_pluginIsValid) {
 		// throw an exception to indicate that the plugin isn't valid
-		throw PluginError("Unable to load the specified library");
+		throw PluginError(
+			QString::fromLatin1("Unable to load the specified library (%1)").arg(m_lib.errorString()).toStdString());
 	}
 
-	// aquire id-lock in order to assign an ID to this plugin
+	// acquire id-lock in order to assign an ID to this plugin
 	QMutexLocker lock(&Plugin::s_idLock);
 	m_pluginID = Plugin::s_nextID;
 	Plugin::s_nextID++;
@@ -56,7 +57,7 @@ Plugin::~Plugin() {
 }
 
 QString Plugin::extractWrappedString(MumbleStringWrapper wrapper) const {
-	QString wrappedString = QString::fromUtf8(wrapper.data, wrapper.size);
+	QString wrappedString = QString::fromUtf8(wrapper.data, static_cast< int >(wrapper.size));
 
 	if (wrapper.needsReleasing) {
 		releaseResource(static_cast< const void * >(wrapper.data));
@@ -312,8 +313,8 @@ mumble_error_t Plugin::init() {
 	// Step 1: Introduce ourselves (inform the plugin about Mumble's (API) version
 
 	// Get Mumble version
-	int mumbleMajor, mumbleMinor, mumblePatch;
-	Version::get(&mumbleMajor, &mumbleMinor, &mumblePatch);
+	Version::component_t mumbleMajor, mumbleMinor, mumblePatch;
+	Version::getComponents(mumbleMajor, mumbleMinor, mumblePatch);
 
 	// Require API version 1.0.0 as the minimal supported one
 	setMumbleInfo({ mumbleMajor, mumbleMinor, mumblePatch }, MUMBLE_PLUGIN_API_VERSION, { 1, 0, 0 });
@@ -324,6 +325,9 @@ mumble_error_t Plugin::init() {
 	const mumble_version_t apiVersion = getAPIVersion();
 	if (apiVersion >= mumble_version_t({ 1, 0, 0 }) && apiVersion < mumble_version_t({ 1, 2, 0 })) {
 		MumbleAPI_v_1_0_x api = API::getMumbleAPI_v_1_0_x();
+		registerAPIFunctions(&api);
+	} else if (apiVersion >= mumble_version_t({ 1, 2, 0 }) && apiVersion < mumble_version_t({ 1, 3, 0 })) {
+		MumbleAPI_v_1_2_x api = API::getMumbleAPI_v_1_2_x();
 		registerAPIFunctions(&api);
 	} else {
 		// The API version could not be obtained -> this is an invalid plugin that shouldn't have been loaded in the
@@ -690,7 +694,7 @@ void Plugin::onKeyEvent(mumble_keycode_t keyCode, bool wasPress) const {
 	}
 
 	if (m_pluginFnc.onKeyEvent) {
-		m_pluginFnc.onKeyEvent(keyCode, wasPress);
+		m_pluginFnc.onKeyEvent(static_cast< std::uint32_t >(keyCode), wasPress);
 	}
 }
 

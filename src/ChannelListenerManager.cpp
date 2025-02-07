@@ -1,4 +1,4 @@
-// Copyright 2020-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -7,39 +7,37 @@
 #include "Channel.h"
 #include "User.h"
 
-#ifdef MUMBLE
-#	include "ServerHandler.h"
-#	include "Database.h"
-#	include "Global.h"
-#endif
-
 #include <QReadLocker>
 #include <QWriteLocker>
 
-ChannelListenerManager::ChannelListenerManager()
-	: QObject(nullptr), m_listenerLock(), m_listeningUsers(), m_listenedChannels()
-#ifdef MUMBLE
-	  ,
-	  m_volumeLock(), m_listenerVolumeAdjustments(), m_initialSyncDone(false)
-#endif
-{
+std::size_t qHash(const ChannelListener &listener) {
+	return std::hash< ChannelListener >()(listener);
 }
 
-void ChannelListenerManager::addListener(unsigned int userSession, int channelID) {
+bool operator==(const ChannelListener &lhs, const ChannelListener &rhs) {
+	return lhs.channelID == rhs.channelID && lhs.userSession == rhs.userSession;
+}
+
+ChannelListenerManager::ChannelListenerManager()
+	: QObject(nullptr), m_listenerLock(), m_listeningUsers(), m_listenedChannels(), m_volumeLock(),
+	  m_listenerVolumeAdjustments() {
+}
+
+void ChannelListenerManager::addListener(unsigned int userSession, unsigned int channelID) {
 	QWriteLocker lock(&m_listenerLock);
 
 	m_listeningUsers[userSession] << channelID;
 	m_listenedChannels[channelID] << userSession;
 }
 
-void ChannelListenerManager::removeListener(unsigned int userSession, int channelID) {
+void ChannelListenerManager::removeListener(unsigned int userSession, unsigned int channelID) {
 	QWriteLocker lock(&m_listenerLock);
 
 	m_listeningUsers[userSession].remove(channelID);
 	m_listenedChannels[channelID].remove(userSession);
 }
 
-bool ChannelListenerManager::isListening(unsigned int userSession, int channelID) const {
+bool ChannelListenerManager::isListening(unsigned int userSession, unsigned int channelID) const {
 	QReadLocker lock(&m_listenerLock);
 
 	return m_listenedChannels[channelID].contains(userSession);
@@ -51,104 +49,99 @@ bool ChannelListenerManager::isListeningToAny(unsigned int userSession) const {
 	return !m_listeningUsers[userSession].isEmpty();
 }
 
-bool ChannelListenerManager::isListenedByAny(int channelID) const {
+bool ChannelListenerManager::isListenedByAny(unsigned int channelID) const {
 	QReadLocker lock(&m_listenerLock);
 
 	return !m_listenedChannels[channelID].isEmpty();
 }
 
-const QSet< unsigned int > ChannelListenerManager::getListenersForChannel(int channelID) const {
+const QSet< unsigned int > ChannelListenerManager::getListenersForChannel(unsigned int channelID) const {
 	QReadLocker lock(&m_listenerLock);
 
 	return m_listenedChannels[channelID];
 }
 
-const QSet< int > ChannelListenerManager::getListenedChannelsForUser(unsigned int userSession) const {
+const QSet< unsigned int > ChannelListenerManager::getListenedChannelsForUser(unsigned int userSession) const {
 	QReadLocker lock(&m_listenerLock);
 
 	return m_listeningUsers[userSession];
 }
 
-int ChannelListenerManager::getListenerCountForChannel(int channelID) const {
+int ChannelListenerManager::getListenerCountForChannel(unsigned int channelID) const {
 	QReadLocker lock(&m_listenerLock);
 
-	return m_listenedChannels[channelID].size();
+	return static_cast< int >(m_listenedChannels[channelID].size());
 }
 
 int ChannelListenerManager::getListenedChannelCountForUser(unsigned int userSession) const {
 	QReadLocker lock(&m_listenerLock);
 
-	return m_listeningUsers[userSession].size();
+	return static_cast< int >(m_listeningUsers[userSession].size());
 }
 
-#ifdef MUMBLE
-void ChannelListenerManager::setListenerLocalVolumeAdjustment(int channelID, float volumeAdjustment) {
-	float oldValue;
+void ChannelListenerManager::setListenerVolumeAdjustment(unsigned int userSession, unsigned int channelID,
+														 const VolumeAdjustment &volumeAdjustment) {
+	float oldValue = 1.0f;
 	{
 		QWriteLocker lock(&m_volumeLock);
 
-		oldValue = m_listenerVolumeAdjustments.value(channelID, 1.0f);
-		m_listenerVolumeAdjustments.insert(channelID, volumeAdjustment);
-	}
+		ChannelListener key = {};
+		key.channelID       = channelID;
+		key.userSession     = userSession;
 
-	if (oldValue != volumeAdjustment) {
-		emit localVolumeAdjustmentsChanged(channelID, volumeAdjustment, oldValue);
-	}
-}
-
-float ChannelListenerManager::getListenerLocalVolumeAdjustment(int channelID) const {
-	QReadLocker lock(&m_volumeLock);
-
-	return m_listenerVolumeAdjustments.value(channelID, 1.0f);
-}
-
-QHash< int, float > ChannelListenerManager::getAllListenerLocalVolumeAdjustments(bool filter) const {
-	QReadLocker lock(&m_volumeLock);
-
-	if (!filter) {
-		return m_listenerVolumeAdjustments;
-	} else {
-		QHash< int, float > volumeMap;
-
-		QHashIterator< int, float > it(m_listenerVolumeAdjustments);
-
-		while (it.hasNext()) {
-			it.next();
-
-			if (it.value() != 1.0f) {
-				volumeMap.insert(it.key(), it.value());
-			}
+		auto it = m_listenerVolumeAdjustments.find(key);
+		if (it != m_listenerVolumeAdjustments.end()) {
+			oldValue = it->second.factor;
 		}
 
-		return volumeMap;
+		m_listenerVolumeAdjustments[key] = volumeAdjustment;
+	}
+
+	if (oldValue != volumeAdjustment.factor) {
+		emit localVolumeAdjustmentsChanged(channelID, volumeAdjustment.factor, oldValue);
 	}
 }
 
-void ChannelListenerManager::setInitialServerSyncDone(bool done) {
-	m_initialSyncDone.store(done);
+const VolumeAdjustment &ChannelListenerManager::getListenerVolumeAdjustment(unsigned int userSession,
+																			unsigned int channelID) const {
+	static VolumeAdjustment fallbackObj = VolumeAdjustment::fromFactor(1.0f);
+
+	QReadLocker lock(&m_volumeLock);
+
+	ChannelListener key = {};
+	key.channelID       = channelID;
+	key.userSession     = userSession;
+
+	auto it = m_listenerVolumeAdjustments.find(key);
+
+	if (it == m_listenerVolumeAdjustments.end()) {
+		return fallbackObj;
+	} else {
+		return it->second;
+	}
 }
 
-void ChannelListenerManager::saveToDB() const {
-	if (!Global::get().sh || Global::get().sh->qbaDigest.isEmpty() || Global::get().uiSession == 0) {
-		// Can't save as we don't have enough context
-		return;
+std::unordered_map< unsigned int, VolumeAdjustment >
+	ChannelListenerManager::getAllListenerVolumeAdjustments(unsigned int userSession) const {
+	QReadLocker lock1(&m_volumeLock);
+	QReadLocker lock2(&m_listenerLock);
+
+	std::unordered_map< unsigned int, VolumeAdjustment > adjustments;
+
+	for (unsigned int channelID : m_listeningUsers.value(userSession)) {
+		ChannelListener listener = {};
+		listener.channelID       = channelID;
+		listener.userSession     = userSession;
+
+		auto it = m_listenerVolumeAdjustments.find(listener);
+
+		if (it != m_listenerVolumeAdjustments.end() && it->second.factor != 1.0f) {
+			adjustments[channelID] = it->second;
+		}
 	}
 
-	if (!m_initialSyncDone.load()) {
-		// If we were to save the listeners before the sync is done, we'd overwrite the list of listeners in the
-		// DB with an empty set, effectively erasing all set-up listeners.
-		qWarning("ChannelListener: Aborting save of user's listeners as initial ServerSync is not done yet");
-		return;
-	}
-
-	// Save the currently listened channels
-	Global::get().db->setChannelListeners(Global::get().sh->qbaDigest,
-										  getListenedChannelsForUser(Global::get().uiSession));
-	// And also the currently set volume adjustments (if they're not set to 1.0)
-	Global::get().db->setChannelListenerLocalVolumeAdjustments(Global::get().sh->qbaDigest,
-															   getAllListenerLocalVolumeAdjustments(true));
+	return adjustments;
 }
-#endif
 
 void ChannelListenerManager::clear() {
 	{
@@ -156,10 +149,8 @@ void ChannelListenerManager::clear() {
 		m_listeningUsers.clear();
 		m_listenedChannels.clear();
 	}
-#ifdef MUMBLE
 	{
 		QWriteLocker lock(&m_volumeLock);
 		m_listenerVolumeAdjustments.clear();
 	}
-#endif
 }

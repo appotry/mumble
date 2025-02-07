@@ -1,4 +1,4 @@
-// Copyright 2009-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -30,8 +30,8 @@ Usage::Usage(QObject *p) : QObject(p) {
 
 void Usage::registerUsage() {
 	if (!Global::get().s.bUsage
-		|| Global::get().s.uiUpdateCounter
-			   == 0) // Only register usage if allowed by the user and first wizard run has finished
+		|| Version::get() < Version::fromComponents(
+			   1, 2, 3)) // Only register usage if allowed by the user and first wizard run has finished
 		return;
 
 	QDomDocument doc;

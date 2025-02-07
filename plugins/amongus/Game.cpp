@@ -1,13 +1,15 @@
-// Copyright 2020-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
 
 #include "Game.h"
 
-#include "mumble_positional_audio_utils.h"
+#include <sstream>
 
-Game::Game(const uint64_t id, const std::string name) : m_proc(static_cast< procid_t >(id), name) {
+#include <utf8/cpp11.h>
+
+Game::Game(const procid_t id, const std::string name) : m_proc(id, name) {
 }
 
 Mumble_PositionalDataErrorCode Game::init() {
@@ -91,11 +93,15 @@ std::string Game::string(const procptr_t address) {
 
 	std::u16string string;
 	string.resize(object.fields.length);
-	if (m_proc.peek(address + sizeof(object), &string[0], sizeof(char16_t) * string.size())) {
-		return utf16ToUtf8(string.data());
+	if (!m_proc.peek(address + sizeof(object), &string[0], sizeof(char16_t) * string.size())) {
+		return {};
 	}
 
-	return {};
+	try {
+		return utf8::utf16to8(string);
+	} catch (const utf8::invalid_utf16 &) {
+		return {};
+	}
 }
 
 const std::string &Game::context(const AmongUsClient_Fields &fields) {

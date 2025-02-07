@@ -1,4 +1,4 @@
-// Copyright 2015-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -51,7 +51,7 @@ public:
 	/// Takes stock of all mumble themes in the given folders.
 	///
 	/// If a theme with the same name is available in multiple directories
-	/// only the last occurance will be returned.
+	/// only the last occurrence will be returned.
 	///
 	/// @param themesDirectories List of directories to search for theme directories.
 	/// @return Map of theme name to Theme
@@ -83,7 +83,7 @@ public:
 	QString defaultStyle;
 };
 
-Q_DECLARE_METATYPE(ThemeInfo);
-Q_DECLARE_METATYPE(ThemeInfo::StyleInfo);
+Q_DECLARE_METATYPE(ThemeInfo)
+Q_DECLARE_METATYPE(ThemeInfo::StyleInfo)
 
 #endif // MUMBLE_MUMBLE_THEMEINFO_H_

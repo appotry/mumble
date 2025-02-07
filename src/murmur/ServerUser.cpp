@@ -1,10 +1,11 @@
-// Copyright 2010-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
 
 #include "ServerUser.h"
 
+#include "ClientType.h"
 #include "Meta.h"
 #include "Server.h"
 
@@ -14,9 +15,10 @@
 
 ServerUser::ServerUser(Server *p, QSslSocket *socket)
 	: Connection(p, socket), User(), s(nullptr), leakyBucket(p->iMessageLimit, p->iMessageBurst),
-	  m_pluginMessageBucket(5, 20) {
-	sState     = ServerUser::Connected;
-	sUdpSocket = INVALID_SOCKET;
+	  m_pluginMessageBucket(p->iPluginMessageLimit, p->iPluginMessageBurst) {
+	sState       = ServerUser::Connected;
+	m_clientType = ClientType::REGULAR;
+	sUdpSocket   = INVALID_SOCKET;
 
 	memset(&saiUdpAddress, 0, sizeof(saiUdpAddress));
 	memset(&saiTcpLocalAddress, 0, sizeof(saiTcpLocalAddress));
@@ -26,7 +28,7 @@ ServerUser::ServerUser(Server *p, QSslSocket *socket)
 	uiUDPPackets = uiTCPPackets = 0;
 
 	aiUdpFlag            = 1;
-	uiVersion            = 0;
+	m_version            = Version::UNKNOWN;
 	bVerified            = true;
 	iLastPermissionCheck = -1;
 
@@ -53,7 +55,7 @@ bool BandwidthRecord::addFrame(int size, int maxpersec) {
 		return false;
 
 	int nsum = iSum - a_iBW[iRecNum] + size;
-	int bw   = static_cast< int >((nsum * 1000000LL) / elapsed);
+	int bw   = static_cast< int >((static_cast< quint64 >(nsum) * 1000000ULL) / elapsed);
 
 	if (bw > maxpersec)
 		return false;
@@ -112,7 +114,7 @@ int BandwidthRecord::bandwidth() const {
 	if (elapsed < 250000ULL)
 		return 0;
 
-	return static_cast< int >((sum * 1000000ULL) / elapsed);
+	return static_cast< int >((static_cast< quint64 >(sum) * 1000000ULL) / elapsed);
 }
 
 LeakyBucket::LeakyBucket(unsigned int tokensPerSec, unsigned int maxTokens)
@@ -174,7 +176,7 @@ bool LeakyBucket::ratelimit(int tokens) {
 	if (static_cast< qint64 >(m_currentTokens) < drainTokens) {
 		m_currentTokens = 0;
 	} else {
-		m_currentTokens -= drainTokens;
+		m_currentTokens -= static_cast< decltype(m_currentTokens) >(drainTokens);
 	}
 
 	// Now that the tokens have been updated to reflect the constant drain caused by
@@ -185,7 +187,7 @@ bool LeakyBucket::ratelimit(int tokens) {
 
 	// If the bucket is not overflowed, allow message and add tokens
 	if (!limit) {
-		m_currentTokens += tokens;
+		m_currentTokens += static_cast< decltype(m_currentTokens) >(tokens);
 	}
 
 	return limit;

@@ -1,4 +1,4 @@
-// Copyright 2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -9,6 +9,7 @@
 
 #include <Poco/DOM/DOMParser.h>
 #include <Poco/DOM/Document.h>
+#include <Poco/DOM/Element.h>
 #include <Poco/DOM/NodeList.h>
 #include <Poco/SAX/InputSource.h>
 #include <Poco/SAX/SAXException.h>
@@ -20,7 +21,7 @@ void PluginManifest::parse(std::istream &input) {
 	Poco::AutoPtr< Poco::XML::Document > doc;
 	try {
 		doc = parser.parse(&source);
-	} catch (const Poco::XML::SAXParseException &e) {
+	} catch (const Poco::XML::SAXParseException &) {
 		throw PluginManifestException("Plugin manifest uses malformed XML");
 	}
 
@@ -69,7 +70,8 @@ void PluginManifest::parse_v1_0_0(Poco::AutoPtr< Poco::XML::Document > document)
 	Poco::AutoPtr< Poco::XML::NodeList > pluginNodes = assets->getElementsByTagName("plugin");
 
 	for (std::size_t i = 0; i < pluginNodes->length(); ++i) {
-		Poco::XML::Element *current = dynamic_cast< Poco::XML::Element * >(pluginNodes->item(i));
+		Poco::XML::Element *current =
+			dynamic_cast< Poco::XML::Element * >(pluginNodes->item(static_cast< unsigned long >(i)));
 		if (!current) {
 			throw PluginManifestException("Plugin manifest uses \"plugin\" node of unexpected type");
 		}
@@ -117,6 +119,6 @@ void PluginManifest::parse_v1_0_0(Poco::AutoPtr< Poco::XML::Document > document)
 
 	if (!std::regex_match(m_version, versionRegex)) {
 		throw PluginManifestException(
-			"Plugin manifest specifes version that does not follow the format major.minor.path");
+			"Plugin manifest specifies version that does not follow the format major.minor.path");
 	}
 }

@@ -1,10 +1,9 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
 
 #include "Connection.h"
-#include "Message.h"
 #include "Mumble.pb.h"
 #include "SSL.h"
 
@@ -41,7 +40,7 @@ Connection::Connection(QObject *p, QSslSocket *qtsSock) : QObject(p) {
 	setsockopt(static_cast< int >(qtsSocket->socketDescriptor()), IPPROTO_TCP, TCP_NODELAY,
 			   reinterpret_cast< char * >(&nodelay), static_cast< socklen_t >(sizeof(nodelay)));
 
-	connect(qtsSocket, SIGNAL(error(QAbstractSocket::SocketError)), this,
+	connect(qtsSocket, SIGNAL(errorOccurred(QAbstractSocket::SocketError)), this,
 			SLOT(socketError(QAbstractSocket::SocketError)));
 	connect(qtsSocket, SIGNAL(encrypted()), this, SIGNAL(encrypted()));
 	connect(qtsSocket, SIGNAL(readyRead()), this, SLOT(socketRead()));
@@ -121,8 +120,8 @@ void Connection::socketRead() {
 			unsigned char a_ucBuffer[6];
 
 			qtsSocket->read(reinterpret_cast< char * >(a_ucBuffer), 6);
-			uiType        = qFromBigEndian< quint16 >(&a_ucBuffer[0]);
-			iPacketLength = qFromBigEndian< quint32 >(&a_ucBuffer[2]);
+			m_type        = static_cast< Mumble::Protocol::TCPMessageType >(qFromBigEndian< quint16 >(&a_ucBuffer[0]));
+			iPacketLength = qFromBigEndian< int >(&a_ucBuffer[2]);
 			iAvailable -= 6;
 		}
 
@@ -139,7 +138,7 @@ void Connection::socketRead() {
 		iPacketLength        = -1;
 		iAvailable -= iPacketLength;
 
-		emit message(uiType, qbaBuffer);
+		emit message(m_type, qbaBuffer);
 	}
 }
 
@@ -159,24 +158,26 @@ void Connection::socketDisconnected() {
 	emit connectionClosed(QAbstractSocket::UnknownSocketError, QString());
 }
 
-void Connection::messageToNetwork(const ::google::protobuf::Message &msg, unsigned int msgType, QByteArray &cache) {
+void Connection::messageToNetwork(const ::google::protobuf::Message &msg, Mumble::Protocol::TCPMessageType msgType,
+								  QByteArray &cache) {
 #if GOOGLE_PROTOBUF_VERSION >= 3004000
-	int len = msg.ByteSizeLong();
+	std::size_t len = msg.ByteSizeLong();
 #else
 	// ByteSize() has been deprecated as of protobuf v3.4
-	int len = msg.ByteSize();
+	std::size_t len = msg.ByteSize();
 #endif
 	if (len > 0x7fffff)
 		return;
-	cache.resize(len + 6);
+	cache.resize(static_cast< int >(len + 6));
 	unsigned char *uc = reinterpret_cast< unsigned char * >(cache.data());
 	qToBigEndian< quint16 >(static_cast< quint16 >(msgType), &uc[0]);
-	qToBigEndian< quint32 >(len, &uc[2]);
+	qToBigEndian< quint32 >(static_cast< unsigned int >(len), &uc[2]);
 
-	msg.SerializeToArray(uc + 6, len);
+	msg.SerializeToArray(uc + 6, static_cast< int >(len));
 }
 
-void Connection::sendMessage(const ::google::protobuf::Message &msg, unsigned int msgType, QByteArray &cache) {
+void Connection::sendMessage(const ::google::protobuf::Message &msg, Mumble::Protocol::TCPMessageType msgType,
+							 QByteArray &cache) {
 	if (cache.isEmpty()) {
 		messageToNetwork(msg, msgType, cache);
 	}
@@ -242,19 +243,11 @@ QSslCipher Connection::sessionCipher() const {
 }
 
 QSsl::SslProtocol Connection::sessionProtocol() const {
-#if QT_VERSION >= 0x050400
 	return qtsSocket->sessionProtocol();
-#else
-	return QSsl::UnknownProtocol; // Cannot determine session cipher. We only know it's some TLS variant
-#endif
 }
 
 QString Connection::sessionProtocolString() const {
-#if QT_VERSION >= 0x050400
 	return MumbleSSL::protocolToString(sessionProtocol());
-#else
-	return QLatin1String("TLS");  // Cannot determine session cipher. We only know it's some TLS variant
-#endif
 }
 
 #ifdef Q_OS_WIN

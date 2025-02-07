@@ -1,10 +1,12 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
 
 #ifndef MUMBLE_CONNECTION_H_
 #define MUMBLE_CONNECTION_H_
+
+#include "MumbleProtocol.h"
 
 #include <QtCore/QtGlobal>
 
@@ -39,7 +41,7 @@ private:
 protected:
 	QSslSocket *qtsSocket;
 	QElapsedTimer qtLastPacket;
-	unsigned int uiType;
+	Mumble::Protocol::TCPMessageType m_type;
 	int iPacketLength;
 #ifdef Q_OS_WIN
 	static HANDLE hQoS;
@@ -55,14 +57,16 @@ public slots:
 signals:
 	void encrypted();
 	void connectionClosed(QAbstractSocket::SocketError, const QString &reason);
-	void message(unsigned int type, const QByteArray &);
+	void message(Mumble::Protocol::TCPMessageType type, const QByteArray &);
 	void handleSslErrors(const QList< QSslError > &);
 
 public:
 	Connection(QObject *parent, QSslSocket *qtsSocket);
 	~Connection();
-	static void messageToNetwork(const ::google::protobuf::Message &msg, unsigned int msgType, QByteArray &cache);
-	void sendMessage(const ::google::protobuf::Message &msg, unsigned int msgType, QByteArray &cache);
+	static void messageToNetwork(const ::google::protobuf::Message &msg, Mumble::Protocol::TCPMessageType msgType,
+								 QByteArray &cache);
+	void sendMessage(const ::google::protobuf::Message &msg, Mumble::Protocol::TCPMessageType msgType,
+					 QByteArray &cache);
 	void sendMessage(const QByteArray &qbaMsg);
 	void disconnectSocket(bool force = false);
 	void forceFlush();

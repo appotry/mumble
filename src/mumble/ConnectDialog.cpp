@@ -1,4 +1,4 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -17,7 +17,10 @@
 #include "WebFetch.h"
 #include "Global.h"
 
+#include <QSettings>
+#include <QShortcut>
 #include <QtCore/QMimeData>
+#include <QtCore/QRegularExpression>
 #include <QtCore/QUrlQuery>
 #include <QtCore/QtEndian>
 #include <QtGui/QClipboard>
@@ -27,19 +30,21 @@
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
-#include <QtWidgets/QShortcut>
 #include <QtXml/QDomDocument>
 
 #include <boost/accumulators/statistics/extended_p_square.hpp>
 #include <boost/array.hpp>
 
 #ifdef Q_OS_WIN
+#	ifndef NOMINMAX
+#		define NOMINMAX
+#	endif
 #	include <shlobj.h>
 #endif
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-#	include <QRandomGenerator>
-#endif
+#include <QRandomGenerator>
+
+#include <algorithm>
 
 QMap< QString, QIcon > ServerItem::qmIcons;
 QList< PublicInfo > ConnectDialog::qlPublicServers;
@@ -67,7 +72,7 @@ void PingStats::init() {
 	uiBandwidth = 0;
 	uiSent      = 0;
 	uiRecv      = 0;
-	uiVersion   = 0;
+	m_version   = Version::UNKNOWN;
 }
 
 void PingStats::reset() {
@@ -125,7 +130,7 @@ ServerView::~ServerView() {
 	delete siPublic;
 }
 
-QMimeData *ServerView::mimeData(const QList< QTreeWidgetItem * > mimeitems) const {
+QMimeData *ServerView::mimeData(const QList< QTreeWidgetItem * > &mimeitems) const {
 	if (mimeitems.isEmpty())
 		return nullptr;
 
@@ -150,11 +155,12 @@ void ServerView::fixupName(ServerItem *si) {
 
 	int tag = 1;
 
-	QRegExp tmatch(QLatin1String("(.+)\\((\\d+)\\)"));
-	tmatch.setMinimal(true);
-	if (tmatch.exactMatch(name)) {
-		name = tmatch.capturedTexts().at(1).trimmed();
-		tag  = tmatch.capturedTexts().at(2).toInt();
+	const QRegularExpression regex(QRegularExpression::anchoredPattern(QLatin1String("(.+)\\((\\d+)\\)")),
+								   QRegularExpression::InvertedGreedinessOption);
+	const QRegularExpressionMatch match = regex.match(name);
+	if (match.hasMatch()) {
+		name = match.capturedTexts().at(1).trimmed();
+		tag  = match.capturedTexts().at(2).toInt();
 	}
 
 	bool found;
@@ -316,7 +322,7 @@ ServerItem::ServerItem(const ServerItem *si) {
 	qlAddresses = si->qlAddresses;
 	bCA         = si->bCA;
 
-	uiVersion   = si->uiVersion;
+	m_version   = si->m_version;
 	uiPing      = si->uiPing;
 	uiPingSort  = si->uiPing;
 	uiUsers     = si->uiUsers;
@@ -352,7 +358,7 @@ ServerItem *ServerItem::fromMimeData(const QMimeData *mime, bool default_name, Q
 	QString qsFile = url.toLocalFile();
 	if (!qsFile.isEmpty()) {
 		QFile f(qsFile);
-		// Make sure we don't accidently read something big the user
+		// Make sure we don't accidentally read something big the user
 		// happened to have in his clipboard. We only want to look
 		// at small link files.
 		if (f.open(QIODevice::ReadOnly) && f.size() < 10240) {
@@ -467,17 +473,29 @@ QVariant ServerItem::data(int column, int role) const {
 					return uiUsers ? QString::fromLatin1("%1/%2 ").arg(uiUsers).arg(uiMaxUsers) : QVariant();
 			}
 		} else if (role == Qt::ToolTipRole) {
-			QStringList qsl;
+			QStringList ipv4List;
+			QStringList ipv6List;
 			foreach (const ServerAddress &addr, qlAddresses) {
-				const QString qsAddress = addr.host.toString() + QLatin1String(":")
-										  + QString::number(static_cast< unsigned long >(addr.port));
-				qsl << qsAddress.toHtmlEscaped();
+				const QString address = addr.host.toString(false).toHtmlEscaped();
+				if (addr.host.isV6()) {
+					ipv6List << address;
+				} else {
+					ipv4List << address;
+				}
+			}
+			QString ipv4 = "-";
+			QString ipv6 = "-";
+			if (!ipv4List.isEmpty()) {
+				ipv4 = ipv4List.join(QLatin1String(", "));
+			}
+			if (!ipv6List.isEmpty()) {
+				ipv6 = ipv6List.join(QLatin1String(", "));
 			}
 
 			double ploss = 100.0;
 
 			if (uiSent > 0)
-				ploss = (uiSent - qMin(uiRecv, uiSent)) * 100. / uiSent;
+				ploss = (uiSent - std::min(uiRecv, uiSent)) * 100. / uiSent;
 
 			QString qs;
 			qs += QLatin1String("<table>")
@@ -494,7 +512,9 @@ QVariant ServerItem::data(int column, int role) const {
 					  .arg(ConnectDialog::tr("Port"))
 					  .arg(usPort)
 				  + QString::fromLatin1("<tr><th align=left>%1</th><td>%2</td></tr>")
-						.arg(ConnectDialog::tr("Addresses"), qsl.join(QLatin1String(", ")));
+						.arg(ConnectDialog::tr("IPv4 address"), ipv4)
+				  + QString::fromLatin1("<tr><th align=left>%1</th><td>%2</td></tr>")
+						.arg(ConnectDialog::tr("IPv6 address"), ipv6);
 
 			if (!qsUrl.isEmpty())
 				qs += QString::fromLatin1("<tr><th align=left>%1</th><td>%2</td></tr>")
@@ -502,8 +522,10 @@ QVariant ServerItem::data(int column, int role) const {
 
 			if (uiSent > 0) {
 				qs += QString::fromLatin1("<tr><th align=left>%1</th><td>%2</td></tr>")
-						  .arg(ConnectDialog::tr("Packet loss"),
-							   QString::fromLatin1("%1% (%2/%3)").arg(ploss, 0, 'f', 1).arg(uiRecv).arg(uiSent));
+						  .arg(ConnectDialog::tr("Packet loss"), QString::fromLatin1("%1% (%2/%3)")
+																	 .arg(ploss, 0, 'f', 1)
+																	 .arg(uiSent - std::min(uiRecv, uiSent))
+																	 .arg(uiSent));
 				if (uiRecv > 0) {
 					qs += QString::fromLatin1("<tr><th align=left>%1</th><td>%2</td></tr>")
 							  .arg(ConnectDialog::tr("Ping (80%)"),
@@ -521,7 +543,7 @@ QVariant ServerItem::data(int column, int role) const {
 									 QString::fromLatin1("%1/%2").arg(uiUsers).arg(uiMaxUsers))
 						  + QString::fromLatin1("<tr><th align=left>%1</th><td>%2</td></tr>")
 								.arg(ConnectDialog::tr("Version"))
-								.arg(Version::toString(uiVersion));
+								.arg(Version::toString(m_version));
 				}
 			}
 			qs += QLatin1String("</table>");
@@ -532,6 +554,8 @@ QVariant ServerItem::data(int column, int role) const {
 				qc.setAlpha(32);
 				return qc;
 			}
+		} else if (role == Qt::AccessibleTextRole) {
+			return QString("%1 %2").arg(ConnectDialog::tr("Server")).arg(qsName);
 		}
 	}
 	return QTreeWidgetItem::data(column, role);
@@ -712,7 +736,7 @@ bool ServerItem::operator<(const QTreeWidgetItem &o) const {
 		QString a = qsName.toLower();
 		QString b = other.qsName.toLower();
 
-		QRegExp re(QLatin1String("[^0-9a-z]"));
+		QRegularExpression re(QLatin1String("[^0-9a-z]"));
 		a.remove(re);
 		b.remove(re);
 		return a < b;
@@ -903,12 +927,12 @@ void ConnectDialogEdit::accept() {
 
 		// If the user accidentally added a schema or path part, drop it now.
 		// We can't do so during editing as that is quite jarring.
-		const int schemaPos = server.indexOf(QLatin1String("://"));
+		const auto schemaPos = server.indexOf(QLatin1String("://"));
 		if (schemaPos != -1) {
 			server.remove(0, schemaPos + 3);
 		}
 
-		const int pathPos = server.indexOf(QLatin1Char('/'));
+		const auto pathPos = server.indexOf(QLatin1Char('/'));
 		if (pathPos != -1) {
 			server.resize(pathPos);
 		}
@@ -929,7 +953,6 @@ void ConnectDialogEdit::on_qcbShowPassword_toggled(bool checked) {
 
 ConnectDialog::ConnectDialog(QWidget *p, bool autoconnect) : QDialog(p), bAutoConnect(autoconnect) {
 	setupUi(this);
-	qtwServers->setAccessibleName(tr("Server list"));
 #ifdef Q_OS_MAC
 	setWindowModality(Qt::WindowModal);
 #endif
@@ -948,6 +971,10 @@ ConnectDialog::ConnectDialog(QWidget *p, bool autoconnect) : QDialog(p), bAutoCo
 
 	qdbbButtonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 	qdbbButtonBox->button(QDialogButtonBox::Ok)->setText(tr("C&onnect"));
+	qdbbButtonBox->button(QDialogButtonBox::Ok)->setFocusPolicy(Qt::TabFocus);
+
+	qdbbButtonBox->button(QDialogButtonBox::Cancel)->setFocusPolicy(Qt::TabFocus);
+	qdbbButtonBox->button(QDialogButtonBox::Cancel)->setAutoDefault(false);
 
 	QPushButton *qpbAdd = new QPushButton(tr("&Add New..."), this);
 	qpbAdd->setDefault(false);
@@ -1068,6 +1095,14 @@ ConnectDialog::ConnectDialog(QWidget *p, bool autoconnect) : QDialog(p), bAutoCo
 		restoreGeometry(Global::get().s.qbaConnectDialogGeometry);
 	if (!Global::get().s.qbaConnectDialogHeader.isEmpty())
 		qtwServers->header()->restoreState(Global::get().s.qbaConnectDialogHeader);
+
+	setTabOrder(qtwServers, qleSearchServername);
+	setTabOrder(qleSearchServername, qcbSearchLocation);
+	setTabOrder(qcbSearchLocation, qcbFilter);
+	setTabOrder(qcbFilter, qpbAdd);
+	setTabOrder(qpbAdd, qpbEdit);
+	setTabOrder(qpbEdit, qdbbButtonBox->button(QDialogButtonBox::Ok));
+	setTabOrder(qdbbButtonBox->button(QDialogButtonBox::Ok), qtwServers);
 }
 
 ConnectDialog::~ConnectDialog() {
@@ -1160,6 +1195,7 @@ void ConnectDialog::on_qaFavoriteAddNew_triggered() {
 		qtwServers->siFavorite->addServerItem(si);
 		qtwServers->setCurrentItem(si);
 		startDns(si);
+		qdbbButtonBox->button(QDialogButtonBox::Ok)->setFocus();
 	}
 	delete cde;
 }
@@ -1358,7 +1394,7 @@ void ConnectDialog::initList() {
 	url.setPath(QLatin1String("/v1/list"));
 
 	QUrlQuery query;
-	query.addQueryItem(QLatin1String("version"), QLatin1String(MUMTEXT(MUMBLE_VERSION)));
+	query.addQueryItem(QLatin1String("version"), Version::getRelease());
 	url.setQuery(query);
 
 	WebFetch::fetch(QLatin1String("publist"), url, this, SLOT(fetched(QByteArray, QUrl, QMap< QString, QString >)));
@@ -1382,13 +1418,8 @@ void ConnectDialog::onResolved(const BonjourRecord record, const QString host, c
 
 void ConnectDialog::onUpdateLanList(const QList< BonjourRecord > &list) {
 	QSet< ServerItem * > items;
-#	if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
 	QSet< ServerItem * > old =
 		QSet< ServerItem * >(qtwServers->siLAN->qlChildren.begin(), qtwServers->siLAN->qlChildren.end());
-#	else
-	// In Qt 5.14 QList::toSet() has been deprecated as there exists a dedicated constructor of QSet for this now
-	QSet< ServerItem * > old = qtwServers->siLAN->qlChildren.toSet();
-#	endif
 
 	foreach (const BonjourRecord &record, list) {
 		bool found = false;
@@ -1444,12 +1475,7 @@ void ConnectDialog::fillList() {
 	}
 
 	while (!ql.isEmpty()) {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-		ServerItem *si = static_cast< ServerItem * >(ql.takeAt(QRandomGenerator::global()->generate() % ql.count()));
-#else
-		// Qt 5.10 introduces the QRandomGenerator class and in Qt 5.15 qrand got deprecated in its favor
-		ServerItem *si = static_cast< ServerItem * >(ql.takeAt(qrand() % ql.count()));
-#endif
+		ServerItem *si = static_cast< ServerItem * >(ql.takeAt(QRandomGenerator::global()->bounded(0, ql.count())));
 		qlNew << si;
 		qlItems << si;
 	}
@@ -1555,7 +1581,9 @@ void ConnectDialog::timeTick() {
 	if (si == hover)
 		tHover.restart();
 
-	foreach (const ServerAddress &addr, si->qlAddresses) { sendPing(addr.host.toAddress(), addr.port); }
+	for (const ServerAddress &addr : si->qlAddresses) {
+		sendPing(addr.host.toAddress(), addr.port, si->m_version);
+	}
 }
 
 void ConnectDialog::filterPublicServerList() const {
@@ -1717,37 +1745,36 @@ void ConnectDialog::lookedUp() {
 	}
 
 	if (bAllowPing) {
-		foreach (const ServerAddress &addr, qs) { sendPing(addr.host.toAddress(), addr.port); }
+		for (const ServerAddress &addr : qs) {
+			sendPing(addr.host.toAddress(), addr.port, Version::UNKNOWN);
+		}
 	}
 }
 
-void ConnectDialog::sendPing(const QHostAddress &host, unsigned short port) {
-	char blob[16];
-
+void ConnectDialog::sendPing(const QHostAddress &host, unsigned short port, Version::full_t protocolVersion) {
 	ServerAddress addr(HostAddress(host), port);
 
 	quint64 uiRand;
 	if (qhPingRand.contains(addr)) {
 		uiRand = qhPingRand.value(addr);
 	} else {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
 		uiRand = QRandomGenerator::global()->generate64() << 32;
-#else
-		// Qt 5.10 introduces the QRandomGenerator class and in Qt 5.15 qrand got deprecated in its favor
-		uiRand = (static_cast< quint64 >(qrand()) << 32) | static_cast< quint64 >(qrand());
-#endif
 		qhPingRand.insert(addr, uiRand);
 	}
 
-	memset(blob, 0, sizeof(blob));
-	*reinterpret_cast< quint64 * >(blob + 8) = tPing.elapsed() ^ uiRand;
+	Mumble::Protocol::PingData pingData;
+	// "Encrypt" the timestamp so that server's can't spoof the returned timestamp (easily) to fake a better ping
+	pingData.timestamp                    = tPing.elapsed() ^ uiRand;
+	pingData.requestAdditionalInformation = true;
 
-	if (bIPv4 && host.protocol() == QAbstractSocket::IPv4Protocol)
-		qusSocket4->writeDatagram(blob + 4, 12, host, port);
-	else if (bIPv6 && host.protocol() == QAbstractSocket::IPv6Protocol)
-		qusSocket6->writeDatagram(blob + 4, 12, host, port);
-	else
+	if (!writePing(host, port, protocolVersion, pingData)) {
 		return;
+	}
+	if (protocolVersion == Version::UNKNOWN) {
+		// Also attempt to use new ping format in case we are pinging a server that only knows the new format
+		writePing(host, port, Mumble::Protocol::PROTOBUF_INTRODUCTION_VERSION, pingData);
+	}
+
 
 	const QSet< ServerItem * > &qs = qhPings.value(addr);
 
@@ -1755,33 +1782,60 @@ void ConnectDialog::sendPing(const QHostAddress &host, unsigned short port) {
 		++si->uiSent;
 }
 
+bool ConnectDialog::writePing(const QHostAddress &host, unsigned short port, Version::full_t protocolVersion,
+							  const Mumble::Protocol::PingData &pingData) {
+	m_udpPingEncoder.setProtocolVersion(protocolVersion);
+
+	gsl::span< const Mumble::Protocol::byte > encodedPacket = m_udpPingEncoder.encodePingPacket(pingData);
+
+	if (bIPv4 && host.protocol() == QAbstractSocket::IPv4Protocol) {
+		qusSocket4->writeDatagram(reinterpret_cast< const char * >(encodedPacket.data()),
+								  static_cast< qint64 >(encodedPacket.size()), host, port);
+	} else if (bIPv6 && host.protocol() == QAbstractSocket::IPv6Protocol) {
+		qusSocket6->writeDatagram(reinterpret_cast< const char * >(encodedPacket.data()),
+								  static_cast< qint64 >(encodedPacket.size()), host, port);
+	} else {
+		return false;
+	}
+
+	return true;
+}
+
 void ConnectDialog::udpReply() {
 	QUdpSocket *sock = qobject_cast< QUdpSocket * >(sender());
 
 	while (sock->hasPendingDatagrams()) {
-		char blob[64];
-
 		QHostAddress host;
 		unsigned short port;
 
-		qint64 len = sock->readDatagram(blob + 4, 24, &host, &port);
-		if (len == 24) {
+		gsl::span< Mumble::Protocol::byte > buffer = m_udpDecoder.getBuffer();
+
+		std::size_t len = static_cast< std::size_t >(sock->readDatagram(
+			reinterpret_cast< char * >(buffer.data()), static_cast< int >(buffer.size()), &host, &port));
+
+		// Pings are special in that they can be decoded in the new or the old format, if the protocol version is set to
+		// the old format (which UNKNOWN does). Thus by setting the version to UNKNOWN, we effectively enable to decode
+		// either format. We have to reset it to this value every time, since the call to decode may set the protocol
+		// version to a more recent version (if a ping in new format is detected).
+		m_udpDecoder.setProtocolVersion(Version::UNKNOWN);
+
+		if (m_udpDecoder.decodePing(buffer.subspan(0, len))
+			&& m_udpDecoder.getMessageType() == Mumble::Protocol::UDPMessageType::Ping) {
 			if (host.scopeId() == QLatin1String("0"))
 				host.setScopeId(QLatin1String(""));
 
 			ServerAddress address(HostAddress(host), port);
 
 			if (qhPings.contains(address)) {
-				quint32 *ping = reinterpret_cast< quint32 * >(blob + 4);
-				quint64 *ts   = reinterpret_cast< quint64 * >(blob + 8);
+				Mumble::Protocol::PingData pingData = m_udpDecoder.getPingData();
 
-				quint64 elapsed = tPing.elapsed() - (*ts ^ qhPingRand.value(address));
+				quint64 elapsed = tPing.elapsed() - (pingData.timestamp ^ qhPingRand.value(address));
 
-				foreach (ServerItem *si, qhPings.value(address)) {
-					si->uiVersion    = qFromBigEndian(ping[0]);
-					quint32 users    = qFromBigEndian(ping[3]);
-					quint32 maxusers = qFromBigEndian(ping[4]);
-					si->uiBandwidth  = qFromBigEndian(ping[5]);
+				for (ServerItem *si : qhPings.value(address)) {
+					si->m_version    = pingData.serverVersion;
+					quint32 users    = pingData.userCount;
+					quint32 maxusers = pingData.maxUserCount;
+					si->uiBandwidth  = pingData.maxBandwidthPerUser;
 
 					if (!si->uiPingSort)
 						si->uiPingSort = qmPingCache.value(UnresolvedServerAddress(si->qsHostname, si->usPort));

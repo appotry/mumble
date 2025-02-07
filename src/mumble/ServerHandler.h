@@ -1,4 +1,4 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -32,14 +32,13 @@
 
 #define SERVERSEND_EVENT 3501
 
-#include "Message.h"
 #include "Mumble.pb.h"
+#include "MumbleProtocol.h"
 #include "ServerAddress.h"
 #include "Timer.h"
 
 class Connection;
 class Database;
-class Message;
 class PacketDataStream;
 class QUdpSocket;
 class QSslSocket;
@@ -47,10 +46,10 @@ class VoiceRecorder;
 
 class ServerHandlerMessageEvent : public QEvent {
 public:
-	unsigned int uiType;
+	Mumble::Protocol::TCPMessageType type;
 	QByteArray qbaMsg;
 	bool bFlush;
-	ServerHandlerMessageEvent(const QByteArray &msg, unsigned int type, bool flush = false);
+	ServerHandlerMessageEvent(const QByteArray &msg, Mumble::Protocol::TCPMessageType type, bool flush = false);
 };
 
 typedef boost::shared_ptr< Connection > ConnectionPtr;
@@ -74,6 +73,9 @@ protected:
 	bool bUdp;
 	bool bStrong;
 	int connectionID;
+	Mumble::Protocol::UDPPingEncoder< Mumble::Protocol::Role::Client > m_udpPingEncoder;
+	Mumble::Protocol::UDPDecoder< Mumble::Protocol::Role::Client > m_udpDecoder;
+	Mumble::Protocol::UDPDecoder< Mumble::Protocol::Role::Client > m_tcpTunnelDecoder;
 
 	/// Flag indicating whether the server we are currently connected to has
 	/// finished synchronizing already.
@@ -89,7 +91,7 @@ protected:
 	QUdpSocket *qusUdp;
 	QMutex qmUdp;
 
-	void handleVoicePacket(unsigned int msgFlags, PacketDataStream &pds, MessageHandler::UDPMessageType type);
+	void handleVoicePacket(const Mumble::Protocol::AudioData &audioData);
 
 public:
 	Timer tTimestamp;
@@ -103,12 +105,19 @@ public:
 	boost::shared_ptr< VoiceRecorder > recorder;
 	QSslSocket *qtsSock;
 	QList< ServerAddress > qlAddresses;
+	QHash< ServerAddress, QString > qhHostnames;
 	ServerAddress saTargetServer;
 
-	unsigned int uiVersion;
+	Version::full_t m_version;
 	QString qsRelease;
 	QString qsOS;
 	QString qsOSVersion;
+
+	/**
+	 * A flag indicating whether this connection makes use of PFS or not. Note that this flag only has meaning, if the
+	 * used version of Qt is >= 5.7.
+	 */
+	bool connectionUsesPerfectForwardSecrecy = false;
 
 	boost::accumulators::accumulator_set<
 		double, boost::accumulators::stats< boost::accumulators::tag::mean, boost::accumulators::tag::variance,
@@ -123,8 +132,10 @@ public:
 	void customEvent(QEvent *evt) Q_DECL_OVERRIDE;
 	int getConnectionID() const;
 
-	void sendProtoMessage(const ::google::protobuf::Message &msg, unsigned int msgType);
-	void sendMessage(const char *data, int len, bool force = false);
+	void setProtocolVersion(Version::full_t version);
+
+	void sendProtoMessage(const ::google::protobuf::Message &msg, Mumble::Protocol::TCPMessageType type);
+	void sendMessage(const unsigned char *data, int len, bool force = false);
 
 	/// @returns Whether this handler is currently connected to a server.
 	bool isConnected() const;
@@ -136,18 +147,18 @@ public:
 	/// @param synchronized Whether the server has finished synchronization
 	void setServerSynchronized(bool synchronized);
 
-#define MUMBLE_MH_MSG(x) \
-	void sendMessage(const MumbleProto::x &msg) { sendProtoMessage(msg, MessageHandler::x); }
-	MUMBLE_MH_ALL
-#undef MUMBLE_MH_MSG
+#define PROCESS_MUMBLE_TCP_MESSAGE(name, value) \
+	void sendMessage(const MumbleProto::name &msg) { sendProtoMessage(msg, Mumble::Protocol::TCPMessageType::name); }
+	MUMBLE_ALL_TCP_MESSAGES
+#undef PROCESS_MUMBLE_TCP_MESSAGE
 
 	void requestUserStats(unsigned int uiSession, bool statsOnly);
 	void joinChannel(unsigned int uiSession, unsigned int channel);
 	void joinChannel(unsigned int uiSession, unsigned int channel, const QStringList &temporaryAccessTokens);
-	void startListeningToChannel(int channel);
-	void startListeningToChannels(const QList< int > &channelIDs);
-	void stopListeningToChannel(int channel);
-	void stopListeningToChannels(const QList< int > &channelIDs);
+	void startListeningToChannel(unsigned int channel);
+	void startListeningToChannels(const QList< unsigned int > &channelIDs);
+	void stopListeningToChannel(unsigned int channel);
+	void stopListeningToChannels(const QList< unsigned int > &channelIDs);
 	void createChannel(unsigned int parent_id, const QString &name, const QString &description, unsigned int position,
 					   bool temporary, unsigned int maxUsers);
 	void requestBanList();
@@ -183,7 +194,7 @@ signals:
 	void connected();
 	void pingRequested();
 protected slots:
-	void message(unsigned int, const QByteArray &);
+	void message(Mumble::Protocol::TCPMessageType type, const QByteArray &);
 	void serverConnectionConnected();
 	void serverConnectionTimeoutOnConnect();
 	void serverConnectionStateChanged(QAbstractSocket::SocketState);

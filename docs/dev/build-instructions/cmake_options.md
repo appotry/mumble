@@ -19,6 +19,11 @@ Build support for ALSA.
 Build support for ASIO audio input.
 (Default: OFF)
 
+### benchmarks
+
+Build benchmarks
+(Default: OFF)
+
 ### BUILD_OVERLAY_XCOMPILE
 
 Build an x86 overlay
@@ -29,14 +34,24 @@ Build an x86 overlay
 Bundle Qt's translations as well
 (Default: ${static})
 
-### bundled-celt
+### bundled-gsl
 
-Build the included version of CELT instead of looking for one on the system.
+Use the bundled GSL version instead of looking for one on the system
 (Default: ON)
 
-### bundled-opus
+### bundled-json
 
-Build the included version of Opus instead of looking for one on the system.
+Build the included version of nlohmann_json instead of looking for one on the system
+(Default: ON)
+
+### bundled-renamenoise
+
+Build the included version of ReNameNoise instead of looking for one on the system.
+(Default: ${renamenoise})
+
+### bundled-spdlog
+
+Use the bundled spdlog version instead of looking for one on the system
 (Default: ON)
 
 ### bundled-speex
@@ -59,14 +74,14 @@ Build support for CoreAudio.
 Include support for reporting crashes to the Mumble developers.
 (Default: ON)
 
-### dbus
-
-Build support for DBus.
-(Default: ON)
-
 ### debug-dependency-search
 
 Prints extended information during the search for the needed dependencies
+(Default: OFF)
+
+### display-install-paths
+
+Print out base install paths during project configuration
 (Default: OFF)
 
 ### elevation
@@ -89,11 +104,6 @@ Build the g15helper executable in emulator mode. This will cause an emulated G15
 Build support for Logitech G-Keys. Note: This feature does not require any build-time dependencies, and requires Logitech Gaming Software to be installed to have any effect at runtime.
 (Default: ON)
 
-### grpc
-
-Build support for gRPC.
-(Default: OFF)
-
 ### ice
 
 Build support for Ice RPC.
@@ -103,6 +113,11 @@ Build support for Ice RPC.
 
 Build support for JackAudio.
 (Default: ON)
+
+### lto
+
+Enables link-time optimizations for release builds
+(Default: ${LTO_DEFAULT})
 
 ### manual-plugin
 
@@ -119,16 +134,6 @@ Whether or not tests that need a working internet connection should be included
 Build a heavily optimized version, specific to the machine it's being compiled on.
 (Default: OFF)
 
-### OPUS_BUILD_SHARED_LIBRARY
-
-(No description available)
-(Default: ON)
-
-### OPUS_STACK_PROTECTOR
-
-(No description available)
-(Default: OFF)
-
 ### oss
 
 Build support for OSS.
@@ -137,7 +142,7 @@ Build support for OSS.
 ### overlay
 
 Build overlay.
-(Default: ON)
+(Default: ${client})
 
 ### overlay-xcompile
 
@@ -189,15 +194,15 @@ Build support for custom Diffie-Hellman parameters.
 Use Qt's text-to-speech system (part of the Qt Speech module) instead of Mumble's own OS-specific text-to-speech implementations.
 (Default: OFF)
 
+### renamenoise
+
+Use ReNameNoise for machine learning noise reduction.
+(Default: ON)
+
 ### retracted-plugins
 
 Build redacted (outdated) plugins as well
 (Default: OFF)
-
-### rnnoise
-
-Build RNNoise for machine learning noise reduction
-(Default: ON)
 
 ### server
 
@@ -221,7 +226,12 @@ Build binaries in a way that allows easier debugging.
 
 ### tests
 
-Build tests
+Build tests.
+(Default: ${packaging})
+
+### tracy
+
+Enable the tracy profiler.
 (Default: OFF)
 
 ### translations
@@ -233,6 +243,11 @@ Include languages other than English.
 
 Check for updates by default.
 (Default: ON)
+
+### use-pkgconf-install-paths
+
+Try to query install paths from pkgconf - this is incompatible to using CMAKE_INSTALL_PREFIX
+(Default: OFF)
 
 ### warnings-as-errors
 
@@ -251,7 +266,7 @@ Build support for global shortcuts from Xbox controllers via the XInput DLL.
 
 ### xinput2
 
-Build support for XI2
+Build support for XI2.
 (Default: ON)
 
 ### zeroconf

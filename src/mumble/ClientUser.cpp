@@ -1,4 +1,4 @@
-// Copyright 2009-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -112,7 +112,7 @@ void ClientUser::remove(unsigned int uiSession) {
 			// Furthermore ClientUser objects are deleted in UserModel::removeUser which
 			// calls this very function before doing so. Thus the object shouldn't be
 			// deleted before this function returns anyways.
-			ao->removeBuffer(p);
+			ao->removeUser(p);
 		}
 	}
 }
@@ -316,7 +316,7 @@ bool ClientUser::isActive() {
 	if (!tLastTalkStateChange.isStarted())
 		return false;
 
-	return tLastTalkStateChange.elapsed() < Global::get().s.os.uiActiveTime * 1000000U;
+	return tLastTalkStateChange.elapsed() < static_cast< unsigned int >(Global::get().s.os.uiActiveTime) * 1000000U;
 }
 
 /* From Channel.h

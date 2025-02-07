@@ -1,4 +1,4 @@
-# Copyright 2020-2021 The Mumble Developers. All rights reserved.
+# Copyright The Mumble Developers. All rights reserved.
 # Use of this source code is governed by a BSD-style license
 # that can be found in the LICENSE file at the root of the
 # Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -14,7 +14,8 @@ if(BUILD_OVERLAY_XCOMPILE)
 		LANGUAGES CXX
 	)
 
-	include("${PARENT_SOURCE_DIR}/cmake/compiler.cmake")
+	list(APPEND CMAKE_MODULE_PATH "${3RDPARTY_DIR}/cmake-compiler-flags")
+	include("${MUMBLE_SOURCE_ROOT}/cmake/compiler.cmake")
 endif()
 
 set(DX11_PIXEL_SHADERS "overlay11.ps")
@@ -118,7 +119,7 @@ if(BUILD_OVERLAY_XCOMPILE)
 	target_include_directories(overlay
 		PRIVATE
 			${Boost_INCLUDE_DIRS}
-			${PARENT_SOURCE_DIR}
+			${MUMBLE_SOURCE_ROOT}
 			${CMAKE_CURRENT_BINARY_DIR}
 	)
 else()
@@ -149,17 +150,20 @@ endif()
 
 if(64_BIT AND MSVC)
 	include(ExternalProject)
+	
+	string(REPLACE "x64" "x86" XCOMPILE_TRIPLET "${VCPKG_TARGET_TRIPLET}")
+	message(STATUS "Using cross-compilation triplet '${XCOMPILE_TRIPLET}'")
 
 	if(CMAKE_GENERATOR MATCHES "Visual Studio")
 		ExternalProject_Add(overlay_xcompile
 			DOWNLOAD_COMMAND ""
 			CMAKE_GENERATOR ${CMAKE_GENERATOR}
 			CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-				"-DVCPKG_TARGET_TRIPLET=x86-windows-static-md"
-				"-DPARENT_SOURCE_DIR=${CMAKE_SOURCE_DIR}"
-				"-DMUMBLE_SOURCE_DIR=${CMAKE_SOURCE_DIR}/src/mumble"
+				"-DVCPKG_TARGET_TRIPLET=${XCOMPILE_TRIPLET}"
+				"-DMUMBLE_SOURCE_ROOT=${CMAKE_SOURCE_DIR}"
 				"-DMUMBLE_BINARY_DIR=${CMAKE_BINARY_DIR}"
 				"-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+				"-D3RDPARTY_DIR=${3RDPARTY_DIR}"
 				# Force MSVC, because CMake prioritizes MinGW over it.
 				"-DCMAKE_C_COMPILER=cl.exe"
 				"-DCMAKE_CXX_COMPILER=cl.exe"
@@ -168,7 +172,6 @@ if(64_BIT AND MSVC)
 				"-Dversion=${PROJECT_VERSION}"
 				${CMAKE_SOURCE_DIR}/overlay
 			CMAKE_GENERATOR_PLATFORM "Win32"
-			WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/overlay/overlay_xcompile-prefix
 			INSTALL_COMMAND ""
 		)
 	else()
@@ -178,11 +181,11 @@ if(64_BIT AND MSVC)
 			BUILD_COMMAND ${CMAKE_SOURCE_DIR}/overlay/scripts/build_overlay_xcompile.cmd
 				-G ${CMAKE_GENERATOR}
 				-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-				"-DVCPKG_TARGET_TRIPLET=x86-windows-static-md"
-				"-DPARENT_SOURCE_DIR=${CMAKE_SOURCE_DIR}"
-				"-DMUMBLE_SOURCE_DIR=${CMAKE_SOURCE_DIR}/src/mumble"
+				"-DVCPKG_TARGET_TRIPLET=${XCOMPILE_TRIPLET}"
+				"-DMUMBLE_SOURCE_ROOT=${CMAKE_SOURCE_DIR}"
 				"-DMUMBLE_BINARY_DIR=${CMAKE_BINARY_DIR}"
 				"-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+				"-D3RDPARTY_DIR=${3RDPARTY_DIR}"
 				# Force MSVC, because CMake prioritizes MinGW over it.
 				"-DCMAKE_C_COMPILER=cl.exe"
 				"-DCMAKE_CXX_COMPILER=cl.exe"
@@ -190,7 +193,6 @@ if(64_BIT AND MSVC)
 				"-Dsymbols=${symbols}"
 				"-Dversion=${PROJECT_VERSION}"
 				${CMAKE_SOURCE_DIR}/overlay
-			WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/overlay/overlay_xcompile-prefix
 			INSTALL_COMMAND ""
 		)
 	endif()

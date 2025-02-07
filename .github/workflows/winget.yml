@@ -1,0 +1,21 @@
+name: Publish to WinGet
+on:
+  release:
+    types: [released]
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - name: Publish Mumble client
+        uses: vedantmgoyal9/winget-releaser@main
+        with:
+          identifier: Mumble.Mumble.Client
+          installers-regex: mumble_client.*.msi$
+          token: ${{ secrets.WINGET_TOKEN }}
+
+      - name: Publish Mumble server
+        uses: vedantmgoyal9/winget-releaser@main
+        with:
+          identifier: Mumble.Mumble.Server
+          installers-regex: mumble_server.*.msi$
+          token: ${{ secrets.WINGET_TOKEN }}

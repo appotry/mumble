@@ -1,4 +1,4 @@
-// Copyright 2010-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -13,6 +13,8 @@
 #include "../Timer.h"
 
 #include <boost/make_shared.hpp>
+
+#include <QRegularExpression>
 
 VoiceRecorder::RecordBuffer::RecordBuffer(int recordInfoIndex_, boost::shared_array< float > buffer_, int samples_,
 										  quint64 absoluteStartSample_)
@@ -63,11 +65,12 @@ QString VoiceRecorder::sanitizeFilenameOrPathComponent(const QString &str) const
 	}
 
 	// Replace < > : " / \ | ? * as well as chr(0) to chr(31)
-	res = res.replace(QRegExp(QLatin1String("[<>:\"/\\\\|\\?\\*\\x00-\\x1F]")), QLatin1String("_"));
+	res = res.replace(QRegularExpression(QLatin1String("[<>:\"/\\\\|\\?\\*\\x00-\\x1F]")), QLatin1String("_"));
 
 	// Prepend reserved filenames CON, PRN, AUX, NUL, COM1, COM2, COM3, COM4, COM5, COM6, COM7, COM8, COM9, LPT1, LPT2,
 	// LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, and LPT9
-	res = res.replace(QRegExp(QLatin1String("^((CON|PRN|AUX|NUL|COM[1-9]|LPT1[1-9])(\\.|$))"), Qt::CaseInsensitive),
+	res = res.replace(QRegularExpression(QLatin1String("^((CON|PRN|AUX|NUL|COM[1-9]|LPT1[1-9])(\\.|$))"),
+										 QRegularExpression::CaseInsensitiveOption),
 					  QLatin1String("_\\1"));
 
 	// Make sure we do not exceed 255 characters
@@ -78,7 +81,7 @@ QString VoiceRecorder::sanitizeFilenameOrPathComponent(const QString &str) const
 	}
 #else
 	// For the rest just make sure the string doesn't contain a \0 or any forward-slashes
-	res           = res.replace(QRegExp(QLatin1String("\\x00|/")), QLatin1String("_"));
+	res           = res.replace(QRegularExpression(QLatin1String("\\x00|/")), QLatin1String("_"));
 #endif
 	return res;
 }
@@ -119,13 +122,13 @@ QString VoiceRecorder::expandTemplateVariables(const QString &path, const QStrin
 		QString tmp;
 
 		tmp.reserve(str.length() * 2);
-		for (int i = 0; i < str.size(); ++i) {
+		for (decltype(str.size()) i = 0; i < str.size(); ++i) {
 			bool replaced = false;
 			if (str[i] == QLatin1Char('%')) {
 				QHashIterator< const QString, QString > it(vars);
 				while (it.hasNext()) {
 					it.next();
-					if (str.midRef(i + 1, it.key().length()) == it.key()) {
+					if (str.mid(i + 1, it.key().length()) == it.key()) {
 						i += it.key().length();
 						tmp += it.value();
 						replaced     = true;
@@ -157,7 +160,7 @@ QString VoiceRecorder::expandTemplateVariables(const QString &path, const QStrin
 int VoiceRecorder::indexForUser(const ClientUser *clientUser) const {
 	Q_ASSERT(!m_config.mixDownMode || !clientUser);
 
-	return (m_config.mixDownMode) ? 0 : clientUser->uiSession;
+	return (m_config.mixDownMode) ? 0 : static_cast< int >(clientUser->uiSession);
 }
 
 SF_INFO VoiceRecorder::createSoundFileInfo() const {
@@ -222,6 +225,18 @@ SF_INFO VoiceRecorder::createSoundFileInfo() const {
 			sfinfo.seekable   = 0;
 			qWarning() << "VoiceRecorder: recording started to" << m_config.fileName << "@" << m_config.sampleRate
 					   << "hz in OPUS format";
+			break;
+#endif
+#ifdef USE_SNDFILE_MP3
+		case VoiceRecorderFormat::MP3:
+			sfinfo.frames     = 0;
+			sfinfo.samplerate = m_config.sampleRate;
+			sfinfo.channels   = 1;
+			sfinfo.format     = SF_FORMAT_MPEG | SF_FORMAT_MPEG_LAYER_III;
+			sfinfo.sections   = 0;
+			sfinfo.seekable   = 0;
+			qWarning() << "VoiceRecorder: recording started to" << m_config.fileName << "@" << m_config.sampleRate
+					   << "hz in MP3 format";
 			break;
 #endif
 	}
@@ -292,7 +307,7 @@ bool VoiceRecorder::ensureFileIsOpenedFor(SF_INFO &soundFileInfo, boost::shared_
 void VoiceRecorder::run() {
 	Q_ASSERT(!m_recording);
 
-	if (Global::get().sh && Global::get().sh->uiVersion < 0x010203)
+	if (Global::get().sh && Global::get().sh->m_version < Version::fromComponents(1, 2, 3))
 		return;
 
 	SF_INFO soundFileInfo = createSoundFileInfo();
@@ -305,7 +320,8 @@ void VoiceRecorder::run() {
 		m_sleepLock.lock();
 		m_sleepCondition.wait(&m_sleepLock);
 
-		if (!m_recording || m_abort || (Global::get().sh && Global::get().sh->uiVersion < 0x010203)) {
+		if (!m_recording || m_abort
+			|| (Global::get().sh && Global::get().sh->m_version < Version::fromComponents(1, 2, 3))) {
 			m_sleepLock.unlock();
 			break;
 		}
@@ -326,7 +342,8 @@ void VoiceRecorder::run() {
 				return;
 			}
 
-			const qint64 missingSamples = rb->absoluteStartSample - ri->lastWrittenAbsoluteSample;
+			const qint64 missingSamples =
+				static_cast< qint64 >(rb->absoluteStartSample) - static_cast< qint64 >(ri->lastWrittenAbsoluteSample);
 
 			static const qint64 heuristicSilenceThreshold = m_config.sampleRate / 10; // 100ms
 			if (missingSamples > heuristicSilenceThreshold) {
@@ -346,7 +363,7 @@ void VoiceRecorder::run() {
 				if (rest > 0)
 					sf_write_float(ri->soundFile, buffer, rest);
 
-				ri->lastWrittenAbsoluteSample += silenceToWrite;
+				ri->lastWrittenAbsoluteSample += static_cast< quint64 >(silenceToWrite);
 
 				if (requeue) {
 					// Requeue the writing for this buffer to keep thread responsive
@@ -358,7 +375,7 @@ void VoiceRecorder::run() {
 
 			// Write the audio buffer and update the timestamp in |ri|.
 			sf_write_float(ri->soundFile, rb->buffer.get(), rb->samples);
-			ri->lastWrittenAbsoluteSample += rb->samples;
+			ri->lastWrittenAbsoluteSample += static_cast< quint64 >(rb->samples);
 		}
 
 		m_sleepLock.unlock();
@@ -385,7 +402,7 @@ void VoiceRecorder::stop(bool force) {
 
 void VoiceRecorder::prepareBufferAdds() {
 	// Should be ms accurat
-	m_absoluteSampleEstimation = (m_timestamp->elapsed() / 1000) * (m_config.sampleRate / 1000);
+	m_absoluteSampleEstimation = (m_timestamp->elapsed() / 1000) * (static_cast< quint64 >(m_config.sampleRate) / 1000);
 }
 
 void VoiceRecorder::addBuffer(const ClientUser *clientUser, boost::shared_array< float > buffer, int samples) {
@@ -445,6 +462,10 @@ QString VoiceRecorderFormat::getFormatDescription(VoiceRecorderFormat::Format fm
 		case VoiceRecorderFormat::OPUS:
 			return VoiceRecorder::tr(".opus - Lossy compressed");
 #endif
+#ifdef USE_SNDFILE_MP3
+		case VoiceRecorderFormat::MP3:
+			return VoiceRecorder::tr(".mp3 - Lossy compressed");
+#endif
 		default:
 			return QString();
 	}
@@ -465,6 +486,10 @@ QString VoiceRecorderFormat::getFormatDefaultExtension(VoiceRecorderFormat::Form
 #ifdef USE_SNDFILE_OPUS
 		case VoiceRecorderFormat::OPUS:
 			return QLatin1String("opus");
+#endif
+#ifdef USE_SNDFILE_MP3
+		case VoiceRecorderFormat::MP3:
+			return QLatin1String("mp3");
 #endif
 		default:
 			return QString();

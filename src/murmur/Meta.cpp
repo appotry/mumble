@@ -1,4 +1,4 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -35,11 +35,9 @@
 #	include <sys/resource.h>
 #endif
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-#	include <QRandomGenerator>
-#endif
+#include <QRandomGenerator>
 
-MetaParams Meta::mp;
+std::unique_ptr< MetaParams > Meta::mp;
 
 #ifdef Q_OS_WIN
 HANDLE Meta::hQoS = nullptr;
@@ -70,9 +68,8 @@ MetaParams::MetaParams() {
 	qsDatabase                 = QString();
 	iSQLiteWAL                 = 0;
 	iDBPort                    = 0;
-	qsDBusService              = "net.sourceforge.mumble.murmur";
 	qsDBDriver                 = "QSQLITE";
-	qsLogfile                  = "murmur.log";
+	qsLogfile                  = "mumble-server.log";
 
 	iLogDays = 31;
 
@@ -92,13 +89,13 @@ MetaParams::MetaParams() {
 	uiUid = uiGid = 0;
 #endif
 
-	iOpusThreshold = 100;
+	iOpusThreshold = 0;
 
 	iChannelNestingLimit = 10;
 	iChannelCountLimit   = 1000;
 
-	qrUserName    = QRegExp(QLatin1String("[ -=\\w\\[\\]\\{\\}\\(\\)\\@\\|\\.]+"));
-	qrChannelName = QRegExp(QLatin1String("[ -=\\w\\#\\[\\]\\{\\}\\(\\)\\@\\|]+"));
+	qrUserName    = QRegularExpression(QLatin1String("[ -=\\w\\[\\]\\{\\}\\(\\)\\@\\|\\.]+"));
+	qrChannelName = QRegularExpression(QLatin1String("[ -=\\w\\#\\[\\]\\{\\}\\(\\)\\@\\|]+"));
 
 	iMessageLimit = 1;
 	iMessageBurst = 5;
@@ -106,12 +103,16 @@ MetaParams::MetaParams() {
 	iPluginMessageLimit = 4;
 	iPluginMessageBurst = 15;
 
+	broadcastListenerVolumeAdjustments = false;
+
 	qsCiphers = MumbleSSL::defaultOpenSSLCipherString();
 
 	bLogGroupChanges = false;
 	bLogACLChanges   = false;
 
 	allowRecording = true;
+
+	rollingStatsWindow = 300;
 
 	qsSettings = nullptr;
 }
@@ -134,8 +135,9 @@ MetaParams::~MetaParams() {
  *	@param settings The QSettings object to read from. If null, the Meta's qsSettings will be used.
  *	@return Setting if valid, default if not or setting not set.
  */
-template< class T >
-T MetaParams::typeCheckedFromSettings(const QString &name, const T &defaultValue, QSettings *settings) {
+template< class ValueType, class ReturnType >
+ReturnType MetaParams::typeCheckedFromSettings(const QString &name, const ValueType &defaultValue,
+											   QSettings *settings) {
 	// Use qsSettings unless a specific QSettings instance
 	// is requested.
 	if (!settings) {
@@ -144,16 +146,15 @@ T MetaParams::typeCheckedFromSettings(const QString &name, const T &defaultValue
 
 	QVariant cfgVariable = settings->value(name, defaultValue);
 
-	if (!cfgVariable.convert(
-			QVariant(defaultValue)
-				.type())) { // Bit convoluted as canConvert<T>() only does a static check without considering whether
-							// say a string like "blub" is actually a valid double (which convert does).
+	// Bit convoluted as canConvert<T>() only does a static check without considering whether
+	// say a string like "blub" is actually a valid double (which convert does).
+	if (!cfgVariable.convert(QMetaType(QVariant(defaultValue).metaType()))) {
 		qCritical() << "Configuration variable" << name << "is of invalid format. Set to default value of"
 					<< defaultValue << ".";
-		return defaultValue;
+		return static_cast< ReturnType >(defaultValue);
 	}
 
-	return cfgVariable.value< T >();
+	return cfgVariable.value< ReturnType >();
 }
 
 void MetaParams::read(QString fname) {
@@ -163,12 +164,13 @@ void MetaParams::read(QString fname) {
 		QStringList datapaths;
 
 #if defined(Q_OS_WIN)
-		datapaths << QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+		datapaths << QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
 
 		QDir appdir = QDir(QDir::fromNativeSeparators(EnvUtils::getenv(QLatin1String("APPDATA"))));
 		datapaths << appdir.absolutePath() + QLatin1String("/Mumble");
 #else
 		datapaths << QDir::homePath() + QLatin1String("/.murmurd");
+		datapaths << QDir::homePath() + QLatin1String("/.mumble-server");
 		datapaths << QDir::homePath() + QLatin1String("/.config/Mumble");
 #endif
 
@@ -181,20 +183,23 @@ void MetaParams::read(QString fname) {
 		datapaths << QDir::currentPath();
 		datapaths << QCoreApplication::instance()->applicationDirPath();
 
-		foreach (const QString &p, datapaths) {
+		for (const QString &p : datapaths) {
 			if (!p.isEmpty()) {
-				QFileInfo fi(p, "murmur.ini");
-				if (fi.exists() && fi.isReadable()) {
-					qdBasePath            = QDir(p);
-					qsAbsSettingsFilePath = fi.absoluteFilePath();
-					break;
+				// Prefer "mumble-server.ini" but for legacy reasons also keep looking for "murmur.ini"
+				for (const QString &currentFileName :
+					 { QStringLiteral("mumble-server.ini"), QStringLiteral("murmur.ini") }) {
+					QFileInfo fi(p, currentFileName);
+					if (fi.exists() && fi.isReadable()) {
+						qdBasePath            = QDir(p);
+						qsAbsSettingsFilePath = fi.absoluteFilePath();
+						break;
+					}
 				}
 			}
 		}
 		if (qsAbsSettingsFilePath.isEmpty()) {
-			QDir::root().mkpath(qdBasePath.absolutePath());
 			qdBasePath            = QDir(datapaths.at(0));
-			qsAbsSettingsFilePath = qdBasePath.absolutePath() + QLatin1String("/murmur.ini");
+			qsAbsSettingsFilePath = qdBasePath.absolutePath() + QLatin1String("/mumble-server.ini");
 		}
 	} else {
 		QFile f(fname);
@@ -207,19 +212,30 @@ void MetaParams::read(QString fname) {
 	}
 	QDir::setCurrent(qdBasePath.absolutePath());
 	qsSettings = new QSettings(qsAbsSettingsFilePath, QSettings::IniFormat);
-	qsSettings->setIniCodec("UTF-8");
 
-	qWarning("Initializing settings from %s (basepath %s)", qPrintable(qsSettings->fileName()),
-			 qPrintable(qdBasePath.absolutePath()));
+	qsSettings->sync();
+	switch (qsSettings->status()) {
+		case QSettings::NoError:
+			break;
+		case QSettings::AccessError:
+			qFatal("Access error while trying to access %s", qPrintable(qsSettings->fileName()));
+			break;
+		case QSettings::FormatError:
+			qFatal("Your INI file at %s is invalid - check for syntax errors!", qPrintable(qsSettings->fileName()));
+			break;
+	}
+
+	if (QFile::exists(qsAbsSettingsFilePath)) {
+		qWarning("Initializing settings from %s (basepath %s)", qPrintable(qsSettings->fileName()),
+				 qPrintable(qdBasePath.absolutePath()));
+	} else {
+		qWarning("No ini file at %s (basepath %s). Initializing with default settings.",
+				 qPrintable(qsSettings->fileName()), qPrintable(qdBasePath.absolutePath()));
+	}
 
 	QString qsHost = qsSettings->value("host", QString()).toString();
 	if (!qsHost.isEmpty()) {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
-		foreach (const QString &host, qsHost.split(QRegExp(QLatin1String("\\s+")), Qt::SkipEmptyParts)) {
-#else
-		// Qt 5.14 introduced the Qt::SplitBehavior flags deprecating the QString fields
-		foreach (const QString &host, qsHost.split(QRegExp(QLatin1String("\\s+")), QString::SkipEmptyParts)) {
-#endif
+		foreach (const QString &host, qsHost.split(QRegularExpression(QLatin1String("\\s+")), Qt::SkipEmptyParts)) {
 			QHostAddress qhaddr;
 			if (qhaddr.setAddress(host)) {
 				qlBind << qhaddr;
@@ -283,17 +299,10 @@ void MetaParams::read(QString fname) {
 	qsIceSecretRead  = typeCheckedFromSettings("icesecretread", qsIceSecretRead);
 	qsIceSecretWrite = typeCheckedFromSettings("icesecretwrite", qsIceSecretRead);
 
-	qsGRPCAddress    = typeCheckedFromSettings("grpc", qsGRPCAddress);
-	qsGRPCCert       = typeCheckedFromSettings("grpccert", qsGRPCCert);
-	qsGRPCKey        = typeCheckedFromSettings("grpckey", qsGRPCKey);
-	qsGRPCAuthorized = typeCheckedFromSettings("grpcauthorized", qsGRPCAuthorized);
-
 	iLogDays = typeCheckedFromSettings("logdays", iLogDays);
 
-	qsDBus        = typeCheckedFromSettings("dbus", qsDBus);
-	qsDBusService = typeCheckedFromSettings("dbusservice", qsDBusService);
-	qsLogfile     = typeCheckedFromSettings("logfile", qsLogfile);
-	qsPid         = typeCheckedFromSettings("pidfile", qsPid);
+	qsLogfile = typeCheckedFromSettings("logfile", qsLogfile);
+	qsPid     = typeCheckedFromSettings("pidfile", qsPid);
 
 	qsRegName     = typeCheckedFromSettings("registerName", qsRegName);
 	qsRegPassword = typeCheckedFromSettings("registerPassword", qsRegPassword);
@@ -307,9 +316,7 @@ void MetaParams::read(QString fname) {
 	iBanTime       = typeCheckedFromSettings("autobanTime", iBanTime);
 	bBanSuccessful = typeCheckedFromSettings("autobanSuccessfulConnections", bBanSuccessful);
 
-	qvSuggestVersion = Version::getRaw(qsSettings->value("suggestVersion").toString());
-	if (qvSuggestVersion.toUInt() == 0)
-		qvSuggestVersion = QVariant();
+	m_suggestVersion = Version::fromConfig(qsSettings->value("suggestVersion"));
 
 	qvSuggestPositional = qsSettings->value("suggestPositional");
 	if (qvSuggestPositional.toString().trimmed().isEmpty())
@@ -323,6 +330,8 @@ void MetaParams::read(QString fname) {
 	bLogACLChanges   = typeCheckedFromSettings("logaclchanges", bLogACLChanges);
 
 	allowRecording = typeCheckedFromSettings("allowRecording", allowRecording);
+
+	rollingStatsWindow = typeCheckedFromSettings("rollingStatsWindow", rollingStatsWindow);
 
 	iOpusThreshold = typeCheckedFromSettings("opusthreshold", iOpusThreshold);
 
@@ -351,24 +360,21 @@ void MetaParams::read(QString fname) {
 	}
 #endif
 
-	qrUserName    = QRegExp(typeCheckedFromSettings("username", qrUserName.pattern()));
-	qrChannelName = QRegExp(typeCheckedFromSettings("channelname", qrChannelName.pattern()));
+	qrUserName    = QRegularExpression(typeCheckedFromSettings("username", qrUserName.pattern()));
+	qrChannelName = QRegularExpression(typeCheckedFromSettings("channelname", qrChannelName.pattern()));
 
-	iMessageLimit = typeCheckedFromSettings("messagelimit", 1);
-	iMessageBurst = typeCheckedFromSettings("messageburst", 5);
+	iMessageLimit = typeCheckedFromSettings< unsigned int >("messagelimit", 1);
+	iMessageBurst = typeCheckedFromSettings< unsigned int >("messageburst", 5);
 
-	iPluginMessageLimit = typeCheckedFromSettings("pluginmessagelimit", 4);
-	iPluginMessageBurst = typeCheckedFromSettings("pluginmessageburst", 15);
+	iPluginMessageLimit = typeCheckedFromSettings< unsigned int >("pluginmessagelimit", 4);
+	iPluginMessageBurst = typeCheckedFromSettings< unsigned int >("pluginmessageburst", 15);
+
+	broadcastListenerVolumeAdjustments = typeCheckedFromSettings("broadcastlistenervolumeadjustments", false);
 
 	bool bObfuscate = typeCheckedFromSettings("obfuscate", false);
 	if (bObfuscate) {
 		qWarning("IP address obfuscation enabled.");
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-		iObfuscate = QRandomGenerator::global()->generate();
-#else
-		// Qt 5.10 introduces the QRandomGenerator class and in Qt 5.15 qrand got deprecated in its favor
-		iObfuscate = qrand();
-#endif
+		iObfuscate = static_cast< int >(QRandomGenerator::global()->generate());
 	}
 	bSendVersion = typeCheckedFromSettings("sendversion", bSendVersion);
 	bAllowPing   = typeCheckedFromSettings("allowping", bAllowPing);
@@ -409,8 +415,7 @@ void MetaParams::read(QString fname) {
 	qmConfig.insert(QLatin1String("certrequired"), bCertRequired ? QLatin1String("true") : QLatin1String("false"));
 	qmConfig.insert(QLatin1String("forceExternalAuth"),
 					bForceExternalAuth ? QLatin1String("true") : QLatin1String("false"));
-	qmConfig.insert(QLatin1String("suggestversion"),
-					qvSuggestVersion.isNull() ? QString() : qvSuggestVersion.toString());
+	qmConfig.insert(QLatin1String("suggestversion"), Version::toConfigString(m_suggestVersion));
 	qmConfig.insert(QLatin1String("suggestpositional"),
 					qvSuggestPositional.isNull() ? QString() : qvSuggestPositional.toString());
 	qmConfig.insert(QLatin1String("suggestpushtotalk"),
@@ -424,7 +429,6 @@ void MetaParams::read(QString fname) {
 
 bool MetaParams::loadSSLSettings() {
 	QSettings updatedSettings(qsAbsSettingsFilePath, QSettings::IniFormat);
-	updatedSettings.setIniCodec("UTF-8");
 
 	QString tmpCiphersStr = typeCheckedFromSettings("sslCiphers", qsCiphers);
 
@@ -514,7 +518,8 @@ bool MetaParams::loadSSLSettings() {
 		}
 		if (ql.size() > 0) {
 			tmpIntermediates = ql;
-			qCritical("MetaParams: Adding %d intermediate certificates from certificate file.", ql.size());
+			qCritical("MetaParams: Adding %lld intermediate certificates from certificate file.",
+					  static_cast< qsizetype >(ql.size()));
 		}
 	}
 
@@ -558,7 +563,7 @@ bool MetaParams::loadSSLSettings() {
 	QString qsSSLDHParamsIniValue = qsSettings->value(QLatin1String("sslDHParams")).toString();
 	if (!qsSSLDHParamsIniValue.isEmpty()) {
 		qFatal("MetaParams: This version of Murmur does not support Diffie-Hellman parameters (sslDHParams). Murmur "
-			   "will not start unless you remove the option from your murmur.ini file.");
+			   "will not start unless you remove the option from your mumble-server.ini (murmur.ini)file.");
 		return false;
 	}
 #endif
@@ -650,7 +655,7 @@ Meta::~Meta() {
 
 bool Meta::reloadSSLSettings() {
 	// Reload SSL settings.
-	if (!Meta::mp.loadSSLSettings()) {
+	if (!Meta::mp->loadSSLSettings()) {
 		return false;
 	}
 
@@ -696,8 +701,8 @@ bool Meta::boot(int srvnum) {
 #ifdef Q_OS_UNIX
 	unsigned int sockets = 19; // Base
 	foreach (s, qhServers) {
-		sockets += 11;           // Listen sockets, signal pipes etc.
-		sockets += s->iMaxUsers; // One per user
+		sockets += 11;                                        // Listen sockets, signal pipes etc.
+		sockets += static_cast< unsigned int >(s->iMaxUsers); // One per user
 	}
 
 	struct rlimit r;
@@ -743,7 +748,7 @@ void Meta::killAll() {
 }
 
 void Meta::successfulConnectionFrom(const QHostAddress &addr) {
-	if (!mp.bBanSuccessful) {
+	if (!mp->bBanSuccessful) {
 		QList< Timer > &ql = qhAttempts[addr];
 		// Seems like this is the most efficient way to clear the list, given:
 		// 1. ql.clear() allocates a new array
@@ -756,12 +761,12 @@ void Meta::successfulConnectionFrom(const QHostAddress &addr) {
 }
 
 bool Meta::banCheck(const QHostAddress &addr) {
-	if ((mp.iBanTries <= 0) || (mp.iBanTimeframe <= 0))
+	if ((mp->iBanTries <= 0) || (mp->iBanTimeframe <= 0))
 		return false;
 
 	if (qhBans.contains(addr)) {
 		Timer t = qhBans.value(addr);
-		if (t.elapsed() < (1000000ULL * mp.iBanTime))
+		if (t.elapsed() < (1000000ULL * static_cast< unsigned long long >(mp->iBanTime)))
 			return true;
 		qhBans.remove(addr);
 	}
@@ -769,10 +774,10 @@ bool Meta::banCheck(const QHostAddress &addr) {
 	QList< Timer > &ql = qhAttempts[addr];
 
 	ql.append(Timer());
-	while (!ql.isEmpty() && (ql.at(0).elapsed() > (1000000ULL * mp.iBanTimeframe)))
+	while (!ql.isEmpty() && (ql.at(0).elapsed() > (1000000ULL * static_cast< unsigned long long >(mp->iBanTimeframe))))
 		ql.removeFirst();
 
-	if (ql.count() > mp.iBanTries) {
+	if (ql.count() > mp->iBanTries) {
 		qhBans.insert(addr, Timer());
 		return true;
 	}

@@ -1,4 +1,4 @@
-// Copyright 2009-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -15,17 +15,13 @@ class LogTextBrowser : public QTextBrowser {
 private:
 	Q_OBJECT
 	Q_DISABLE_COPY(LogTextBrowser)
-protected:
-	void resizeEvent(QResizeEvent *e) Q_DECL_OVERRIDE;
-	bool event(QEvent *e) Q_DECL_OVERRIDE;
 
 public:
 	LogTextBrowser(QWidget *p = nullptr);
 
 	int getLogScroll();
-	int getLogScrollMaximum();
 	void setLogScroll(int scroll_pos);
-	void scrollLogToBottom();
+	bool isScrolledToBottom();
 };
 
 class ChatbarTextEdit : public QTextEdit {
@@ -33,10 +29,12 @@ private:
 	Q_OBJECT
 	Q_DISABLE_COPY(ChatbarTextEdit)
 	void inFocus(bool);
+	void applyPlaceholder();
 	QStringList qslHistory;
 	QString qsHistoryTemp;
 	int iHistoryIndex;
 	static const int MAX_HISTORY = 50;
+	bool m_justPasted;
 
 protected:
 	QString qsDefaultText;
@@ -63,6 +61,7 @@ signals:
 	void backtabPressed(void);
 	void ctrlSpacePressed(void);
 	void entered(QString);
+	void ctrlEnterPressed(QString);
 	void pastedImage(QString);
 public slots:
 	void pasteAndSend_triggered();

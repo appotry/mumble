@@ -1,4 +1,4 @@
-// Copyright 2009-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -32,7 +32,7 @@ CrashReporter::CrashReporter(QWidget *p) : QDialog(p) {
 
 	QHBoxLayout *hbl = new QHBoxLayout();
 
-	qleEmail = new QLineEdit(Global::get().qs->value(QLatin1String("crashemail")).toString());
+	qleEmail = new QLineEdit(Global::get().s.crashReportEmail);
 	l        = new QLabel(tr("Email address (optional)"));
 	l->setBuddy(qleEmail);
 
@@ -66,7 +66,7 @@ CrashReporter::CrashReporter(QWidget *p) : QDialog(p) {
 }
 
 CrashReporter::~CrashReporter() {
-	Global::get().qs->setValue(QLatin1String("crashemail"), qleEmail->text());
+	Global::get().s.crashReportEmail = qleEmail->text();
 	delete qnrReply;
 }
 
@@ -174,7 +174,7 @@ void CrashReporter::run() {
 			QString app        = QLatin1String("dxdiag.exe");
 			QString systemRoot = EnvUtils::getenv(QLatin1String("SystemRoot"));
 
-			if (systemRoot.count() > 0) {
+			if (!systemRoot.isEmpty()) {
 				app = QDir::fromNativeSeparators(systemRoot + QLatin1String("/System32/dxdiag.exe"));
 			}
 
@@ -204,14 +204,14 @@ void CrashReporter::run() {
 		connect(qpdProgress, SIGNAL(canceled()), qelLoop, SLOT(quit()));
 
 		QString boundary =
-			QString::fromLatin1("---------------------------%1").arg(QDateTime::currentDateTime().toTime_t());
+			QString::fromLatin1("---------------------------%1").arg(QDateTime::currentDateTime().toSecsSinceEpoch());
 
 		QString os = QString::fromLatin1("--%1\r\nContent-Disposition: form-data; "
 										 "name=\"os\"\r\nContent-Transfer-Encoding: 8bit\r\n\r\n%2 %3\r\n")
 						 .arg(boundary, OSInfo::getOS(), OSInfo::getOSVersion());
 		QString ver = QString::fromLatin1("--%1\r\nContent-Disposition: form-data; "
-										  "name=\"ver\"\r\nContent-Transfer-Encoding: 8bit\r\n\r\n%2 %3\r\n")
-						  .arg(boundary, QLatin1String(MUMTEXT(MUMBLE_VERSION)), QLatin1String(MUMBLE_RELEASE));
+										  "name=\"ver\"\r\nContent-Transfer-Encoding: 8bit\r\n\r\n%2\r\n")
+						  .arg(boundary, Version::getRelease());
 		QString email = QString::fromLatin1("--%1\r\nContent-Disposition: form-data; "
 											"name=\"email\"\r\nContent-Transfer-Encoding: 8bit\r\n\r\n%2\r\n")
 							.arg(boundary, qleEmail->text());

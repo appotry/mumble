@@ -1,4 +1,4 @@
-// Copyright 2015-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -74,7 +74,7 @@ bool Themes::applyConfigured() {
 
 	QStringList skinPaths;
 	skinPaths << qssFile.path();
-	skinPaths << QLatin1String(":/themes/Mumble"); // Some skins might want to fall-back on our built-in resources
+	skinPaths << QLatin1String(":/themes/Default"); // Some skins might want to fall-back on our built-in resources
 
 	QString themeQss = QString::fromUtf8(file.readAll());
 	setTheme(themeQss, skinPaths);
@@ -121,7 +121,7 @@ QVector< QDir > Themes::getSearchDirectories() {
 	// Next come themes found in the applications Themes directory
 	themeSearchDirectories << QDir(MumbleApplication::instance()->applicationVersionRootPath()
 								   + QLatin1String("/Themes"));
-	// Highest priorty have themes located in the user directory
+	// Highest priority have themes located in the user directory
 	themeSearchDirectories << getUserThemesDirectory();
 
 	return themeSearchDirectories;
@@ -144,5 +144,6 @@ bool Themes::readStylesheet(const QString &stylesheetFn, QString &stylesheetCont
 
 QString Themes::getDefaultStylesheet() {
 	return QLatin1String(".log-channel{text-decoration:none;}.log-user{text-decoration:none;}p{margin:0;}#qwMacWarning,"
-						 "#qwInlineNotice{background-color:#FFFEDC;border-radius:5px;border:1px solid #B5B59E;}");
+						 "#qwInlineNotice{background-color:#FFFEDC;border-radius:5px;border:1px solid #B5B59E;}"
+						 "#qwMacWarning > QLabel,#qwInlineNotice > QLabel{color:#333;}");
 }

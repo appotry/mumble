@@ -1,4 +1,4 @@
-// Copyright 2020-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -17,9 +17,13 @@
 #include <memory>
 #include <sstream>
 
-std::unique_ptr< Process > proc;
+std::unique_ptr< ProcessBase > proc;
 
+#ifdef OS_WINDOWS
+static constexpr bool isWin32 = true;
+#else
 static bool isWin32 = false;
+#endif
 
 #include "client.h"
 #include "common.h"
@@ -191,10 +195,12 @@ static bool tryInit(const std::multimap< std::wstring, unsigned long long int > 
 	};
 
 	for (const auto &name : names) {
-		const auto id = Process::find(name, pids);
-		if (!id) {
+		const auto iter = pids.find(std::wstring(name.cbegin(), name.cend()));
+		if (iter == pids.cend()) {
 			continue;
 		}
+
+		const auto id = iter->second;
 #ifdef OS_WINDOWS
 		proc.reset(new ProcessWindows(id, name));
 #else

@@ -1,11 +1,10 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
 
 #include "GlobalShortcut_unix.h"
 
-#include "EnvUtils.h"
 #include "Settings.h"
 #include "Global.h"
 
@@ -54,6 +53,7 @@ GlobalShortcutEngine *GlobalShortcutEngine::platformInit() {
 GlobalShortcutX::GlobalShortcutX() {
 	iXIopcode = -1;
 	bRunning  = false;
+	m_enabled = true;
 
 	display = XOpenDisplay(nullptr);
 
@@ -62,33 +62,56 @@ GlobalShortcutX::GlobalShortcutX() {
 		return;
 	}
 
-#ifdef Q_OS_LINUX
-	if (EnvUtils::waylandIsUsed()) {
-		qWarning("GlobalShortcutX: Global shortcuts don't work on Wayland (see "
-				 "https://github.com/mumble-voip/mumble/issues/5257)");
-		return;
-	}
+	init();
+}
 
+GlobalShortcutX::~GlobalShortcutX() {
+	stop();
+
+	if (display) {
+		XCloseDisplay(display);
+	}
+}
+
+void GlobalShortcutX::stop() {
+	bRunning = false;
+	wait();
+
+	if (m_watcher) {
+		m_watcher->deleteLater();
+		m_watcher = nullptr;
+	}
+	if (m_notifier) {
+		m_notifier->deleteLater();
+		m_notifier = nullptr;
+	}
+}
+
+bool GlobalShortcutX::init() {
+#ifdef Q_OS_LINUX
 	if (Global::get().s.bEnableEvdev) {
-		QString dir             = QLatin1String("/dev/input");
-		QFileSystemWatcher *fsw = new QFileSystemWatcher(QStringList(dir), this);
-		connect(fsw, SIGNAL(directoryChanged(const QString &)), this, SLOT(directoryChanged(const QString &)));
+		QString dir = QLatin1String("/dev/input");
+		m_watcher   = new QFileSystemWatcher(QStringList(dir), this);
+		connect(m_watcher, SIGNAL(directoryChanged(const QString &)), this, SLOT(directoryChanged(const QString &)));
 		directoryChanged(dir);
 
 		if (qsKeyboards.isEmpty()) {
-			foreach (QFile *f, qmInputDevices)
+			for (QFile *f : qmInputDevices) {
 				delete f;
+			}
 			qmInputDevices.clear();
 
-			delete fsw;
+			delete m_watcher;
+			m_watcher = nullptr;
 			qWarning(
 				"GlobalShortcutX: Unable to open any keyboard input devices under /dev/input, falling back to XInput");
 		} else {
-			return;
+			return false;
 		}
 	}
 #endif
 
+	qsRootWindows.clear();
 	for (int i = 0; i < ScreenCount(display); ++i)
 		qsRootWindows.insert(RootWindow(display, i));
 
@@ -120,14 +143,15 @@ GlobalShortcutX::GlobalShortcutX() {
 			evmask.mask_len = sizeof(mask);
 			evmask.mask     = mask;
 
-			foreach (Window w, qsRootWindows)
+			for (Window w : qsRootWindows) {
 				XISelectEvents(display, w, &evmask, 1);
+			}
 			XFlush(display);
 
-			connect(new QSocketNotifier(ConnectionNumber(display), QSocketNotifier::Read, this), SIGNAL(activated(int)),
-					this, SLOT(displayReadyRead(int)));
+			m_notifier = new QSocketNotifier(ConnectionNumber(display), QSocketNotifier::Read, this);
+			connect(m_notifier, SIGNAL(activated(int)), this, SLOT(displayReadyRead(int)));
 
-			return;
+			return true;
 		}
 	}
 #endif
@@ -135,14 +159,8 @@ GlobalShortcutX::GlobalShortcutX() {
 			 "please enable one of the other methods.");
 	bRunning = true;
 	start(QThread::TimeCriticalPriority);
-}
 
-GlobalShortcutX::~GlobalShortcutX() {
-	bRunning = false;
-	wait();
-
-	if (display)
-		XCloseDisplay(display);
+	return true;
 }
 
 // Tight loop polling
@@ -180,8 +198,8 @@ void GlobalShortcutX::run() {
 				}
 			}
 			for (int i = 8; i <= 12; ++i) {
-				bool oldstate = (mask[idx] & (1 << i)) != 0;
-				bool newstate = (mask[next] & (1 << i)) != 0;
+				bool oldstate = (mask[idx] & static_cast< unsigned int >(1 << i)) != 0;
+				bool newstate = (mask[next] & static_cast< unsigned int >(1 << i)) != 0;
 				if (oldstate != newstate) {
 					handleButton(0x110 + i, newstate);
 				}
@@ -213,6 +231,28 @@ void GlobalShortcutX::queryXIMasterList() {
 	}
 	XIFreeDeviceInfo(info);
 #endif
+}
+
+bool GlobalShortcutX::canDisable() {
+	return true;
+}
+
+bool GlobalShortcutX::enabled() {
+	return m_enabled;
+}
+
+void GlobalShortcutX::setEnabled(bool enabled) {
+	if (enabled == m_enabled && (enabled != bRunning)) {
+		return;
+	}
+
+	m_enabled = enabled;
+
+	if (!m_enabled) {
+		stop();
+	} else {
+		m_enabled = init();
+	}
 }
 
 // XInput2 event is ready on socketnotifier.
@@ -311,7 +351,7 @@ void GlobalShortcutX::directoryChanged(const QString &dir) {
 		return;
 	}
 
-	QDir d(dir, QLatin1String("event*"), 0, QDir::System);
+	QDir d(dir, QLatin1String("event*"), {}, QDir::System);
 	foreach (QFileInfo fi, d.entryInfoList()) {
 		QString path = fi.absoluteFilePath();
 		if (!qmInputDevices.contains(path)) {

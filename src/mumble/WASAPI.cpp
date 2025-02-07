@@ -1,4 +1,4 @@
-// Copyright 2008-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -21,7 +21,7 @@
 // Now that Win7 is published, which includes public versions of these
 // interfaces, we simply inherit from those but use the "old" IIDs.
 
-// Note that the DEFINE_GUID macro here only declares the existance of the respective variables
+// Note that the DEFINE_GUID macro here only declares the existence of the respective variables
 // as extern variables. The actual initialization of these variables happens in WinGUIDs.cpp
 DEFINE_GUID(IID_IVistaAudioSessionControl2, 0x33969B1DL, 0xD06F, 0x4281, 0xB8, 0x37, 0x7E, 0xAA, 0xFD, 0x21, 0xA9,
 			0xC0);
@@ -137,7 +137,7 @@ bool WASAPIInputRegistrar::isMicrophoneAccessDeniedByOS() {
 /// @param waveFormatEx WAVEFORMATEX structure to store getMixFormat result in
 /// @param waveFormatExtensible If waveFormatEx is of type WAVEFORMATEXTENSIBLE receives a cast pointer.
 /// @param sampleFormat Receives either SampleFloat or SampleShort as valid format
-/// @return True if mix format is ok. False if incompatible or another error occured.
+/// @return True if mix format is ok. False if incompatible or another error occurred.
 
 template< typename SAMPLEFORMAT > // Template on SampleFormat enum as AudioOutput and AudioInput each define their own
 bool getAndCheckMixFormat(const char *sourceName, const char *deviceName, IAudioClient *audioClient,
@@ -290,7 +290,7 @@ const QHash< QString, QString > WASAPISystem::getDevices(EDataFlow dataflow) {
 						  reinterpret_cast< void ** >(&pEnumerator));
 
 	if (!pEnumerator || FAILED(hr)) {
-		qWarning("WASAPI: Failed to instatiate enumerator: hr=0x%08lx", hr);
+		qWarning("WASAPI: Failed to instantiate enumerator: hr=0x%08lx", hr);
 	} else {
 		hr = pEnumerator->EnumAudioEndpoints(dataflow, DEVICE_STATE_ACTIVE, &pCollection);
 		if (!pCollection || FAILED(hr)) {
@@ -352,15 +352,16 @@ static IMMDevice *openNamedOrDefaultDevice(const QString &name, EDataFlow dataFl
 	IMMDevice *pDevice = nullptr;
 	// Try to find a device pointer for |name|.
 	if (!name.isEmpty()) {
-		STACKVAR(wchar_t, devname, name.length() + 1);
-		int len      = name.toWCharArray(devname);
+		std::vector< wchar_t > devname;
+		devname.resize(name.length() + 1);
+		int len      = name.toWCharArray(devname.data());
 		devname[len] = 0;
-		hr           = pEnumerator->GetDevice(devname, &pDevice);
+		hr           = pEnumerator->GetDevice(devname.data(), &pDevice);
 		if (FAILED(hr)) {
 			qWarning("WASAPI: Failed to open selected device %s %ls (df=%d, e=%d, hr=0x%08lx), falling back to default",
-					 qPrintable(name), devname, dataFlow, role, hr);
+					 qPrintable(name), devname.data(), dataFlow, role, hr);
 		} else {
-			WASAPINotificationClient::get().enlistDeviceAsUsed(devname);
+			WASAPINotificationClient::get().enlistDeviceAsUsed(devname.data());
 		}
 	}
 
@@ -901,7 +902,6 @@ void WASAPIOutput::run() {
 	HANDLE hMmThread;
 	int ns = 0;
 	unsigned int chanmasks[32];
-	QMap< DWORD, float > qmVolumes;
 	bool lastspoke = false;
 	REFERENCE_TIME bufferDuration =
 		(Global::get().s.iOutputDelay > 1) ? (Global::get().s.iOutputDelay + 1) * 100000 : 0;

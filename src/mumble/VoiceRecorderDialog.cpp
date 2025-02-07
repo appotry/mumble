@@ -1,4 +1,4 @@
-// Copyright 2010-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -19,9 +19,6 @@ VoiceRecorderDialog::VoiceRecorderDialog(QWidget *p) : QDialog(p), qtTimer(new Q
 	qtTimer->setObjectName(QLatin1String("qtTimer"));
 	qtTimer->setInterval(200);
 	setupUi(this);
-	qcbFormat->setAccessibleName(tr("Output format"));
-	qleTargetDirectory->setAccessibleName(tr("Target directory"));
-	qleFilename->setAccessibleName(tr("Filename"));
 
 	qleTargetDirectory->setText(Global::get().s.qsRecordingPath);
 	qleFilename->setText(Global::get().s.qsRecordingFile);
@@ -113,7 +110,7 @@ void VoiceRecorderDialog::on_qpbStart_clicked() {
 		return;
 	}
 
-	if (Global::get().sh->uiVersion < 0x010203) {
+	if (Global::get().sh->m_version < Version::fromComponents(1, 2, 3)) {
 		QMessageBox::critical(this, tr("Recorder"),
 							  tr("The server you are currently connected to is version 1.2.2 or older. "
 								 "For privacy reasons, recording on servers of versions older than 1.2.3 "
@@ -162,7 +159,7 @@ void VoiceRecorderDialog::on_qpbStart_clicked() {
 
 	// Create the recorder
 	VoiceRecorder::Config config;
-	config.sampleRate      = ao->getMixerFreq();
+	config.sampleRate      = static_cast< int >(ao->getMixerFreq());
 	config.fileName        = dir.absoluteFilePath(basename + QLatin1Char('.') + suffix);
 	config.mixDownMode     = qrbDownmix->isChecked();
 	config.recordingFormat = static_cast< VoiceRecorderFormat::Format >(ifm);
@@ -192,6 +189,7 @@ void VoiceRecorderDialog::on_qpbStart_clicked() {
 
 	qpbStart->setDisabled(true);
 	qpbStop->setEnabled(true);
+	qpbStop->setFocus();
 	qgbMode->setDisabled(true);
 	qgbOutput->setDisabled(true);
 }
@@ -212,7 +210,7 @@ void VoiceRecorderDialog::on_qpbStop_clicked() {
 	qtTimer->stop();
 	recorder->stop();
 
-	// Disable stop botton to indicate we reacted
+	// Disable stop button to indicate we reacted
 	qpbStop->setDisabled(true);
 	qpbStop->setText(tr("Stopping"));
 }
@@ -257,6 +255,7 @@ void VoiceRecorderDialog::reset(bool resettimer) {
 	}
 
 	qpbStart->setEnabled(true);
+	qpbStart->setFocus();
 	qpbStop->setDisabled(true);
 	qpbStop->setText(tr("S&top"));
 

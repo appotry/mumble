@@ -1,4 +1,4 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -18,7 +18,7 @@ class QSqlDatabase;
 class QSqlQuery;
 
 class ServerDB : public QObject {
-	Q_OBJECT;
+	Q_OBJECT
 
 public:
 	/// A version number that allows us to keep track of changes we make to the DB architecture
@@ -26,7 +26,7 @@ public:
 	/// Whenever you change the DB structure (add a new table, added a new column in a table, etc.)
 	/// you have to increase this version number by one and add the respective "backwards compatibility
 	/// code" into the ServerDB code.
-	static const int DB_STRUCTURE_VERSION = 8;
+	static const int DB_STRUCTURE_VERSION = 9;
 
 	enum ChannelInfo { Channel_Description, Channel_Position, Channel_Max_Users };
 	enum UserInfo {
@@ -40,7 +40,7 @@ public:
 	};
 	ServerDB();
 	~ServerDB();
-	typedef QPair< unsigned int, QString > LogRecord;
+	typedef QPair< std::int64_t, QString > LogRecord;
 	static Timer tLogClean;
 	static QSqlDatabase *db;
 	static QString qsUpgradeSuffix;
@@ -62,16 +62,13 @@ public:
 	static bool query(QSqlQuery &, const QString &, bool fatal = true, bool warn = true);
 	static bool exec(QSqlQuery &, const QString &str = QString(), bool fatal = true, bool warn = true);
 	static bool execBatch(QSqlQuery &, const QString &str = QString(), bool fatal = true);
-	// No copy; private declaration without implementation
-	ServerDB(const ServerDB &);
 
 private:
+	ServerDB(const ServerDB &) = delete;
+	ServerDB &operator=(const ServerDB &) = delete;
+
 	static void loadOrSetupMetaPBKDF2IterationCount(QSqlQuery &query);
 	static void writeSUPW(int srvnum, const QString &pwHash, const QString &saltHash, const QVariant &kdfIterations);
-
-public slots:
-	/// Clear last_disconnect date of every user of the server
-	void clearLastDisconnect(Server *);
 };
 
 #endif

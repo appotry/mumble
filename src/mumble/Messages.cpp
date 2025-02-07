@@ -1,4 +1,4 @@
-// Copyright 2007-2021 The Mumble Developers. All rights reserved.
+// Copyright The Mumble Developers. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file at the root of the
 // Mumble source tree or at <https://www.mumble.info/LICENSE>.
@@ -25,6 +25,7 @@
 #endif
 #include "ChannelListenerManager.h"
 #include "PluginManager.h"
+#include "ProtoUtils.h"
 #include "ServerHandler.h"
 #include "TalkingUI.h"
 #include "User.h"
@@ -148,7 +149,7 @@ void MainWindow::msgServerSync(const MumbleProto::ServerSync &msg) {
 	}
 	iTargetCounter = 100;
 
-	AudioInput::setMaxBandwidth(msg.max_bandwidth());
+	AudioInput::setMaxBandwidth(static_cast< int >(msg.max_bandwidth()));
 
 	findDesiredChannel();
 
@@ -159,10 +160,6 @@ void MainWindow::msgServerSync(const MumbleProto::ServerSync &msg) {
 
 	QList< Shortcut > sc = Global::get().db->getShortcuts(Global::get().sh->qbaDigest);
 	if (!sc.isEmpty()) {
-		for (int i = 0; i < sc.count(); ++i) {
-			Shortcut &s = sc[i];
-			s.iIndex    = Global::get().mw->gsWhisper->idx;
-		}
 		Global::get().s.qlShortcuts << sc;
 		GlobalShortcutEngine::engine->bNeedRemap = true;
 	}
@@ -173,7 +170,12 @@ void MainWindow::msgServerSync(const MumbleProto::ServerSync &msg) {
 	connect(user, SIGNAL(prioritySpeakerStateChanged()), this, SLOT(userStateChanged()));
 	connect(user, SIGNAL(recordingStateChanged()), this, SLOT(userStateChanged()));
 
-	qstiIcon->setToolTip(tr("Mumble: %1").arg(Channel::get(Channel::ROOT_ID)->qsName.toHtmlEscaped()));
+	AudioInputPtr audioIn = Global::get().ai;
+	if (audioIn) {
+		audioIn->updateUserMuteDeafState(user);
+		QObject::connect(user, &ClientUser::muteDeafStateChanged, audioIn.get(),
+						 &AudioInput::onUserMuteDeafStateChanged);
+	}
 
 	// Update QActions and menus
 	on_qmServer_aboutToShow();
@@ -181,36 +183,6 @@ void MainWindow::msgServerSync(const MumbleProto::ServerSync &msg) {
 	qmChannel_aboutToShow();
 	qmUser_aboutToShow();
 	on_qmConfig_aboutToShow();
-
-	updateTrayIcon();
-
-	// Set-up all ChannelListeners and their volume adjustments as before for this server
-	QList< int > localListeners = Global::get().db->getChannelListeners(Global::get().sh->qbaDigest);
-
-	if (!localListeners.isEmpty()) {
-		Global::get().channelListenerManager->setInitialServerSyncDone(false);
-		Global::get().sh->startListeningToChannels(localListeners);
-	} else {
-		// If there are no listeners, then no synchronization is needed in the first place
-		Global::get().channelListenerManager->setInitialServerSyncDone(true);
-	}
-
-	{
-		// Since we are only loading the adjustments from the database, we don't really want to consider the adjustments
-		// to have "changed" by this action. Furthermore we are setting the volume adjustments before the listeners
-		// officially exist. Therefore some code that would receive the change-event would try to get the respective
-		// listener and fail due to it not existing yet. Therefore we block all signals while setting the volume
-		// adjustments.
-		const QSignalBlocker blocker(Global::get().channelListenerManager.get());
-
-		QHash< int, float > volumeMap =
-			Global::get().db->getChannelListenerLocalVolumeAdjustments(Global::get().sh->qbaDigest);
-		QHashIterator< int, float > it(volumeMap);
-		while (it.hasNext()) {
-			it.next();
-			Global::get().channelListenerManager->setListenerLocalVolumeAdjustment(it.key(), it.value());
-		}
-	}
 
 
 	Global::get().sh->setServerSynchronized(true);
@@ -231,7 +203,7 @@ void MainWindow::msgServerConfig(const MumbleProto::ServerConfig &msg) {
 		}
 	}
 	if (msg.has_max_bandwidth())
-		AudioInput::setMaxBandwidth(msg.max_bandwidth());
+		AudioInput::setMaxBandwidth(static_cast< int >(msg.max_bandwidth()));
 	if (msg.has_allow_html())
 		Global::get().bAllowHTML = msg.allow_html();
 	if (msg.has_message_length())
@@ -295,7 +267,7 @@ void MainWindow::msgPermissionDenied(const MumbleProto::PermissionDenied &msg) {
 				Global::get().s.bTTS  = true;
 				quint32 oflags        = Global::get().s.qmMessages.value(Log::PermissionDenied);
 				Global::get().s.qmMessages[Log::PermissionDenied] =
-					(oflags | Settings::LogTTS) & (~Settings::LogSoundfile);
+					(oflags | Settings::LogTTS) & static_cast< unsigned int >(~Settings::LogSoundfile);
 				Global::get().l->log(Log::PermissionDenied, QString::fromUtf8(Global::get().ccHappyEaster + 39)
 																.arg(Global::get().s.qsUsername.toHtmlEscaped()));
 				Global::get().s.qmMessages[Log::PermissionDenied] = oflags;
@@ -407,7 +379,7 @@ void MainWindow::msgUserState(const MumbleProto::UserState &msg) {
 	}
 
 	if (msg.has_user_id()) {
-		pmModel->setUserId(pDst, msg.user_id());
+		pmModel->setUserId(pDst, static_cast< int >(msg.user_id()));
 	}
 
 	if (channel) {
@@ -490,19 +462,17 @@ void MainWindow::msgUserState(const MumbleProto::UserState &msg) {
 			continue;
 		}
 
+		if (Global::get().channelListenerManager->isListening(pDst->uiSession, c->iId)) {
+			// We are already listening to this channel
+			continue;
+		}
+
 		Global::get().channelListenerManager->addListener(pDst->uiSession, c->iId);
 		emit userAddedChannelListener(pDst, c);
 
 		QString logMsg;
 		if (pDst == pSelf) {
 			logMsg = tr("You started listening to %1").arg(Log::formatChannel(c));
-
-			// Since ChannelListeners are sent out in bulks (all in a single message), the fact that we received
-			// a message that contains information about a ChannelListener of the local user means that we have
-			// succecssfully told the server that we are listening to the respective channels. Even if this message
-			// here has nothing to do with the actual initial synchronization, this means that we have been connected
-			// to the server long enough for the synchronization to be done.
-			Global::get().channelListenerManager->setInitialServerSyncDone(true);
 		} else if (pSelf && pSelf->cChannel == c) {
 			logMsg = tr("%1 started listening to your channel").arg(Log::formatClientUser(pDst, Log::Target));
 		}
@@ -531,6 +501,18 @@ void MainWindow::msgUserState(const MumbleProto::UserState &msg) {
 
 		if (!logMsg.isEmpty()) {
 			Global::get().l->log(Log::ChannelListeningRemove, logMsg);
+		}
+	}
+	for (int i = 0; i < msg.listening_volume_adjustment_size(); i++) {
+		unsigned int channelID = msg.listening_volume_adjustment(i).listening_channel();
+		float adjustment       = msg.listening_volume_adjustment(i).volume_adjustment();
+
+		const Channel *listenedChannel = Channel::get(channelID);
+		if (listenedChannel && pSelf && pSelf->uiSession == pDst->uiSession) {
+			Global::get().channelListenerManager->setListenerVolumeAdjustment(pDst->uiSession, listenedChannel->iId,
+																			  VolumeAdjustment::fromFactor(adjustment));
+		} else if (!listenedChannel) {
+			qWarning("msgUserState(): Invalid channel ID encountered in volume adjustment");
 		}
 	}
 
@@ -716,8 +698,6 @@ void MainWindow::msgUserState(const MumbleProto::UserState &msg) {
 								tr("You were unsuppressed by %1.").arg(Log::formatClientUser(pSrc, Log::Source)));
 					}
 				}
-
-				updateTrayIcon();
 			} else if (pSrc == pSelf) {
 				if (msg.has_mute() && msg.has_deaf() && pDst->bMute && pDst->bDeaf) {
 					Global::get().l->log(
@@ -907,8 +887,9 @@ void MainWindow::msgChannelState(const MumbleProto::ChannelState &msg) {
 			p             = nullptr; // No need to move it later
 
 			ServerHandlerPtr sh = Global::get().sh;
-			if (sh)
-				c->bFiltered = Global::get().db->isChannelFiltered(sh->qbaDigest, c->iId);
+			if (sh) {
+				c->m_filterMode = Global::get().db->getChannelFilterMode(sh->qbaDigest, c->iId);
+			}
 
 		} else {
 			qWarning("Server attempted state change on nonexistent channel");
@@ -991,25 +972,18 @@ void MainWindow::msgChannelState(const MumbleProto::ChannelState &msg) {
 	}
 
 	if (updateUI) {
-		// Passing nullptr to this function will make it do not much except fire a dataChanged event
-		// which leads to the UI being updated (reflecting the changes that just took effect).
-		this->pmModel->toggleChannelFiltered(nullptr);
+		this->pmModel->forceVisualUpdate();
 	}
 }
 
 void MainWindow::msgChannelRemove(const MumbleProto::ChannelRemove &msg) {
 	Channel *c = Channel::get(msg.channel_id());
 	if (c && (c->iId != 0)) {
-		if (c->bFiltered) {
-			ServerHandlerPtr sh = Global::get().sh;
-			if (sh)
-				Global::get().db->setChannelFiltered(sh->qbaDigest, c->iId, false);
-			c->bFiltered = false;
-		}
+		c->clearFilterMode();
 
 		if (Global::get().mw->m_searchDialog) {
 			QMetaObject::invokeMethod(Global::get().mw->m_searchDialog, "on_channelRemoved", Qt::QueuedConnection,
-									  Q_ARG(int, c->iId));
+									  Q_ARG(unsigned int, c->iId));
 		}
 
 		if (!pmModel->removeChannel(c, true)) {
@@ -1109,7 +1083,7 @@ void MainWindow::msgCryptSetup(const MumbleProto::CryptSetup &msg) {
 	} else if (msg.has_server_nonce()) {
 		const std::string &server_nonce = msg.server_nonce();
 		if (server_nonce.size() == AES_BLOCK_SIZE) {
-			c->csCrypt->uiResync++;
+			c->csCrypt->m_statsLocal.resync++;
 			if (!c->csCrypt->setDecryptIV(server_nonce)) {
 				qWarning("Messages: Cipher resync failed: Invalid nonce from the server!");
 			}
@@ -1161,16 +1135,9 @@ void MainWindow::removeContextAction(const MumbleProto::ContextActionModify &msg
 	QString action = u8(msg.action());
 
 	QSet< QAction * > qs;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
 	qs += QSet< QAction * >(qlServerActions.begin(), qlServerActions.end());
 	qs += QSet< QAction * >(qlChannelActions.begin(), qlChannelActions.end());
 	qs += QSet< QAction * >(qlUserActions.begin(), qlUserActions.end());
-#else
-	// In Qt 5.14 QList::toSet() has been deprecated as there exists a dedicated constructor of QSet for this now
-	qs += qlServerActions.toSet();
-	qs += qlChannelActions.toSet();
-	qs += qlUserActions.toSet();
-#endif
 
 	foreach (QAction *a, qs) {
 		if (a->data() == action) {
@@ -1186,8 +1153,8 @@ void MainWindow::removeContextAction(const MumbleProto::ContextActionModify &msg
 ///
 /// @param msg The message object with the respective information
 void MainWindow::msgVersion(const MumbleProto::Version &msg) {
-	if (msg.has_version())
-		Global::get().sh->uiVersion = msg.version();
+	Global::get().sh->setProtocolVersion(MumbleProto::getVersion(msg));
+
 	if (msg.has_release())
 		Global::get().sh->qsRelease = u8(msg.release());
 	if (msg.has_os()) {
@@ -1210,7 +1177,7 @@ void MainWindow::msgUserList(const MumbleProto::UserList &msg) {
 	userEdit->show();
 }
 
-/// This message is only sent by the client in oder to register/clear whisper targets. Therefore
+/// This message is only sent by the client in order to register/clear whisper targets. Therefore
 /// this implementation does nothing.
 void MainWindow::msgVoiceTarget(const MumbleProto::VoiceTarget &) {
 }
@@ -1227,7 +1194,7 @@ void MainWindow::msgPermissionQuery(const MumbleProto::PermissionQuery &msg) {
 			c->uiPermissions = 0;
 
 		// We always need the permissions of the current focus channel
-		if (current && current->iId != static_cast< int >(msg.channel_id())) {
+		if (current && current->iId != msg.channel_id()) {
 			Global::get().sh->requestChannelPermissions(current->iId);
 
 			current->uiPermissions = ChanACL::All;
@@ -1244,59 +1211,15 @@ void MainWindow::msgPermissionQuery(const MumbleProto::PermissionQuery &msg) {
 	}
 }
 
-/// This message is being received in order for the server to instruct this client which version of the CELT
-/// codec it should use.
+/// This message is being received in order for the server to instruct this client which codec it should use.
 ///
 /// @param msg The message object
 void MainWindow::msgCodecVersion(const MumbleProto::CodecVersion &msg) {
-	int alpha = msg.has_alpha() ? msg.alpha() : -1;
-	int beta  = msg.has_beta() ? msg.beta() : -1;
-	bool pref = msg.prefer_alpha();
+	if (!msg.opus()) {
+		Global::get().l->log(Log::CriticalError, tr("Server instructed us to use an audio codec different from Opus, "
+													"which is no longer supported. Disconnecting..."));
 
-#ifdef USE_OPUS
-	static bool warnedOpus = false;
-	Global::get().bOpus    = msg.opus();
-
-	if (!Global::get().oCodec && !warnedOpus) {
-		Global::get().l->log(Log::CriticalError,
-							 tr("Failed to load Opus, it will not be available for audio encoding/decoding."));
-		warnedOpus = true;
-	}
-#endif
-
-	// Workaround for broken 1.2.2 servers
-	if (Global::get().sh && Global::get().sh->uiVersion == 0x010202 && alpha != -1 && alpha == beta) {
-		if (pref)
-			beta = Global::get().iCodecBeta;
-		else
-			alpha = Global::get().iCodecAlpha;
-	}
-
-	if ((alpha != -1) && (alpha != Global::get().iCodecAlpha)) {
-		Global::get().iCodecAlpha = alpha;
-		if (pref && !Global::get().qmCodecs.contains(alpha))
-			pref = !pref;
-	}
-	if ((beta != -1) && (beta != Global::get().iCodecBeta)) {
-		Global::get().iCodecBeta = beta;
-		if (!pref && !Global::get().qmCodecs.contains(beta))
-			pref = !pref;
-	}
-	Global::get().bPreferAlpha = pref;
-
-	int willuse = pref ? Global::get().iCodecAlpha : Global::get().iCodecBeta;
-
-	static bool warnedCELT = false;
-
-	if (!Global::get().qmCodecs.contains(willuse)) {
-		if (!warnedCELT) {
-			Global::get().l->log(Log::CriticalError,
-								 tr("Unable to find matching CELT codecs with other clients. You will not be "
-									"able to talk to all users."));
-			warnedCELT = true;
-		}
-	} else {
-		warnedCELT = false;
+		Global::get().sh->disconnect();
 	}
 }
 
@@ -1332,9 +1255,13 @@ void MainWindow::msgRequestBlob(const MumbleProto::RequestBlob &) {
 ///
 /// @param msg The message object containing the suggestions
 void MainWindow::msgSuggestConfig(const MumbleProto::SuggestConfig &msg) {
-	if (msg.has_version() && (msg.version() > Version::getRaw())) {
-		Global::get().l->log(Log::Warning,
-							 tr("The server requests minimum client version %1").arg(Version::toString(msg.version())));
+	Version::full_t requestedVersion = MumbleProto::getSuggestedVersion(msg);
+	if (requestedVersion <= Version::get()) {
+		requestedVersion = Version::UNKNOWN;
+	}
+	if (requestedVersion != Version::UNKNOWN) {
+		Global::get().l->log(
+			Log::Warning, tr("The server requests minimum client version %1").arg(Version::toString(requestedVersion)));
 	}
 	if (msg.has_positional() && (msg.positional() != Global::get().s.doPositionalAudio())) {
 		if (msg.positional())
@@ -1360,14 +1287,14 @@ void MainWindow::msgPluginDataTransmission(const MumbleProto::PluginDataTransmis
 		return;
 	}
 
-	const ClientUser *sender = ClientUser::get(msg.sendersession());
-	const std::string &data  = msg.data();
+	const ClientUser *sender   = ClientUser::get(msg.sendersession());
+	const std::string &msgData = msg.data();
 
 	if (sender) {
 		static_assert(sizeof(unsigned char) == sizeof(uint8_t), "Unsigned char does not have expected 8bit size");
 		// As long as above assertion is true, we are only casting away the sign, which is fine
-		Global::get().pluginManager->on_receiveData(sender, reinterpret_cast< const uint8_t * >(data.c_str()),
-													data.size(), msg.dataid().c_str());
+		Global::get().pluginManager->on_receiveData(sender, reinterpret_cast< const uint8_t * >(msgData.c_str()),
+													msgData.size(), msg.dataid().c_str());
 	}
 }
 
